@@ -1,0 +1,21 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  ctaUrl: string;
+  showFancy?: boolean;
+}
+
+const { title, description, ctaUrl, showFancy = false } = Astro.props;
+---
+
+{description && <p>{description}</p>}
+
+{title && (
+  <button class="special font mt-4">
+    {showFancy && <div class="fancy"></div>}
+    <a href={ctaUrl} class="font no-underline border-none shadow-none" style="color:white;">
+      <span class="butttext font">{title}</span>
+    </a>
+  </button>
+)}

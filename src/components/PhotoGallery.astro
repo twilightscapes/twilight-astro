@@ -1,0 +1,164 @@
+---
+import { Image } from 'astro:assets';
+import { createReader } from '@keystatic/core/reader';
+import keystaticConfig from '../../keystatic.config';
+import GalleryLightbox from './GalleryLightbox.jsx';
+import { getEntry } from 'astro:content';
+const language = await getEntry('language', 'index');
+const reader = createReader(process.cwd(), keystaticConfig);
+const photoSettings = await reader.singletons.photoSettings.read();
+const defaultDirectory = photoSettings?.defaultDirectory || 'all';
+const galleryMode = photoSettings?.galleryMode || 'directory';
+
+const imageFiles = import.meta.glob('/public/images/photos/**/*.{jpg,jpeg,png,gif,webp,avif}', { eager: true });
+let allImages;
+if (galleryMode === 'keystatic') {
+  allImages = photoSettings?.galleryImages?.map((item) => ({
+    src: item.image,
+    alt: item.caption || '',
+    title: item.caption || '',
+    directory: 'default',
+    isDefault: true
+  })) || [];
+} else {
+  allImages = Object.entries(imageFiles).map(([path, file]) => ({
+    src: path.replace('/public', ''),
+    alt: path.split('/').pop()?.split('.')[0] || '',
+    title: path.split('/').pop()?.split('.')[0] || '',
+    directory: path.split('/').slice(-2, -1)[0],
+    isDefault: path.split('/').slice(-2, -1)[0] === defaultDirectory
+  }));
+}
+
+const directories = ['all', ...new Set(allImages.map(img => img.directory))].sort();
+const showCaptions = photoSettings?.showCaptions ?? true;
+const showGallerySelector = photoSettings?.showGallerySelector && galleryMode === 'directory';
+
+const siteSettings = await getEntry('siteSettings', 'main');
+const { defaultView } = siteSettings.data;
+---
+<div style="position:relative;">
+
+
+{showGallerySelector && (
+  <div class="cattags" style={{ maxWidth: '', margin: '0px auto 0 auto', display: 'flex', placeSelf: 'center', gap: '0', color: '' }}>
+    <select id="directorySelect" style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
+      {directories.map((dir) => (
+        <option value={dir} selected={dir === defaultDirectory}>
+          {dir === 'all' ? language.data.allimages : dir}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+
+
+
+<div class={`contentpanel ${defaultView === 'swipe' ? 'slider panels horizontal-slider' : 'grid-container'}`} style="padding-top:70px">
+  <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
+
+
+  
+  {allImages.map((image) => (
+    <div class="post-card1" data-directory={image.directory}>
+      <Image 
+        src={image.src ?? ''} 
+        alt={image.alt ?? ''}
+        width={800}
+        height={600}
+        class="object-contain rounded-image"
+        // style="border-radius: 20px;"
+      />
+      {showCaptions && (
+        <div class="image-caption">
+          <h2>{image.title}</h2>
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+
+<GalleryLightbox client:only="react" images={allImages} showCaptions={showCaptions} />
+
+
+</div>
+
+
+<style>
+
+
+.post-card1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: var(--border-radius);
+}
+img{border-radius: var(--border-radius) !important;}
+
+.image-caption {
+  margin-top: 8px;
+  text-align: center;
+  filter:brightness(.75);
+}
+
+.post-card1.hidden {
+  display: none;
+}
+
+.post-card1.visible {
+  display: block;
+}
+
+@media(max-width:48rem) {
+  #directorySelect {right:inherit; left:1rem; width:60%;}
+  body:has(.header) #directorySelect{left:0 !important; right:0 !important; }
+}
+</style>
+<script>
+  function filterImages(selectedDir: string) {
+    const galleryContainer = document.querySelector('.contentpanel');
+    if (!galleryContainer) return;
+    
+    const images = galleryContainer.querySelectorAll('.post-card1');
+    
+    images.forEach((image) => {
+      if (image instanceof HTMLElement) {
+        const imageDir = image.dataset.directory;
+        if (selectedDir === 'all' || imageDir === selectedDir) {
+          image.style.display = 'block';
+        } else {
+          image.style.display = 'none';
+        }
+      }
+    });
+  }
+  function initializeGallery() {
+    const defaultDir = (document.getElementById('directorySelect') as HTMLSelectElement)?.value || 'all';
+    filterImages(defaultDir);
+  }
+
+  document.addEventListener('DOMContentLoaded', initializeGallery);
+
+  const directorySelect = document.getElementById('directorySelect');
+  directorySelect?.addEventListener('change', (event) => {
+    if (event.target instanceof HTMLSelectElement) {
+      filterImages(event.target.value);
+      scrollToTop();
+    }
+  });
+
+  function scrollToTop() {
+    const target = document.querySelector('.contentpanel');
+    if (target?.classList.contains('horizontal-slider')) {
+      target.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    }, 100);
+  }
+</script>

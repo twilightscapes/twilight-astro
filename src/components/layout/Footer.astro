@@ -1,0 +1,41 @@
+---
+import { getMenuLinks, siteConfig } from "@/site-config";
+
+const menuLinks = await getMenuLinks();
+const year = new Date().getFullYear();
+import { getEntry } from 'astro:content';
+const siteSettings = await getEntry('siteSettings', 'main');
+const { showHome } = siteSettings.data;
+const language = await getEntry('language', 'index');
+---
+	<footer id="footer"
+		class="mt-auto flex w-full flex-col items-center justify-center gap-y-2 p-4 text-center align-top text-white-500 sm:flex-row sm:justify-between sm:text-xs"
+	>
+		<div class="me-0 sm:me-4">
+			{language.data.copyright} © {year}{" "}
+			{siteConfig.author}
+		</div>
+		<nav
+			aria-label="Menu"
+			class="flex gap-x-2 sm:gap-x-0 sm:divide-x sm:divide-gray-500"
+		>
+		<!-- {showHome && ( -->
+			<>
+			<a class="px-4 py-2 sm:px-2 sm:py-0 sm:hover:text-textColor sm:hover:underline" href="/" style="color:inherit">{language.data.homelink}</a>
+			</>
+		 <!-- )} -->
+			{
+				menuLinks.map((link: { path: string | null; title: string }) => (
+					<>
+						<a
+							href={link.path || '#'}
+							class="px-4 py-2 sm:px-2 sm:py-0 sm:hover:text-textColor sm:hover:underline"
+							style="color:inherit"
+						>
+							{link.title}
+						</a>
+					</>
+				))
+			}
+		</nav>
+	</footer>	</footer>

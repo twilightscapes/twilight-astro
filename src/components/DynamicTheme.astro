@@ -1,0 +1,68 @@
+---
+import { getEntry } from 'astro:content';
+const styleAppearance = await getEntry('styleapps', 'index');
+const resumeSettings = await getEntry('resumeSettings', 'index');
+const customCSS = styleAppearance.data.customCSS || '';
+const resumeName = resumeSettings.data.name;
+---
+<script is:inline define:vars={{ styleAppearance }}>
+  function getInitialTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+
+  function applyTheme() {
+    const root = document.documentElement;
+    
+    root.style.setProperty('--theme-bg-light', styleAppearance.data.lightBg);
+    root.style.setProperty('--theme-link-light', styleAppearance.data.lightLink);
+    root.style.setProperty('--theme-text-light', styleAppearance.data.lightText);
+    root.style.setProperty('--theme-accent-light', styleAppearance.data.lightAccent);
+    root.style.setProperty('--theme-accent2-light', styleAppearance.data.lightAccent2);
+    root.style.setProperty('--theme-header-light', styleAppearance.data.lightHeader);
+
+    root.style.setProperty('--theme-bg-dark', styleAppearance.data.darkBg);
+    root.style.setProperty('--theme-link-dark', styleAppearance.data.darkLink);
+    root.style.setProperty('--theme-text-dark', styleAppearance.data.darkText);
+    root.style.setProperty('--theme-accent-dark', styleAppearance.data.darkAccent);
+    root.style.setProperty('--theme-accent2-dark', styleAppearance.data.darkAccent2);
+    root.style.setProperty('--theme-header-dark', styleAppearance.data.darkHeader);
+
+    root.style.setProperty('--border-radius', styleAppearance.data.borderRadius);
+
+    updateCurrentTheme(root.dataset.theme);
+  }
+
+  function updateCurrentTheme(theme) {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+  }
+
+  document.documentElement.dataset.theme = getInitialTheme();
+  applyTheme();
+  document.addEventListener('astro:page-load', applyTheme);
+
+  window.toggleTheme = function() {
+    const currentTheme = document.documentElement.dataset.theme;
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    updateCurrentTheme(newTheme);
+  }
+</script>
+<style set:html={customCSS}></style>
+<style define:vars={{ resumeName }}>
+  @media print{
+    main:before {
+        content: var(--resumeName) !important;
+        display: block;
+	  margin-bottom: 10px;
+	  border: 1px solid #bbb;
+	  padding: 3px 5px;
+	  font-style: italic;
+	  text-align: center;
+    position:absolute;
+    top: 100px;
+    z-index: 1000;
+    }
+  }
+</style>

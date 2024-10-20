@@ -1,0 +1,85 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
+
+const allResumeItems = await getCollection('resume');
+const resumeSettings = await getEntry('resumeSettings', 'index');
+
+const leftColumnItems = resumeSettings?.data?.leftColumnItems || [];
+const rightColumnItems = resumeSettings?.data?.rightColumnItems || [];
+
+function sortResumeItems(items: CollectionEntry<'resume'>[], order: string[]): CollectionEntry<'resume'>[] {
+  return order.map(slug => items.find(item => item.slug === slug)).filter((item): item is CollectionEntry<'resume'> => item !== undefined);
+}
+
+const leftColumn = sortResumeItems(allResumeItems, leftColumnItems);
+const rightColumn = sortResumeItems(allResumeItems, rightColumnItems);
+
+// Render the content for each item
+const renderContent = async (items: CollectionEntry<'resume'>[]) => {
+  return Promise.all(items.map(async (item) => {
+    const { Content } = await item.render();
+    return { ...item, Content };
+  }));
+};
+
+const leftColumnRendered = await renderContent(leftColumn);
+const rightColumnRendered = await renderContent(rightColumn);
+---
+
+{resumeSettings?.data?.showTitle && <h2 class="resumetitle glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent" style="margin-bottom:2vh;" data-astro-cid-j7pv25f6="" data-astro-source-file="/Users/toddlambert/SITES/pirate/src/pages/index.astro" data-astro-source-loc="286:123">{resumeSettings.data.title}</h2>}
+<div class="keyboard" style="display:flex; justify-content:center; margin:0 auto; line-height:calc(2em + .4vw);"><span style="font-weight:bold; font-size:1.3rem;">To Print:</span>  <kbd>⌘</kbd> + <kbd>p</kbd>   OR   <kbd>Ctrl</kbd> + <kbd>p</kbd></div>
+
+<ul id="details">
+  <li><h2>{resumeSettings.data.name}</h2></li>
+  <li><h3>{resumeSettings.data.contact}</h3></li>
+</ul>
+
+<div class="resume-container panel">
+  <div class="left-column">
+    {leftColumnRendered.map(item => (
+      <div class="resume-item">
+        {item.data.showTitle && <h2 class="headline">{item.data.section}</h2>}
+        <item.Content />
+      </div>
+    ))}
+  </div>
+  <div class="right-column">
+    {rightColumnRendered.map(item => (
+      <div class="resume-item">
+        {item.data.showTitle && <h2 class="headline">{item.data.section}</h2>}
+        <item.Content />
+      </div>
+    ))}
+  </div>
+</div>
+<style>
+  .resume-container {
+    display: flex;
+    gap: 2rem;
+    padding:2vw 2vh;
+    /* column-count: 2; column-gap: 20px; */
+  }
+  .left-column, .right-column {
+    flex: 1;
+  }
+  .resume-item {
+    margin-bottom: 1rem;
+  }
+  .resume-item :global(h2),
+  .resume-item :global(h3),
+  .resume-item :global(p) {
+    margin-bottom: 1rem;
+  }
+
+  .resume-container h2.headline {font-size: 200%;}
+
+  @media (max-width: 768px) {
+    .resume-container {
+      display: block !important;
+    }
+    .left-column, .right-column {
+      width: 100%;
+    }
+  }
+</style>

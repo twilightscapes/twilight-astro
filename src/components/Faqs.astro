@@ -1,0 +1,101 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
+const faqs = await getCollection('faqs');
+const sortedFaqs = await Promise.all(faqs.map(async (faq) => {
+  const { Content } = await faq.render();
+  return { ...faq, Content };
+}));
+sortedFaqs.sort((a, b) => (((a.data.order as number) ?? 0) - ((b.data.order as number) ?? 0)));
+---
+<style>
+  .faq-content {
+    padding: 9px 25px 3rem; 
+  }
+
+  .faq-content h1 {
+    text-align: center;
+  }
+
+  .faq-accordion {
+    padding: 8px 0;
+    border-bottom: 1px solid;
+  }
+
+  input.tgg-title {
+    appearance: unset;
+    all: unset;
+  }
+
+  .faq-accordion-title label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .faq-accordion-title h3 {
+    font-weight: 400;
+  }
+
+  .faq-accordion-title span {
+    margin-left: auto;
+    transition: transform .4s ease-in-out;
+  }
+
+  .arrow-icon {
+    font-size: 32px;
+  }
+
+  .faq-accordion-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height .4s ease-in-out;
+    /* margin-top: 10px; */
+    padding: 0 10px 0 10px;
+    
+  }
+
+  .faq-accordion .tgg-title:checked + div > label > h3 {
+    font-weight: 700;
+  }
+
+  .faq-accordion .tgg-title:checked + div > label > span {
+    will-change: transform;
+    transform: rotate(180deg);
+  }
+
+  .faq-accordion .tgg-title:checked ~ .faq-accordion-content {
+    will-change: max-height;
+    max-height: 500px;
+  }
+</style>
+
+
+
+<div class="nameblock headline w-full  mx-auto backdrop-blur-[12px]">
+  <div class="card-wrapper | content-cc" style="width:100%; max-width:800px; margin:0 auto;">
+    <div class="faq-card">
+      <main class="faq-content">
+        {sortedFaqs.map((faq) => (
+          <article class="faq-accordion">
+            <input type="checkbox" class="tgg-title" id={`tgg-title-${faq.id}`} />
+            <div class="faq-accordion-title">
+              <label for={`tgg-title-${faq.id}`}>
+                <h3>{faq.data.question}</h3>
+                <span class="arrow-icon">
+                  <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg"><path d="m12 19.24-4.95-4.95-1.41 1.42L12 22.07l6.36-6.36-1.41-1.42L12 19.24zM5.64 8.29l1.41 1.42L12 4.76l4.95 4.95 1.41-1.42L12 1.93 5.64 8.29z"></path></svg>
+                </span>
+              </label>
+            </div>
+            <div class="faq-accordion-content">
+              <div style="background: rgba(0, 0, 0, 0.1); padding:15px 10px 20px 10px; border-radius: var(--border-radius);">
+                <faq.Content />
+              </div>
+            </div>
+          </article>
+        ))}
+      </main>
+    </div>
+  </div>
+</div>

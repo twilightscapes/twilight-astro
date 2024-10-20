@@ -1,0 +1,120 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+const meta = {
+	description: "Contact",
+	title: "Contact",
+};
+
+---
+
+<style >
+
+
+
+
+  input, select {
+    font-size: 16px !important;
+  }
+
+input {
+    font-size: 16px !important;
+    padding: 10px;
+    margin:1vh auto;
+    background:#000;
+    border: 1px solid var(--theme-accent2) !important;
+    color:#fff;
+      padding:.4vh 2vw !important; height:30px !important; outline:1px solid var(--theme-accent2); border-radius: 5px; background:rgba(28, 23, 23, 0.8);
+  }
+  input, textarea{background-color: rgba(0, 0, 0, 0.8); color:#ddd; padding:.3vh .5vw; width:100%;}
+
+input::placeholder,textarea::placeholder{color:rgb(253, 255, 253); font-size:clamp(.8rem,1.5vw,2.2rem) !important;}
+
+
+textarea{ height:30vh; padding:.4vh 2vw !important; outline:1px solid var(--theme-accent2); border-radius: 5px; background:rgba(28, 23, 23, 0.8);}
+
+.stripe-button {
+  background-color:var(--theme-accent2);
+  color: #fff;
+  border: none;
+  padding: 10px 3vw;
+  font-size:clamp(1.1rem, 1vw, 1.4rem);
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  margin:0 auto;
+  transition: opacity 0.5s ease-in;
+}
+
+.backimage{display:none !important;}
+
+</style>
+
+
+
+
+<PageLayout meta={meta}>
+
+    <br /><br />
+          
+
+<div class="" style={{display:'flex', flexDirection:'row', justifyContent:'center', width:'98%', zIndex:'20' }}>
+  <!-- <div style="display:grid; place-content:center; justify-content:center; width:100%;">
+	<h1 style={{textAlign:'center', fontSize: 'clamp(1.3rem, 2vw, 3rem)'}}><a href="tel:6013851781">(601) 385-1781</a></h1>
+</div> -->
+        <form
+              class=""
+              name="contact"
+              method="POST"
+              data-netlify="true"
+              data-netlify-honeypot="bot-field"
+              action="/thanks"
+              enc-type="multipart/form-data"
+              style="width:90%; max-width:320px;"
+      
+            ><input type="hidden" name="form-name" value="contact" />
+                <p>
+                  <label html-for="name" aria-label="Your Name">
+                    <input type="text" id="name" name="name" placeholder="Your Name" required />
+                  </label>
+                </p>
+    
+
+              <p>
+                <label html-for="email" aria-label="Your Email">
+                  <input id="email" type="email" name="email" placeholder="Your@email.com"  required />
+                </label>
+              </p>
+
+
+                <p>
+                  <label html-for="phone" aria-label="Your Phone">
+                    <input type="tel" id="phone" name="phone" placeholder="Your Phone"  />
+                  </label>
+                </p>
+    <br />
+
+              <p>
+                <label html-for="message" aria-label="Your Message">
+                  <textarea id="message" name="message" placeholder="Message"  required></textarea>
+                </label>
+              </p>
+
+
+
+
+              <div class="" style="display:grid; place-items: center; margin:1vh auto; color: #fff; width:100%; border:0px solid var(--theme-accent2);">
+                <button
+                  class="button stripe-button"
+                  style=" margin:0"
+                  type="submit"
+                >
+                  Send Message
+                </button>
+              </div> 
+            </form>
+        
+	</div>
+
+
+</PageLayout>

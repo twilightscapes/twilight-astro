@@ -1,0 +1,29 @@
+showFeature: false
+featureImage:
+  src: /images/homepage/featureImage/src.webp
+  alt: Become A PIRATE!
+youtube:
+  discriminant: false
+cta: become a pirate
+showBioOnHome: true
+showApp: false
+showHomeGallery: true
+showResume: false
+showPosts: false
+showMore: false
+showFaqOnHome: false
+showTestOnHome: false
+pitch: How It Works
+pitch2: Social Media That YOU Control
+pitch3: High Seas Freedom
+featureOrder: 10
+bioOrder: 2
+appOrder: .nan
+galleryOrder: 1
+postsOrder: 7
+resumeOrder: 8
+faqOrder: 6
+testimonialsOrder: 9
+infoblockOrder: 3
+infoblock2Order: 4
+infoblock3Order: 5

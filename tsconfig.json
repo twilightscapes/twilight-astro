@@ -1,0 +1,25 @@
+{
+	"extends": "astro/tsconfigs/strict",
+	"compilerOptions": {
+	  "baseUrl": ".",
+	  "lib": ["es2022", "dom", "dom.iterable"],
+	  "paths": {
+		"@/assets/*": ["src/assets/*"],
+		"@/public/*": ["public/images/*"],
+		"@/components/*": ["src/components/*"],
+		"@/data/*": ["src/data/*"],
+		"@/pages/*": ["src/pages/*"],
+		"@/layouts/*": ["src/layouts/*"],
+		"@/styles/*": ["src/styles/*"],
+		"@/utils": ["src/utils/index.ts"],
+		"@/types": ["src/types.ts"],
+		"@/site-config": ["src/site.config.ts"]
+	  },
+	  "jsx": "react-jsx",
+	  "jsxImportSource": "react",
+	  "types": ["astro/client"]
+	},
+	"include": ["./.eslintrc.cjs", "**/*"],
+	"exclude": ["node_modules", "**/node_modules/*", ".vscode", "dist"]
+  }
+  

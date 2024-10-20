@@ -1,0 +1,42 @@
+---
+import { getEntry, getCollection } from 'astro:content';
+import { Icon } from "astro-icon/components";
+import BlueCheck from "@/components/BlueCheck.astro";
+
+const siteSettings = await getEntry('siteSettings', 'main');
+const { showCheck } = siteSettings.data;
+
+const socialLinks = await getCollection('socialLinks') as unknown as Array<{
+  id: string;
+  data: {
+    link: string;
+    icon: string;
+    isWebmention: boolean;
+  };
+}>;
+---
+
+<div class="flex flex-wrap items-end gap-x-2" style="justify-content:center;">
+	<ul class="flex items-center gap-x-2" style="margin:0 auto 3vh auto;">
+		<li class="flex">
+			<a
+					class="inline-block p-1 sm:hover:text-link"
+					href="https://piratesocial.org"
+					rel={`noopener noreferrer `}
+					target="_blank"
+				>{showCheck && <BlueCheck />}</a></li>
+		{socialLinks.map((link) => (
+			<li class="flex">
+				<a
+					class="inline-block p-1 sm:hover:text-link"
+					href={link.data.link}
+					rel={`noopener noreferrer ${link.data.isWebmention ? "me authn" : ""}`}
+					target="_blank"
+				>
+					<Icon aria-hidden="true" class="h-10 w-10" focusable="false" name={link.data.icon} />
+					<span class="sr-only">{link.id}</span>
+				</a>
+			</li>
+		))}
+	</ul>
+</div>

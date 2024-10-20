@@ -1,0 +1,12 @@
+showRobots: false
+siteUrl: https://twilightscapes.com
+name: Twilightscapes
+shortName: Twilightscapes
+screenshot: /images/pwa/screenshot.png
+description: Become A PIRATE!
+themeColor: rgba(0, 0, 0, 1)
+backgroundColor: rgba(0, 0, 0, 1)
+startUrl: /
+display: standalone
+icon192: /images/pwa/icon192.png
+icon512: /images/pwa/icon512.png

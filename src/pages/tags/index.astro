@@ -1,0 +1,54 @@
+---
+import PageLayout from "@/layouts/Base.astro";
+import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
+import GoBack from "@/components/GoBack.astro";
+import { getEntry } from 'astro:content';
+const siteSettings = await getEntry('siteSettings', 'main');
+const { defaultView } = siteSettings.data;
+const language = await getEntry('language', 'index');
+
+const allPosts = await getAllPosts();
+const allTags = getUniqueTagsWithCount(allPosts);
+
+const meta = {
+	description: "A list of all the topics I've written about in my posts",
+	title: "All Tags",
+};
+---
+
+<PageLayout meta={meta}>
+	<GoBack  />
+	<div style="padding:0 4%;">
+	<h1 class="title my-4">{language.data.tags}</h1>
+</div>
+	<ul class="" style="padding:0 1%; margin:0 auto; width: 99%">
+
+		<div class={`contentpanel ${defaultView === 'swipe' ? 'slider panels horizontal-slider' : 'grid-container'}`} >
+			<!-- <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} /> -->
+		
+		{
+			allTags.map(([tag, val]) => (
+				<div class="post-card1 button">
+					<a
+						class=" inline-block"
+						data-astro-prefetch
+						href={`/tags/${tag}/`}
+						title={`View posts with the tag: ${tag}`}
+						 style="display:grid; place-content: center; padding:15vh 25vw;"
+					>
+						&#35;{tag}
+					
+					<span class="inline-block">
+						 ({val}) {val > 1 && ""}
+					</span></a>
+				</div>
+			))
+		}
+
+
+
+
+
+	</ul>
+
+</PageLayout>
