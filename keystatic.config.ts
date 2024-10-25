@@ -4,7 +4,7 @@ import { colorPicker } from './src/components/ColorPicker.tsx';
 export default config({
   storage: import.meta.env.PROD ? { kind: 'cloud' } : { kind: 'local' },
   cloud: import.meta.env.PROD
-    ? { project: import.meta.env.VITE_KEYSTATIC_PROJECT || 'pirate/pirate' }
+    ? { project: import.meta.env.VITE_KEYSTATIC_PROJECT || 'twilightscapes/twilight-astro' }
     : undefined,
   collections: {
     posts: collection({
