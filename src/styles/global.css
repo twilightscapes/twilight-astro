@@ -59,6 +59,7 @@ body {
 	  body {
 		font-family: var(--font-family);
 		line-height: 1.5;
+		background-color: var(--theme-bg);
 		color: var(--theme-text);
 		z-index: 0;
 		min-height: 100dvh;
@@ -136,7 +137,7 @@ body {
 		font-size: clamp(1.3rem, 2.4vw, 1rem);
 		text-shadow: 0 2px 2px #333;
 		backdrop-filter: blur(12px);
-		text-transform: uppercase;
+		/* text-transform: uppercase; */
 		z-index: 0;
 		text-decoration: none;
 		border: none;
@@ -244,7 +245,7 @@ body {
 	  
 	  header.header {height:0;}
 
-	  #missioncontrol{line-height: 1; position:fixed; bottom:0; left:0; right:0; z-index:10; color:#fff; fill:#fff; background: var(--theme-header);  border-radius:var(--border-radius); border-bottom-right-radius: 0; border-bottom-left-radius: 0; opacity:.95; padding:.5vh 1vw; }
+	  #missioncontrol{line-height: 1; position:fixed; bottom:0; left:0; right:0; z-index:10; color:#fff; fill:#fff; background: var(--theme-header);  border-radius:var(--border-radius); border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
 	  
 	  #missioncontrol button{margin-top:1vh; margin-bottom:1vh;}
 
@@ -264,9 +265,11 @@ body {
 		border-radius:var(--border-radius);
 	  } */
 
-#gobacker.button{margin:0 auto; max-width: 200px; height:60px; padding:1rem !important;}
+/* #gobacker.button{margin:0 auto; max-width: 200px; height:60px; padding:1rem; } */
 
-#gobacker {position: absolute !important; bottom:0;  right:60px !important;}
+#gobacker {position: absolute !important; right:60px !important; background:var(--theme-header) !important;}
+
+button.topper{background:var(--theme-header) !important;}
 
 /* body.home #gobacker{display: none;} */
 	  /* #gobacker{position:fixed; display:flex;  right:10px; z-index:5; top:65px;} */
@@ -307,6 +310,7 @@ body {
 		display: grid;
 		list-style: none;
 		column-gap: 2vw;
+		row-gap: 2vw;
 		padding: 0 2% 10vh;
 		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 		transition: transform .2s;
@@ -505,7 +509,7 @@ body {
 
 	  body:has(.header) #directorySelect{top:5px !important;}
 
-	  /* body:has(.home) #footer{display: none;} */
+	  body:has(.home) #footer{display: none;}
 
 	  #footer{padding-bottom: 80px;}
 

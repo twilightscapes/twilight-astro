@@ -14,9 +14,10 @@ log_change() {
 # Save line 7 from keystatic.config.ts before any changes
 LINE_7=$(sed -n '7p' keystatic.config.ts)
 
-# Backup user content
+# Backup user content and config
 cp -r src/content user_content_backup
-log_change "Backed up user content"
+cp src/content/config.ts config_backup.ts
+log_change "Backed up user content and config"
 
 # Clone the central repository
 git clone --branch $BRANCH_OR_TAG --depth 1 $THEME_REPO_URL tmp_theme
@@ -27,12 +28,16 @@ rm -rf src
 mv tmp_theme/src .
 log_change "Replaced src folder"
 
-# Restore user content, excluding config.ts
-rsync -av --exclude='config.ts' user_content_backup/ src/content/
-log_change "Restored user content"
+# Remove the new content directory that came with the theme update
+rm -rf src/content
 
-# Copy the new config.ts from the theme update if it exists
-[ -f tmp_theme/src/content/config.ts ] && cp tmp_theme/src/content/config.ts src/content/
+# Restore the original content directory from backup
+mv user_content_backup src/content
+log_change "Restored original content"
+
+# Update only the config.ts if there's a new version
+[ -f tmp_theme/src/content/config.ts ] && cp tmp_theme/src/content/config.ts src/content/config.ts
+log_change "Updated config.ts"
 
 # Replace root configuration files if they exist
 for file in astro.config.mjs keystatic.config.ts netlify.toml package.json README.md tsconfig.json tailwind.config.cjs postcss.config.cjs; do
@@ -45,7 +50,7 @@ log_change "Updated keystatic.config.ts (Project settings)"
 
 # Clean up
 rm -rf tmp_theme
-rm -rf user_content_backup
+rm -f config_backup.ts
 log_change "Cleaned up temporary files"
 
 echo "Theme updated successfully!"

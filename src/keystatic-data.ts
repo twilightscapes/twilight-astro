@@ -1,6 +1,7 @@
 import { createReader } from '@keystatic/core/reader';
 import config from '../keystatic.config';
 
+
 type ReaderType = {
   collections: {
     [key: string]: {
@@ -24,3 +25,13 @@ export const getSiteSettings = async () => {
 export const getSocialLinks = async () => {
   return await reader.collections.socialLinks.all();
 };
+
+export type RssFeed = {
+  name: string;
+  rssFeedUrl: string;
+};
+
+export async function getRssFeeds(): Promise<RssFeed[]> {
+  const feeds = await reader.collections.rssFeeds.all();
+  return feeds.map((feed) => feed.entry);
+}

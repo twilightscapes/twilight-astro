@@ -13,7 +13,9 @@ const resumeName = resumeSettings.data.name;
 
   function applyTheme() {
     const root = document.documentElement;
-    
+    const body = document.body;
+    const theme = root.dataset.theme;
+  
     root.style.setProperty('--theme-bg-light', styleAppearance.data.lightBg);
     root.style.setProperty('--theme-link-light', styleAppearance.data.lightLink);
     root.style.setProperty('--theme-text-light', styleAppearance.data.lightText);
@@ -30,10 +32,13 @@ const resumeName = resumeSettings.data.name;
 
     root.style.setProperty('--border-radius', styleAppearance.data.borderRadius);
 
-    updateCurrentTheme(root.dataset.theme);
-  }
+    // Add this check before setting the body background color
+    if (body) {
+      body.style.backgroundColor = getComputedStyle(root).getPropertyValue(`--theme-bg-${theme}`);
+    }
 
-  function updateCurrentTheme(theme) {
+    updateCurrentTheme(root.dataset.theme);
+  }  function updateCurrentTheme(theme) {
     const root = document.documentElement;
     root.dataset.theme = theme;
     localStorage.setItem('theme', theme);
@@ -47,6 +52,7 @@ const resumeName = resumeSettings.data.name;
     const currentTheme = document.documentElement.dataset.theme;
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     updateCurrentTheme(newTheme);
+    applyTheme();
   }
 </script>
 <style set:html={customCSS}></style>

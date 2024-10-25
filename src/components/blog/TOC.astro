@@ -13,10 +13,12 @@ const { headings } = Astro.props;
 
 const toc = generateToc(headings);
 ---
-
-<aside class="sticky1" style="position:relative; top:0; right:-10%;  width:20vw; background:var(--theme-header); padding:1vh 1vw; z-index: 1; color:#fff;">
+<!-- uncomment for TOCs -->
+<!-- <aside class="sticky1" style="position:relative; top:0; right:-10%;  width:20vw; background:var(--theme-header); padding:1vh 1vw; z-index: 1; color:#fff;">
+	
 	
 	<ul class="my-2 text-xs">
 		{toc.map((heading) => <TOCHeading heading={heading} />)}
 	</ul>
 </aside>
+ -->

@@ -1,25 +1,23 @@
 <div align="center">
+  <a href="https://pirateweb.org">
+    <img src="public/images/logo/logoImage.svg" alt="Logo" width="30%" height="auto">
+  </a>
+  </div>
+
+<div align="center">
 <!--   <a href="https://pirateweb.org">
     <img src="public/images/homepage/featureImage/src.webp" alt="Logo" width="100%" height="auto">
   </a>
  -->
   
 
-https://github.com/user-attachments/assets/1f2cb472-cffe-4c51-ae21-c61a37003172
+<!-- https://github.com/user-attachments/assets/1f2cb472-cffe-4c51-ae21-c61a37003172 -->
 
 
   <strong align="center" style="font-size:30px">You're the Captain now!</strong>
 </div>
 
-PIRATE is not your typical social network. It's a decentralized network of individualy owned personal websites acting together as a new social content distribution model.
 
-Here's how it works: instead of relying on a central platform, PIRATE leverages the power of Netlify and GitHub to utelize their free services for hosting your own platorm. Your individual website becomes your hub for social interactions on both PIRATE and other social media. The content you produce, you fully own and control the rights to.
-
-More than just a collection of individual websites, PIRATE uses the magic of RSS feeds, you can enjoy a central timeline that aggregates posts from across the network. You get to see what others are sharing, discover new voices, and engage in meaningful conversations.
-
-Your PIRATE website is actually a Progressive Web App (PWA), which means you can access it seamlessly from any of your devices. Being a PWA also means there are no App Stores to worry about!
-
-PIRATE gives you the tools to easily edit your homepage, update your profile, and publish engaging posts. It's super easy to get started, without any complicated technical barriers.
 
 <!-- <p align="left">PIRATE is a new social network with NO central control or ownership. It's based on leading Open-Source platforms and runs on individually owned websites.</p> -->
 
@@ -35,11 +33,7 @@ PIRATE gives you the tools to easily edit your homepage, update your profile, an
 
 <p align="center"><strong>PIRATE can be used on Netlify, Vercel, or Github</strong></p>
 
-<div align="center">
-  <a href="https://pirateweb.org">
-    <img src="public/images/logo/logoImage.svg" alt="Logo" width="30%" height="auto">
-  </a>
-  </div>
+
 <div align="center">
 <br />
     <a href="https://pirateweb.org">View Demo</a>
@@ -50,6 +44,17 @@ PIRATE gives you the tools to easily edit your homepage, update your profile, an
   </p>
 </div>
 
+<br />
+<div align="center">
+
+
+# Install PIRATE &nbsp; | &nbsp; Quick Start
+
+[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/piratesocial/pirate) 
+
+<!-- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftwilightscapes%2Fpirate&project-name=astro-pirate-theme) -->
+
+</div>
 
 ## 🏴‍☠️ Web Features
 
@@ -78,11 +83,24 @@ PIRATE gives you the tools to easily edit your homepage, update your profile, an
 - PiRATE Social features coming soon
 
 
+## 🏴‍☠️ PIRATE Social
+
+PIRATE is not your typical social network. It's a decentralized network of individualy owned personal websites acting together as a new social content distribution model.
+
+Here's how it works: instead of relying on a central platform, PIRATE leverages the power of Netlify and GitHub to utelize their free services for hosting your own platorm. Your individual website becomes your hub for social interactions on both PIRATE and other social media. The content you produce, you fully own and control the rights to.
+
+More than just a collection of individual websites, PIRATE uses the magic of RSS feeds, you can enjoy a central timeline that aggregates posts from across the network. You get to see what others are sharing, discover new voices, and engage in meaningful conversations.
+
+Your PIRATE website is actually a Progressive Web App (PWA), which means you can access it seamlessly from any of your devices. Being a PWA also means there are no App Stores to worry about!
+
+PIRATE gives you the tools to easily edit your homepage, update your profile, and publish engaging posts. It's super easy to get started, without any complicated technical barriers.
+
+
 <div align="center">
 
 <br />
 <h3>Technology Stack</h3>
-PIRATE is built on industry leading technologies, and is designed from the ground up, using the best, most secure and modern development technology stack available today: <h2 style="font-size:30px;"><strong><i>T R A N G K</i></strong></h2>
+PIRATE is built on industry leading technologies, and is designed from the ground up, using the best, most secure and modern development technology stack available today: <h3 style="font-size:30px;"><strong><i>T R A N G K</i></strong></h3>
 <a href=""><img alt="" role="presentation" aria-hidden="true" src="public/images/partners/typescript-logo.webp" width="16%" height="auto" /></a>
 <a href="https://react.dev"><img alt="React Logo" role="presentation" aria-hidden="true" src="public/images/partners/react-logo.webp" width="14%" height="auto" /></a>
 <a href="https://astro.build"><img alt="Astro Logo" role="presentation" aria-hidden="true" src="public/images/partners/Astro-logo.webp" width="15%" height="auto" /></a>
@@ -91,22 +109,11 @@ PIRATE is built on industry leading technologies, and is designed from the groun
 <a href="https://keystatic.com"><img alt="Keystatic Logo" role="presentation" aria-hidden="true" src="public/images/partners/keystatic-logo.webp" width="16%" height="auto" /></a>
 
 
-<br />
-</div>
-
-
-<div align="center">
-<br /><br />
-
-## Get Started Now
-### Quick start
-
-[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/twilightscapes/pirate) 
-
-<!-- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftwilightscapes%2Fpirate&project-name=astro-pirate-theme) -->
-
 <br /><br />
 </div>
+
+
+
 
 
 
@@ -120,7 +127,7 @@ PIRATE is built on industry leading technologies, and is designed from the groun
 - In order to to do so online, you will need to create a free account @ [KeyStatic Cloud](https://keystatic.cloud)
 - Connect your Keystatic account to your Github repo
 <!-- - Copy/paste the Keystatic project settings into your Netlify Env Variables -->
-- Copy and Paste the Keystatic Cloud project settings you are given into this file:     [https://github.com/YourGitAccount/YourRepo/edit/main/keystatic.config.ts](https://github.com/twilightscapes/pirate/edit/main/keystatic.config.ts)
+- Copy and Paste the Keystatic Cloud project settings you are given into this file:     [https://github.com/YourGitAccount/YourRepo/edit/main/keystatic.config.ts](https://github.com/piratesocial/pirate/edit/main/keystatic.config.ts)
 Edit this file on line 7 - replace "pirate/pirate" with your project settings from Keystatic Cloud.
 - Redeploy your site on Netlify and then go to yoursite.netlify.app/admin to login to the CMS and configure the rest of your site.
 

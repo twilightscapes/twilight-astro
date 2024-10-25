@@ -2,11 +2,15 @@
 
 import { getEntry } from 'astro:content';
 const bioContent = await getEntry('bio', 'index');
+
+
 import { Image } from 'astro:assets';
 import CTAs from '@/components/CTAs.astro';
 import SocialList from "@/components/SocialList.astro";
 const cta = bioContent.data.cta ? await getEntry('ctas', bioContent.data.cta) : null
 const showSocial = bioContent.data.showSocial
+const formattedDescription = (bioContent.data.description ?? '').replace(/\n/g, '<br>');
+
 
 ---
 <section id="profile" class="scroll-area1 w-screen" style="backdrop-filter: blur(8px); padding-bottom:5vh;">
@@ -19,7 +23,9 @@ const showSocial = bioContent.data.showSocial
           <h2 class="tagline1 text-[clamp(1.2rem,2vw,3rem)] text-center mb-4">{bioContent.data.tagline}</h2>
 
           <div class="description text-lg md:text-xl lg:text-2xl px-4" style="width:100%;">
-            <p class="text-left p-4" style="padding-left:10%;">{bioContent.data.description}</p>
+            <p class="text-left p-4" style="padding-left:10%;" set:html={formattedDescription}></p>
+
+
           </div>
         </div>
 

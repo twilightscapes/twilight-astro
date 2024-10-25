@@ -23,12 +23,12 @@ const language = await getEntry('language', 'index');
 
 <button
   id="gobacker"
-  class="flex h-10 items-center justify-center rounded-md ring-zinc-400 hover:ring-2 transition-all"
-  style="display: none;"
+  class="flex w-10 h-10 p4 items-center justify-center rounded-md ring-zinc-400 hover:ring-2 transition-all"
+  style="display: none; bottom:0; flex-direction: column;"
 >
-    <svg aria-label="Go Back" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"><path fill="currentColor" d="M20 10v4h-9l3.5 3.5l-2.42 2.42L4.16 12l7.92-7.92L14.5 6.5L11 10z"/></svg>
+    <svg class="w-8 h-8" aria-label="Go Back" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 10v4h-9l3.5 3.5l-2.42 2.42L4.16 12l7.92-7.92L14.5 6.5L11 10z"/></svg>
   
-  <span class="" style="font-size:12px; font-weight: bold;">{language.data.goback}</span>
+<span class="--theme-header" style="font-size:10px; font-weight: bold;">{language.data.goback}</span>
 </button>
 
 
