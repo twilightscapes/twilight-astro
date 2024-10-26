@@ -24,6 +24,7 @@ const socialLinks = await getCollection('socialLinks') as unknown as Array<{
 					href="https://piratesocial.org"
 					rel={`noopener noreferrer `}
 					target="_blank"
+					aria-label="Pirate Social"
 				>{showCheck && <BlueCheck />}</a></li>
 		{socialLinks.map((link) => (
 			<li class="flex">
@@ -32,6 +33,7 @@ const socialLinks = await getCollection('socialLinks') as unknown as Array<{
 					href={link.data.link}
 					rel={`noopener noreferrer ${link.data.isWebmention ? "me authn" : ""}`}
 					target="_blank"
+					aria-label="Link to Social Site"
 				>
 					<Icon aria-hidden="true" class="h-10 w-10" focusable="false" name={link.data.icon} />
 					<span class="sr-only">{link.id}</span>

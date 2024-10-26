@@ -27,19 +27,19 @@ const leftColumnRendered = await renderContent(leftColumn);
 const rightColumnRendered = await renderContent(rightColumn);
 ---
 
-{resumeSettings?.data?.showTitle && <h2 class="resumetitle panel glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent" data-astro-cid-j7pv25f6="" data-astro-source-file="/Users/toddlambert/SITES/pirate/src/pages/index.astro" data-astro-source-loc="286:123">{resumeSettings.data.title}</h2>}
+{resumeSettings?.data?.showTitle && <div class="resumetitle font panel glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent">{resumeSettings.data.title}</div>}
 <div class="keyboard panel" style="display:flex; justify-content:center; margin:0 auto; line-height:calc(2em + .4vw);"><span style="font-weight:bold; font-size:1.3rem;">To Print:</span>  <kbd>⌘</kbd> + <kbd>p</kbd>   OR   <kbd>Ctrl</kbd> + <kbd>p</kbd></div>
 
 <ul id="details">
-  <li><h2>{resumeSettings.data.name}</h2></li>
-  <li><h3>{resumeSettings.data.contact}</h3></li>
+  <li>{resumeSettings.data.name}</li>
+  <li>{resumeSettings.data.contact}</li>
 </ul>
 
 <div class="resume-container panel">
   <div class="left-column">
     {leftColumnRendered.map(item => (
       <div class="resume-item">
-        {item.data.showTitle && <h2 class="headline">{item.data.section}</h2>}
+        {item.data.showTitle && <div class="headline font" style="font-size:200%;">{item.data.section}</div>}
         <item.Content />
       </div>
     ))}
@@ -47,7 +47,7 @@ const rightColumnRendered = await renderContent(rightColumn);
   <div class="right-column">
     {rightColumnRendered.map(item => (
       <div class="resume-item">
-        {item.data.showTitle && <h2 class="headline">{item.data.section}</h2>}
+        {item.data.showTitle && <div class="headline font" style="font-size:200%;">{item.data.section}</div>}
         <item.Content />
       </div>
     ))}
