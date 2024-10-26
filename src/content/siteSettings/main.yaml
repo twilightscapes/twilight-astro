@@ -2,7 +2,7 @@ logoImage: /images/logo/logoImage.svg
 showHeader: false
 showLogo: false
 showHome: false
-showTheme: true
+showTheme: false
 showSwitch: true
 showSearch: false
 showFooter: false
@@ -11,7 +11,7 @@ showTitles: true
 showDates: true
 enableImageBlur: true
 showSocial: false
-showCheck: false
+showCheck: true
 showTags: true
 MAX_POSTS: 6
 MAX_POSTS_PER_PAGE: 20

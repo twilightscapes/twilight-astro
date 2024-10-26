@@ -14,4 +14,4 @@ description: >-
 image: /images/bio/image.webp
 subheading: Hi, I'm Todd
 subcontent: Follow me into the night
-showSocial: true
+showSocial: false

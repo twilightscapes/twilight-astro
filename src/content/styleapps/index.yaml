@@ -1,13 +1,13 @@
 backgroundImage: /images/styleapps/backgroundImage.svg
-siteFont: Orbitron
+siteFont: Dancing Script
 borderRadius: 5px
-lightBg: rgba(168, 159, 159, 0.57)
-lightAccent2: rgba(192, 43, 233, 1)
+lightBg: rgba(34, 34, 34, 1)
+lightAccent2: rgba(243, 234, 245, 1)
 darkBg: rgba(34, 34, 34, 1)
-darkAccent2: rgba(192, 43, 233, 1)
+darkAccent2: rgba(237, 224, 240, 1)
 lightHeader: rgba(0, 0, 0, 0.9)
 darkHeader: rgba(0, 0, 0, 0.9)
-lightText: rgba(0, 0, 0, 1)
+lightText: rgba(234, 225, 225, 1)
 darkText: rgba(243, 231, 231, 1)
 customCSS: >-
   .backimage{ max-height:50vh; margin-top: 20vh; object-fit: contain
