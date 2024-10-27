@@ -254,6 +254,7 @@ const collections = {
       pitch: z.string().optional(),
       defaultDirectory: z.string().optional(),
       showGallerySelector: z.boolean().optional(),
+      showSwitch: z.boolean().optional(),
       galleryImages: z.array(z.object({
         image: z.string().optional(),
         caption: z.string().optional(),

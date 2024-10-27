@@ -3,7 +3,7 @@ showHeader: false
 showLogo: false
 showHome: false
 showTheme: false
-showSwitch: true
+showSwitch: false
 showSearch: false
 showFooter: false
 defaultView: swipe

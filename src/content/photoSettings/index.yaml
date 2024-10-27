@@ -5,4 +5,5 @@ showFaqsOnPhotos: false
 showTestimonialsOnPhotos: false
 defaultDirectory: Favorites
 showGallerySelector: true
+showSwitch: true
 galleryImages: []
