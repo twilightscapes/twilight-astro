@@ -7,7 +7,7 @@ showSwitch: false
 showSearch: false
 showFooter: false
 defaultView: swipe
-showTitles: false
+showTitles: true
 showDates: true
 enableImageBlur: true
 showSocial: false
