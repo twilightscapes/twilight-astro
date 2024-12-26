@@ -7,11 +7,11 @@ showSwitch: false
 showSearch: false
 showFooter: false
 defaultView: swipe
-showTitles: true
+showTitles: false
 showDates: true
 enableImageBlur: true
 showSocial: false
-showCheck: true
+showCheck: false
 showTags: true
 MAX_POSTS: 6
 MAX_POSTS_PER_PAGE: 20
