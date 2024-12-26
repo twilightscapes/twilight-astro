@@ -4,7 +4,6 @@ featureImage:
   alt: Become A PIRATE!
 youtube:
   discriminant: false
-cta: Link to TLE
 showBioOnHome: false
 showApp: false
 showHomeGallery: true
