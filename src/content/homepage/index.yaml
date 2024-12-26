@@ -5,7 +5,7 @@ featureImage:
 youtube:
   discriminant: false
 cta: become a pirate
-showBioOnHome: true
+showBioOnHome: false
 showApp: false
 showHomeGallery: true
 showResume: false
