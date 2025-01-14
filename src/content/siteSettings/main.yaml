@@ -1,4 +1,7 @@
 logoImage: /images/logo/logoImage.svg
+defaultView: swipe
+MAX_POSTS: 6
+MAX_POSTS_PER_PAGE: 20
 showHeader: false
 showLogo: false
 showHome: false
@@ -6,13 +9,10 @@ showTheme: false
 showSwitch: false
 showSearch: false
 showFooter: false
-defaultView: swipe
+showCheck: true
 showTitles: true
 showDates: true
 enableImageBlur: true
 showSocial: false
-showCheck: false
 showTags: true
-MAX_POSTS: 6
-MAX_POSTS_PER_PAGE: 20
 showShare: true

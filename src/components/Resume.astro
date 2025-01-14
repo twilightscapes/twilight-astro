@@ -5,8 +5,13 @@ import { getEntry } from 'astro:content';
 const allResumeItems = await getCollection('resume');
 const resumeSettings = await getEntry('resumeSettings', 'index');
 
-const leftColumnItems = resumeSettings?.data?.leftColumnItems || [];
-const rightColumnItems = resumeSettings?.data?.rightColumnItems || [];
+// Add type guard at the top
+if (!resumeSettings) {
+  throw new Error('Resume settings are required but not found');
+}
+
+const leftColumnItems = resumeSettings.data.leftColumnItems || [];
+const rightColumnItems = resumeSettings.data.rightColumnItems || [];
 
 function sortResumeItems(items: CollectionEntry<'resume'>[], order: string[]): CollectionEntry<'resume'>[] {
   return order.map(slug => items.find(item => item.slug === slug)).filter((item): item is CollectionEntry<'resume'> => item !== undefined);
@@ -28,7 +33,7 @@ const rightColumnRendered = await renderContent(rightColumn);
 ---
 
 {resumeSettings?.data?.showTitle && <div class="resumetitle font panel glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent">{resumeSettings.data.title}</div>}
-<div class="keyboard panel" style="display:flex; justify-content:center; margin:0 auto; line-height:calc(2em + .4vw);"><span style="font-weight:bold; font-size:1.3rem;">To Print:</span>  <kbd>⌘</kbd> + <kbd>p</kbd>   OR   <kbd>Ctrl</kbd> + <kbd>p</kbd></div>
+<!-- <div class="keyboard panel" style="display:flex; justify-content:center; margin:0 auto; line-height:calc(2em + .4vw);"><span style="font-weight:bold; font-size:1.3rem;">To Print:</span>  <kbd>⌘</kbd> + <kbd>p</kbd>   OR   <kbd>Ctrl</kbd> + <kbd>p</kbd></div> -->
 
 <ul id="details">
   <li>{resumeSettings.data.name}</li>

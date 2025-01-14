@@ -13,16 +13,20 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Content-Security-Policy = """
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com *.twitter.com *.disqus.com;
-      object-src 'none';
-      style-src 'self' 'unsafe-inline' *.googleapis.com;
-      img-src 'self' data: *.googleapis.com *.gstatic.com *.google.com *.twitter.com *.twimg.com *.youtube.com;
-      media-src 'none';
+      default-src 'self' 'unsafe-inline' 'unsafe-eval' https:;
+      connect-src 'self' https: wss: bsky.social *.bsky.social *.stripe.com *.netlify.com dev.dogpoopers.com *.dogpoopers.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' *.youtube.com *.twitter.com *.disqus.com *.google.com *.googleapis.com *.gstatic.com *.stripe.com *.netlify.com;
+      style-src 'self' 'unsafe-inline' https: *.googleapis.com;
+      img-src 'self' data: https: http: blob: *.googleapis.com *.gstatic.com *.google.com *.twitter.com *.twimg.com *.youtube.com;
+      media-src 'self';
       frame-src *;
       font-src 'self' data: *.gstatic.com *.googleapis.com;
-      connect-src 'self';
       frame-ancestors *;
-    """
+    """    
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[redirects]]
+  from = "/pirate/*"
+  to = "/pirate/:splat"
+  status = 200
