@@ -1,4 +1,3 @@
-showFeature: false
 featureImage:
   src: /images/homepage/featureImage/src.webp
   alt: Become A PIRATE!
@@ -12,24 +11,10 @@ youtube:
     loop: true
     start: 0
     videoOnly: false
-showBioOnHome: true
-showApp: false
-showHomeGallery: true
-showResume: false
-showPosts: false
 showMore: false
-showFaqOnHome: false
-showTestOnHome: false
 pitch: How It Works
 pitch2: Social Media That YOU Control
 pitch3: High Seas Freedom
 sectionOrdering:
   - gallery
-  - posts
   - bio
-  - resume
-  - feature
-  - testimonials
-  - infoblock1
-  - infoblock2
-  - infoblock3
