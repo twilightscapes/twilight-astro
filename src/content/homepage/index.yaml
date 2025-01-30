@@ -3,7 +3,15 @@ featureImage:
   src: /images/homepage/featureImage/src.webp
   alt: Become A PIRATE!
 youtube:
-  discriminant: false
+  discriminant: true
+  value:
+    url: https://youtu.be/iHxmNzMfDj4
+    controls: false
+    useCustomPlayer: false
+    mute: true
+    loop: true
+    start: 0
+    videoOnly: false
 showBioOnHome: true
 showApp: false
 showHomeGallery: true
@@ -15,14 +23,13 @@ showTestOnHome: false
 pitch: How It Works
 pitch2: Social Media That YOU Control
 pitch3: High Seas Freedom
-featureOrder: 10
-bioOrder: 2
-appOrder: .nan
-galleryOrder: 1
-postsOrder: 7
-resumeOrder: 8
-faqOrder: 6
-testimonialsOrder: 9
-infoblockOrder: 3
-infoblock2Order: 4
-infoblock3Order: 5
+sectionOrdering:
+  - gallery
+  - posts
+  - bio
+  - resume
+  - feature
+  - testimonials
+  - infoblock1
+  - infoblock2
+  - infoblock3

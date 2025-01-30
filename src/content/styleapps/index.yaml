@@ -11,4 +11,4 @@ lightText: rgba(234, 225, 225, 1)
 darkText: rgba(243, 231, 231, 1)
 customCSS: >-
   .backimage{ max-height:50vh; margin-top: 20vh; object-fit: contain
-  !important;  opacity:.4 ; }
+  !important;  opacity:.4 ; } 
