@@ -1,6 +1,9 @@
+sectionOrdering:
+  - gallery
+  - bio
 featureImage:
   src: /images/homepage/featureImage/src.webp
-  alt: Become A PIRATE!
+  alt: Twilightscapes Night Photography by Todd Lambert
 youtube:
   discriminant: true
   value:
@@ -15,6 +18,3 @@ showMore: false
 pitch: How It Works
 pitch2: Social Media That YOU Control
 pitch3: High Seas Freedom
-sectionOrdering:
-  - gallery
-  - bio
