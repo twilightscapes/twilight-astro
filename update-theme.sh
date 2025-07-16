@@ -4,7 +4,7 @@
 THEME_REPO_URL="https://github.com/piratewebsite/pirate"
 
 # Set the branch or tag you want to pull updates from
-BRANCH_OR_TAG="pre"
+BRANCH_OR_TAG="main"
 
 # Function to log changes
 log_change() {
