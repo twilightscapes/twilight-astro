@@ -8,13 +8,16 @@ type Props = {
     withDesc?: boolean;
 };
 import { getEntry } from 'astro:content';
+import { formatDate } from '../../utils/date';
+
 const { post, withDesc = false } = Astro.props;
+const siteSettings = await getEntry('siteSettings', 'main');
+const { showTitles, showDates = true } = siteSettings?.data ?? {};
+const formattedDate = post.data.publishDate ? formatDate(post.data.publishDate) : '';
+
 const defaultImageSrc = `${import.meta.env.BASE_URL}socialCard.webp`;
 const defaultImageWidth = 900; 
 const defaultImageHeight = 600; 
-
-const siteSettings = await getEntry('siteSettings', 'main');
-const { showTitles } = siteSettings.data;
 
 function getYouTubeId(url: string) {
   const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
@@ -27,6 +30,11 @@ function getYouTubeThumbnail(videoId: string) {
 }
 
 
+if ('slug' in post) {
+  const slug = post.slug;
+  // use slug
+}
+
 const videoId = post.data.youtube?.value?.url ? getYouTubeId(post.data.youtube.value.url) : null;
 const thumbnailUrl = videoId ? getYouTubeThumbnail(videoId) : null;
 const useCustomPlayer = post.data.youtube?.value?.useCustomPlayer ?? true;
@@ -35,8 +43,9 @@ const useCustomPlayer = post.data.youtube?.value?.useCustomPlayer ?? true;
 
 
 <div class="post-card1">
-    <div>
+    <div style="text-align: center; justify-content:center;">
     {post.data.externalUrl ? (
+
         <div data-active="false" class="iframe-container inactive panel"
         style={{
                         display: "flex",
@@ -45,7 +54,7 @@ const useCustomPlayer = post.data.youtube?.value?.useCustomPlayer ?? true;
                         columnGap: "0.4vw",
                         textAlign: "center",
                         flexDirection: "column",
-                        padding: "1vh 1vw",
+                        padding: "0 1vw",
                         fontSize: "clamp(1rem, 1rem, 1rem)",
                     }}>
             <iframe
@@ -59,7 +68,21 @@ const useCustomPlayer = post.data.youtube?.value?.useCustomPlayer ?? true;
                 class="exturl"
             ></iframe>
         </div>
-        <a href={post.data.externalUrl} rel="noreferrer" target="_blank"><h2 class="title ext" style={{ color: "", fontSize: "clamp(1.3rem, 2.4vw, 1rem)" }}>{post.data.title}</h2></a>
+
+<div
+                    class="panel"
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        rowGap: "0",
+                        columnGap: "0.4vw",
+                        textAlign: "center",
+                        flexDirection: "column",
+                        padding: "1vh 1vw",
+                        fontSize: "clamp(1rem, 1rem, 1rem)",
+                    }}
+                >
+<h2 class="title ext" style={{ margin: "0 auto", textAlign:'center', fontSize: "clamp(1.3rem, 2.4vw, 1rem)" }}><a href={post.data.externalUrl} rel="noreferrer" target="_blank">{post.data.title}</a></h2></div>
         
     ) : post.data.youtube?.discriminant && post.data.youtube.value?.videoOnly && thumbnailUrl ? (
         <div class="video-container" data-video-id={videoId} data-use-custom-player={useCustomPlayer}>
@@ -147,12 +170,21 @@ const useCustomPlayer = post.data.youtube?.value?.useCustomPlayer ?? true;
     </div>
 </div>
 
+<!-- Update your template where you want to show the date -->
+{showDates && formattedDate && (
+  <time datetime={post.data.publishDate instanceof Date ? 
+    post.data.publishDate.toISOString() : 
+    new Date(post.data.publishDate).toISOString()}>
+    {formattedDate}
+  </time>
+)}
+
 <style>
     .iframe-container {
         position: relative;
         width: 100%;
         /* padding-bottom: 56.25%;  */
-        aspect-ratio: 16/9;
+        /* aspect-ratio: 16/9; */
         /* height: 0; */
         overflow: hidden;
     }
@@ -167,7 +199,7 @@ const useCustomPlayer = post.data.youtube?.value?.useCustomPlayer ?? true;
     }
 
     @media(hover:none) {
-        .iframe-container iframe {z-index: 1; min-width: 100%;}
+        .iframe-container iframe {z-index: 1; min-width: 50%;}
     }
     @media(max-width:48rem) {
 
@@ -206,19 +238,18 @@ const useCustomPlayer = post.data.youtube?.value?.useCustomPlayer ?? true;
 
 /* .slider .video-container, .slider .post-card1, .slider .custom-youtube-player{ min-width: 80vw !important;} */
 .grid-container .custom-youtube-player {margin-bottom: 0;}
-    .iframe-container.inactive::before {
+    /* .iframe-container.inactive::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        /* background-color: rgba(128, 128, 128, 0.5); */
         z-index: 1;
         display:grid;
         place-content: center;
         color:white;
-    }
+    } */
 </style>
 <script>
   document.querySelectorAll('.video-container').forEach(container => {

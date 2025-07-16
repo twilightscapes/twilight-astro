@@ -10,40 +10,32 @@ import { getEntry } from 'astro:content';
 import keystaticConfig from '../../keystatic.config';
 import { createReader } from '@keystatic/core/reader';
 import CTAs from '@/components/CTAs.astro';
-
+import App from "@/components/App.astro";
 import InfoBlock from "@/components/InfoBlock.astro";
 import Resume from '@/components/Resume.astro';
 
 import PhotoSection from "@/components/PhotoGallery.astro"
 const siteSettings = await getEntry('siteSettings', 'main');
 const pwaSettings = await getEntry('pwaSettings', 'index');
-const homeContent = await getEntry('homepage', 'index');
+const home = await getEntry('home', 'index');
 const language = await getEntry('language', 'index');
 
+const homeData = home?.data || {
+  sectionOrdering: ['feature', 'bio', 'gallery', 'posts'],
+  photosectiontitle: "Photo Gallery",
+  locationtitle: "Location",
+  faqsectiontitle: "FAQ",
+  testimonialtitle: "Testimonials",
+  postsectiontitle: "Latest Posts"
+};
 
+// Single CTA declaration
+const homeCTA = homeData.cta ? await getEntry('CTAs', homeData.cta) : null;
 
-
-
-
-
-if (!siteSettings || !pwaSettings || !homeContent || !language) {
-  throw new Error('Required content settings not found');
-}
-
-
-
-
-const { defaultView, MAX_POSTS, showCheck } = siteSettings.data;
-import App from '@/components/App.astro';
+const { defaultView, MAX_POSTS, showCheck } = siteSettings?.data ?? { defaultView: 'list', MAX_POSTS: 5, showCheck: false };
 const reader = createReader(process.cwd(), keystaticConfig);
-
 const resumeSettings = await getEntry('resumeSettings', 'index');
-
-const homepage = await reader.singletons.home.read();
-const cta = homeContent.data.cta ? await getEntry('ctas', homeContent.data.cta) : null;
-const showResume = homepage?.showResume ?? false;
-
-const homeCTA = homeContent.data.cta ? await getEntry('ctas', homeContent.data.cta) : null;
+const homepageData = await reader.singletons.home.read();
 
 type PitchData = {
   slug: string;
@@ -63,9 +55,9 @@ type PitchData = {
   divider2: string | null;
   showTwocol: boolean; // Add this line
 }
-const selectedPitchSlug = homepage?.pitch;
-const selectedPitchSlug2 = homepage?.pitch2;
-const selectedPitchSlug3 = homepage?.pitch3;
+const selectedPitchSlug = homepageData?.pitch;
+const selectedPitchSlug2 = homepageData?.pitch2;
+const selectedPitchSlug3 = homepageData?.pitch3;
 
 let selectedPitch: PitchData | undefined;
 let selectedPitch2: PitchData | undefined;
@@ -142,15 +134,12 @@ if (selectedPitchSlug3) {
     };
   }
 }
-const showBioOnHome = homepage?.showBioOnHome ?? false;
-const showFaqOnHome = homepage?.showFaqOnHome ?? false;
-const showTestOnHome = homepage?.showTestOnHome ?? false;
-const showFeature = homepage?.showFeature ?? false;
-const showPosts = homepage?.showPosts ?? false;
-const ShowMore = homepage?.showMore ?? false;
-const ShowApp = homepage?.showApp ?? false;
 
-const showHomeGallery = homepage?.showHomeGallery ?? false;
+// Change this line from ShowMore = homepage?.showMore to:
+const ShowMore = homeData.showMore ?? false;
+
+
+
 
 const allPosts = await getAllPosts();
 const allPostsSorted = sortMDByDate(allPosts, true).slice(0, MAX_POSTS);
@@ -161,36 +150,24 @@ type Section = {
   component: any;
 };
 
-const createSection = (
-  name: string, 
-  show: boolean | undefined, 
-  order: number | null | undefined, 
-  component: any, 
-  defaultOrder: number
-): Section => ({
-  name,
-  show: !!show,
-  order: order ?? defaultOrder,
-  component
-});
-const sections: Section[] = (homeContent.data.sectionOrdering || []).map((sectionName: string, index: number) => {
+const sections: Section[] = (homeData.sectionOrdering || []).map((sectionName: string, index: number) => {
   switch (sectionName) {
     case 'feature':
-      return createSection('feature', homepage?.showFeature, index, Feature, index);
+      return { name: 'feature', show: true, order: index, component: Feature };
     case 'bio':
-      return createSection('bio', homepage?.showBioOnHome, index, Bio, index);
+      return { name: 'bio', show: true, order: index, component: Bio };
     case 'app':
-      return createSection('app', homepage?.showApp, index, App, index);
+      return { name: 'app', show: true, order: index, component: App };
     case 'gallery':
-      return createSection('gallery', homepage?.showHomeGallery, index, PhotoSection, index);
+      return { name: 'gallery', show: true, order: index, component: PhotoSection };
     case 'posts':
-      return createSection('posts', homepage?.showPosts, index, showPosts, index);
+      return { name: 'posts', show: true, order: index, component: PostPreview };
     case 'faq':
-      return createSection('faq', homepage?.showFaqOnHome, index, Faqs, index);
+      return { name: 'faq', show: true, order: index, component: Faqs };
     case 'testimonials':
-      return createSection('testimonials', homepage?.showTestOnHome, index, Testimonials, index);
+      return { name: 'testimonials', show: true, order: index, component: Testimonials };
     case 'resume':
-      return createSection('resume', homepage?.showResume, index, Resume, index);
+      return { name: 'resume', show: true, order: index, component: Resume };
     case 'infoblock1':
       return {
         name: 'infoblock',
@@ -244,11 +221,9 @@ flex-direction: column;
 
 
 <PageLayout
-  title={homeContent.data.title}
-  description={pwaSettings.data.description}
-  themeMode={siteSettings.data.themeMode ?? 'user'}
->
-
+  title={pwaSettings?.data?.title}
+  description={pwaSettings?.data?.description}
+  themeMode={siteSettings?.data?.themeMode ?? 'user'}>
   
   
 	<div class="scroll-snap-container prose-pirate flex flex-col home">
@@ -257,25 +232,37 @@ flex-direction: column;
 				{(() => {
 					switch (section.name) {
 						case 'feature':
-							return <Feature content={{
-								...homeContent.data,
-								youtube: homeContent.data.youtube?.value,
-								cta: cta ? {
-									title: cta.data.title,
-									description: cta.data.description || '',
-									ctaUrl: cta.data.ctaUrl,
-									showFancy: cta.data.showFancy,
-                  showTransition: cta.data.showTransition
-                  
-                  
-								} : undefined
-							}} />;
+              return <Feature content={{
+                title: pwaSettings?.data?.title ?? '',
+                youtube: homeData.youtube?.value && homeData.youtube.value.url
+                  ? (() => {
+                      const { videoOnly, ...rest } = homeData.youtube.value;
+                      return { ...rest, url: homeData.youtube.value.url };
+                    })()
+                  : undefined,
+                CTAs: homeCTA ? {
+                  title: homeCTA.data.title ?? '',
+                  description: homeCTA.data.description ?? '',
+                  ctaUrl: homeCTA.data.ctaUrl ?? '',
+                  showFancy: homeCTA.data.showFancy ?? false,
+                  showTransition: homeCTA.data.showTransition ?? false
+                } : undefined,
+                // Only include featureImage if it exists and matches the expected type
+                ...(homeData.featureImage && typeof homeData.featureImage === 'object'
+                  ? {
+                      featureImage: {
+                        src: (homeData.featureImage as any).src ?? '',
+                        alt: (homeData.featureImage as any).alt ?? ''
+                      }
+                    }
+                  : {})
+              }} />;
 						case 'bio':
 							return <Bio />;
 						case 'app':
-							return (<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg" style="margin-bottom:0;">{homeContent.data.locationtitle}</h2><App />);
+							return (<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg" style="margin-bottom:0;">{homeData.locationtitle}</h2><App />);
 						case 'gallery':
-							return (<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg">{homeContent.data.photosectiontitle}</h2><PhotoSection />);
+							return (<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg">{homeData.photosectiontitle}</h2><PhotoSection />);
 						case 'infoblock':
 							return selectedPitch && <InfoBlock pitch={{...selectedPitch, slug: selectedPitch.slug, showTwocol: selectedPitch.showTwocol}} />;
 						case 'infoblock2':
@@ -302,16 +289,16 @@ flex-direction: column;
 									<div style="padding:2vh 3%" class={`contentpanel ${defaultView === 'swipe' ? 'slider panels horizontal-slider' : 'grid-container'}`}>
 									
                     
-                    {homeContent.data.postsectiontitle && (
+                    {homeData.postsectiontitle && (
                       <h2 class="posties glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg" style="display:grid; place-content:center; margin-bottom:2vh; min-width:50%; width:100%;">
-                        {homeContent.data.postsectiontitle}
+                        {homeData.postsectiontitle}
                       </h2>
                     )}
 
                     {allPostsSorted.map((p) => <PostPreview post={p} withDesc />)}
 										{ShowMore && (
 											<a class="viewmore no-underline text-white text-center block" href="/posts/" style="padding:1vh 1rem; margin:0 50px 50px 50px;">
-												{language.data.viewmore}
+                        {language?.data?.viewmore}
 											</a>
 										)}
 									</div>
@@ -320,13 +307,13 @@ flex-direction: column;
 						case 'faq':
 							return (
 								<>
-									<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg">{homeContent.data.faqsectiontitle}</h2>
+									<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg">{homeData.faqsectiontitle}</h2>
 									<Faqs />
 								</>
 							);
 						case 'testimonials':
 							return <div class="testi" style="">
-								<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg">{homeContent.data.testimonialtitle}</h2><Testimonials /></div>;
+								<h2 class="glow text-[clamp(1.4rem,3.9vw,4rem)] shadow-text text-center theme-accent backdrop-blur-lg">{homeData.testimonialtitle}</h2><Testimonials /></div>;
 						default:
 							return null;
 					}
@@ -338,9 +325,9 @@ flex-direction: column;
     
     {homeCTA && (      <section style="display:grid; place-content:center; padding:10vh 0">
       <CTAs 
-        title={homeCTA.data.title}
+        title={homeCTA.data.title ?? ''}
         description={homeCTA.data.description || ''}
-        ctaUrl={homeCTA.data.ctaUrl}
+        ctaUrl={homeCTA.data.ctaUrl ?? ''}
         showFancy={homeCTA.data.showFancy}
         showTransition={homeCTA.data.showTransition}
       />

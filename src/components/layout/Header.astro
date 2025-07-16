@@ -2,20 +2,69 @@
 import ThemeToggle from "../ThemeToggle.astro";
 import Search from "../Search.astro";
 import Switch from "@/components/Switch.jsx";
-import BlueCheck from "@/components/BlueCheck.astro";
-import { getEntry } from 'astro:content';
-import { getMenuLinks, siteConfig } from "@/site-config";
+// import BlueCheck from "@/components/BlueCheck.astro";
+import { getEntry, getCollection } from 'astro:content';
+import { siteConfig } from "@/site-config";
 import GoBack from "@/components/GoBack.astro";
-const siteSettings = await getEntry('siteSettings', 'main');
-const { showHeader, showLogo, showTheme, showSearch, showSwitch, showHome, logoImage, defaultView, showCheck } = siteSettings.data;
-const language = await getEntry('language', 'index');
 
-const styleAppearance = await getEntry('styleapps', 'index');
-const { backgroundImage } = styleAppearance.data;
-const { backgroundVideo } = styleAppearance.data;
+// Add default values
+let showHeader = true;
+let showLogo = true;
+let showTheme = true;
+let showSearch = true;
+let showSwitch = true;
+let showHome = true;
+let logoImage = '';
+let defaultView = 'grid';
+let showCheck = false;
+let backgroundImage = '';
+let backgroundVideo = '';
+let topText = 'Top';
+let menuLinks: { title: string; path: string }[] = [];
+
+
+
+try {
+  const siteSettings = await getEntry('siteSettings', 'main');
+  const language = await getEntry('language', 'index');
+  const styleapps = await getEntry('styleapps', 'index');
+  
+  // Get menu items and sort them by order
+  const menuItems = await getCollection('menuItems');
+  menuLinks = menuItems
+    .sort((a, b) => (a.data.order || 0) - (b.data.order || 0))
+    .map(item => ({
+      title: item.data.title || '',
+      path: item.data.path || '/',
+    }));
+
+  if (siteSettings?.data) {
+    ({ 
+      showHeader = true, 
+      showLogo = true, 
+      showTheme = true, 
+      showSearch = true, 
+      showSwitch = true, 
+      showHome = true, 
+      logoImage = '', 
+      defaultView = 'grid', 
+      showCheck = false 
+    } = siteSettings.data);
+  }
+
+  if (styleapps?.data) {
+    backgroundImage = styleapps.data.backgroundImage ?? '';
+    backgroundVideo = styleapps.data.backgroundVideo ?? '';
+  }
+
+  if (language?.data) {
+    topText = language.data.top ?? 'Top';
+  }
+} catch (error) {
+  console.error('Error loading content:', error);
+}
 
 const url = new URL(Astro.request.url);
-const menuLinks = await getMenuLinks();
 ---
 
 
@@ -34,7 +83,7 @@ const menuLinks = await getMenuLinks();
             fetchpriority="high"
             width="auto"
             height="auto"
-            style="max-height:60px;"
+            style="max-height:60px; min-width: 50px;"
           />
         ) : (
           <span class="text-lg font-bold logotext" style="margin-left:10px;">{siteConfig.author}</span>
@@ -97,7 +146,7 @@ id="to-top-btn"
 style="flex-direction: column;"
 >
 <svg  class="w-8 h-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M14 20h-4v-9l-3.5 3.5l-2.42-2.42L12 4.16l7.92 7.92l-2.42 2.42L14 11z"/></svg>
-<span class="--theme-header" style="font-size:10px; font-weight: bold;">{language.data.top}</span>
+<span class="--theme-header" style="font-size:10px; font-weight: bold;">{topText}</span>
 </button>
 
 </div>

@@ -1,32 +1,65 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
+export const prerender = true;
+import { type CollectionEntry, getCollection } from "astro:content";
 import PageLayout from "@/layouts/Base.astro";
 
 export async function getStaticPaths() {
-  const pages = await getCollection('pages');
-  return pages.map((page: CollectionEntry<'pages'>) => ({
-    params: { slug: page.slug },
-    props: { page },
-  }));
+	try {
+		// Get pages first
+		const pages = await getCollection("pages");
+		console.log(
+			"Found pages:",
+			pages.map((p) => p.slug),
+		);
+
+		// Try to get posts, but don't fail if collection doesn't exist
+		let posts = [];
+		try {
+			posts = await getCollection("posts");
+		} catch (e) {
+			console.warn("Posts collection not available:", e);
+		}
+
+		const allEntries = [...pages, ...posts];
+
+		return allEntries.map((entry) => {
+			const cleanSlug =
+				entry.slug ||
+				entry.id
+					.split("/")
+					.pop()
+					?.replace(/\.(md|mdx|mdoc)$/, "");
+
+			return {
+				params: { slug: cleanSlug },
+				props: { entry },
+			};
+		});
+	} catch (e) {
+		console.error("Error in getStaticPaths:", e);
+		return [];
+	}
 }
 
-const { page } = Astro.props;
-const { Content } = await page.render();
+type Props = {
+	entry: CollectionEntry<"pages" | "posts">;
+};
 
-interface Props {
-  page: CollectionEntry<'pages'>;
+const { entry } = Astro.props;
+if (!entry) return Astro.redirect("/404");
+
+let Content;
+try {
+	({ Content } = await entry.render());
+} catch (e) {
+	console.error("Error rendering content:", e);
+	return Astro.redirect("/404");
 }
 ---
 
-<PageLayout title={page.data.title} description={page.data.description}>
-  <div class="scroll-snap-container flex flex-col home">
-
-    <section id="profile" class="scroll-area1 w-screen panel" style="padding:5vh 4%;">
-  <h1>{page.data.title}</h1>
-  <Content />
-
-</section>
-
-  </div>
-
+<PageLayout>
+	<article>
+		<h1>{entry.data.title}</h1>
+		<Content />
+	</article>
 </PageLayout>

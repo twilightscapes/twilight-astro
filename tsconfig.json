@@ -18,6 +18,8 @@
 	  "jsxImportSource": "react",
 	  "types": ["astro/client"]
 	},
+"noImplicitAny": false,
+"skipLibCheck": true,
 	"include": ["./.eslintrc.cjs", "**/*"],
 	"exclude": ["node_modules", "**/node_modules/*", ".vscode", "dist"]
   }

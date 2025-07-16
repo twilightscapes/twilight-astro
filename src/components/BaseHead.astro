@@ -6,10 +6,27 @@ import "../styles/global.css";
 
 type Props = SiteMeta;
 
-const siteSettings = await getEntry('siteSettings', 'main');
-const pwaSettings = await getEntry('pwaSettings', 'index');
-const styleapps = await getEntry('styleapps', 'index');
-const { siteFont } = styleapps.data;
+// Add default values and error handling
+let siteFont = 'system-ui';
+let showRobots = true;
+let themeColor = '#000000';
+
+try {
+  const siteSettings = await getEntry('siteSettings', 'main');
+  const pwaSettings = await getEntry('pwaSettings', 'index');
+  const styleapps = await getEntry('styleapps', 'index');
+
+  if (styleapps?.data) {
+    siteFont = styleapps.data.siteFont || siteFont;
+  }
+
+  if (pwaSettings?.data) {
+    showRobots = pwaSettings.data.showRobots ?? showRobots;
+    themeColor = pwaSettings.data.themeColor ?? themeColor;
+  }
+} catch (error) {
+  console.error('Error loading content entries:', error);
+}
 
 const { articleDate, description, ogImage, title } = Astro.props;
 
@@ -19,10 +36,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://example.
 const socialImageURL = ogImage ? new URL(ogImage, Astro.site).href : new URL("/socialCard.webp", Astro.site).href;
 ---
 
+<meta name="language" content={siteConfig.language || "en"} />
 <meta charset="utf-8" />
 <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
 <meta content="IE=edge" http-equiv="X-UA-Compatible" />
-<title>{siteTitle}</title>
+<title>{title}</title>
 
 {/* Icons / Favicon */}
 <link href={siteConfig.logoImage} rel="icon" type="image/svg+xml" />
@@ -30,18 +48,18 @@ const socialImageURL = ogImage ? new URL(ogImage, Astro.site).href : new URL("/s
 <link href={canonicalURL.toString()} rel="canonical" />
 
 {/* Primary Meta Tags */}
-<meta content={siteTitle} name="title" />
+<meta content={title} name="title" />
 <meta content={description} name="description" />
 <meta content={siteConfig.author} name="author" />
 
-{pwaSettings.data.showRobots ? (
+{showRobots ? (
   <meta name="robots" content="index, follow" />
 ) : (
   <meta name="robots" content="noindex, nofollow" />
 )}
 
 {/* Theme Colour */}
-<meta content={pwaSettings.data.themeColor} name="theme-color" />
+<meta content={themeColor} name="theme-color" />
 
 {/* Open Graph / Facebook */}
 <meta content={articleDate ? "article" : "website"} property="og:type" />
@@ -76,17 +94,6 @@ const socialImageURL = ogImage ? new URL(ogImage, Astro.site).href : new URL("/s
 {/* RSS auto-discovery */}
 <link href="/rss.xml" rel="alternate" title={siteConfig.title} type="application/rss+xml" />
 
-{/* Webmentions */}
-{
-  siteConfig.webmentions && (
-    <>
-      <link href={siteConfig.webmentions.link} rel="webmention" />
-      {siteConfig.webmentions.pingback && (
-        <link href={siteConfig.webmentions.pingback} rel="pingback" />
-      )}
-    </>
-  )
-}
 
 {/* Google Fonts */}
 <link rel="preconnect" href="https://fonts.googleapis.com" cross-origin="anonymous" />

@@ -6,6 +6,8 @@ import ThemeProvider from "@/components/ThemeProvider.astro";
 import Footer from "@/components/layout/Footer.astro";
 import Header from "@/components/layout/Header.astro";
 import { siteConfig } from "@/site-config";
+import { getEntry } from 'astro:content'; // Add this import at the top
+
 // import SiteLinks from '@/components/SocialList.astro';
 import DynamicTheme from '@/components/DynamicTheme.astro';
 
@@ -23,24 +25,57 @@ interface Props {
   meta?: {
     title?: string;
     description?: string;
-    articleDate?: string;
     ogImage?: string;
+    articleDate?: Date | string;
   };
-  themeMode: string;
   title?: string;
   description?: string;
-  articleDate?: string;
-  ogImage?: string;
+  themeMode?: 'light' | 'dark' | 'user';
+  articleDate?: Date | string;
+  ogImage?: string;  // Add this line
 }
-import { getEntry } from 'astro:content';
-const siteSettings = await getEntry('siteSettings', 'main');
-const { showFooter, enableImageBlur } = siteSettings.data;
 
-const { meta, title, description, articleDate, ogImage} = Astro.props;
+const { 
+  meta,
+  title,
+  description,
+  themeMode = 'user',
+  articleDate,
+  ogImage = '/socialCard.webp'  // Add default value
+} = Astro.props;
+
+// Add error handling for content entries
+let showFooter = false;
+let enableImageBlur = true;
+let siteDisclaimer = '';
+
+try {
+  const siteSettings = await getEntry('siteSettings', 'main');
+  if (siteSettings) {
+    ({ showFooter = false, enableImageBlur = true } = siteSettings.data);
+  } else {
+    console.warn('Site settings not found, using defaults');
+  }
+
+  const language = await getEntry('language', 'index');
+  if (language) {
+    siteDisclaimer = language.data.siteDisclaimer ?? '';
+  } else {
+    console.warn('Language settings not found');
+  }
+} catch (error) {
+  console.error('Error loading settings:', error);
+}
 
 const pageTitle = title || meta?.title;
 const pageDescription = description || meta?.description;
-const pageArticleDate = articleDate || meta?.articleDate;
+const pageArticleDate = (articleDate instanceof Date)
+  ? articleDate.toISOString()
+  : (typeof articleDate === 'string'
+      ? articleDate
+      : (meta?.articleDate instanceof Date
+          ? meta.articleDate.toISOString()
+          : meta?.articleDate));
 const pageOgImage = ogImage || meta?.ogImage;
 
 
@@ -75,6 +110,11 @@ const pageOgImage = ogImage || meta?.ogImage;
         <main id="main">
             <slot/>
         </main>
+
+        {siteDisclaimer && (
+            <div class="" style="display:grid; place-content: center; padding:0 4%;">{siteDisclaimer}</div>
+                )}
+
         { showFooter && (
             <Footer />
         )}
@@ -155,4 +195,4 @@ const pageOgImage = ogImage || meta?.ogImage;
     </script>
 
 
-</html>		
+</html>

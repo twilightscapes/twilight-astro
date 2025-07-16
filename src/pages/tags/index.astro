@@ -4,7 +4,7 @@ import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
 import GoBack from "@/components/GoBack.astro";
 import { getEntry } from 'astro:content';
 const siteSettings = await getEntry('siteSettings', 'main');
-const { defaultView } = siteSettings.data;
+const defaultView = siteSettings?.data?.defaultView ?? 'default';
 const language = await getEntry('language', 'index');
 
 const allPosts = await getAllPosts();
@@ -16,11 +16,11 @@ const meta = {
 };
 ---
 
-<PageLayout meta={meta}>
+<PageLayout meta={meta} themeMode="user">
 	<GoBack  />
 	<span class="prose prose-lg dark:prose-invert">
 	<div class="" style="padding:0 4%;">
-	<h1 class="title my-4">{language.data.tags}</h1>
+	<h1 class="title my-4">{language?.data?.tags}</h1>
 </div>
 	<ul class="" style="padding:0 1%; margin:0 auto; width: 99%">
 

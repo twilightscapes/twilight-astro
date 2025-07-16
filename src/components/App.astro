@@ -1,11 +1,32 @@
 ---
 import { getEntry } from 'astro:content';
-const pwaSettings = await getEntry('pwaSettings', 'index');
-{pwaSettings.data.location}
+
+// Add error handling and default values
+let locationUrl = '';
+try {
+  const pwaSettings = await getEntry('pwaSettings', 'index');
+  locationUrl = pwaSettings?.data?.location || '';
+} catch (error) {
+  console.warn('PWA settings not found, using defaults');
+}
 ---
 
-
-
 <div id="tour" class="virtualtour">
-    <iframe title="location map" class="virtualtour" width="100%" height="500" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"  src={pwaSettings.data.location} width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style={{maxWidth:'100%', margin:'0 auto', border:'10px solid #333', borderRadius:'12px'}}></iframe>
-  </div>
+  {locationUrl && (
+    <iframe 
+      title="location map" 
+      class="virtualtour" 
+      width="100%" 
+      height="500" 
+      frameborder="0" 
+      scrolling="no" 
+      marginheight="0" 
+      marginwidth="0"  
+      src={locationUrl}
+      style="max-width:100%; margin:0 auto; border:10px solid #333; border-radius:12px"
+      allowfullscreen="" 
+      loading="lazy" 
+      referrerpolicy="no-referrer-when-downgrade"
+    />
+  )}
+</div>

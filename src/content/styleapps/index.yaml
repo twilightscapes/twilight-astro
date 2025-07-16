@@ -7,8 +7,8 @@ darkBg: rgba(34, 34, 34, 1)
 darkAccent2: rgba(40, 42, 108, 1)
 lightHeader: rgba(0, 0, 0, 0.9)
 darkHeader: rgba(0, 0, 0, 0.9)
-lightText: rgba(234, 225, 225, 1)
+lightText: rgba(0, 0, 0, 1)
 darkText: rgba(243, 231, 231, 1)
-customCSS: >-
+customCSS: |-
   .backimage{ max-height:50vh; margin-top: 20vh; object-fit: contain
-  !important;  opacity:.4 ; } 
+    !important;  opacity:.4 ; } 

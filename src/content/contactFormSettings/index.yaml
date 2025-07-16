@@ -1,0 +1,8 @@
+showName: true
+showPhone: true
+showUpload: true
+extraFieldLabel: Booya
+showExtraField: true
+showMap: false
+extraFieldLabel2: Another one
+showExtraField2: true
