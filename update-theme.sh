@@ -46,7 +46,7 @@ log_change "Restored original content"
 log_change "Updated config.ts"
 
 # Replace root configuration files if they exist
-for file in astro.config.mjs keystatic.config.ts netlify.toml package.json README.md tsconfig.json tailwind.config.cjs postcss.config.cjs; do
+for file in astro.config.mjs keystatic.config.ts package.json README.md tsconfig.json tailwind.config.ts postcss.config.js; do
     [ -f tmp_theme/$file ] && cp tmp_theme/$file . && log_change "$file"
 done
 
