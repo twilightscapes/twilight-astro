@@ -14,7 +14,7 @@ export async function getSiteConfig(): Promise<SiteConfig> {
   return {
     title: pwaSettings.data.title,
     description: pwaSettings.data.description,
-    author: 'Default Author',
+    author: pwaSettings.data.name,
     date: {
 		locale: "en",
 		options: {
@@ -33,7 +33,7 @@ export async function getSiteConfig(): Promise<SiteConfig> {
 export const siteConfig = {
   title: 'Site Title',
   description: 'Site Description',
-  author: 'Default Author',
+  author: '',
   themeMode: 'user',
 } as const;
 

@@ -28,7 +28,7 @@ export default config({
         content: fields.markdoc({ label: 'Content' }),
         
 
-        // updatedDate: fields.datetime({ label: 'Updated Date' }),
+
 
         coverImage: fields.object({
           src: fields.image({
@@ -103,7 +103,7 @@ export default config({
 
     CTAs: collection({
       label: 'Call-To-Actions',
-      path: 'src/content/ctas/*',
+      path: 'src/content/CTAs/*',
       schema: {
         title: fields.text({ label: 'CTA Title', description: 'The text on the CTA Button' }),
         ctaUrl: fields.text({ label: 'CTA Url', description: 'The location of your CTA', defaultValue: '/', validation: { length: { min: 1 } } }),
@@ -356,7 +356,7 @@ export default config({
         showSwitch: fields.checkbox({ label: 'Show Switch', description: 'Hide/Show the layout selector', defaultValue: true }),
         showSearch: fields.checkbox({ label: 'Show Search', description: 'Hide/Show the search in the header', defaultValue: true }),
         showFooter: fields.checkbox({ label: 'Show Footer', description: 'Hide/Show the Footer', defaultValue: true }),
-        showCheck: fields.checkbox({ label: 'Hide Pirate promo', description: 'Hide/Show the Pirate info', defaultValue: true }),
+        showCheck: fields.checkbox({ label: 'Show Video Portal', description: 'Show Video Portal instead of Map Section', defaultValue: true }),
         showTitles: fields.checkbox({ label: 'Show Post Titles', description: 'Hide/Show the post titles', defaultValue: false }),
         showDates: fields.checkbox({ label: 'Show Dates', description: 'Hide/Show the post dates', defaultValue: true }),
         enableImageBlur: fields.checkbox({ 
@@ -447,7 +447,7 @@ export default config({
             options: [
               { label: 'Feature Section', value: 'feature' },
               { label: 'Bio Section', value: 'bio' },
-              { label: 'App Section', value: 'app' },
+              { label: 'Map/Video Section', value: 'app' },
               { label: 'Gallery Section', value: 'gallery' },
               { label: 'Posts Section', value: 'posts' },
               { label: 'Resume Section', value: 'resume' },

@@ -7,10 +7,12 @@
   
   <!-- Badges -->
   <p>
-    <img src="https://img.shields.io/badge/Astro-4.0-FF5D01?logo=astro" alt="Astro 4">
+    <img src="https://img.shields.io/badge/Astro-5.0-FF5D01?logo=astro" alt="Astro 5">
     <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript" alt="TypeScript 5">
-    <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react" alt="React 18">
+    <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react" alt="React 19">
     <img src="https://img.shields.io/badge/PWA-Enabled-5A0FC8?logo=pwa" alt="PWA Enabled">
+    <img src="https://img.shields.io/badge/Tailwind-5" alt="Tailwind 5">
+
   </p>
   
   <!-- CTAs -->
@@ -66,7 +68,7 @@ Setup takes about 4 minutes and <strong><i>requires a valid email address</i></s
 </div>
 
 ### 🚀 Modern Foundation
-- **Next-Gen Architecture**: Built with Astro v4 + TypeScript 5 + React 18
+- **Next-Gen Architecture**: Built with Astro v5 + TypeScript 5 + Tailwind 6
 - **Performance First**: 100/100 PageSpeed scores out of the box
 - **PWA Ready**: Install as native app with offline support
 
@@ -176,10 +178,6 @@ pnpm clean
 
 
 
-
-## Acknowledgment
-
-This theme was heavily inspired by [Astro Cactus](https://github.com/chrismwilliams/astro-theme-cactus/)
 
 ## 🏴‍☠️ Thank you
 

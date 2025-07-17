@@ -47,13 +47,13 @@ const optimizedImage = await getImage({
 <div id="feature">
   {content.CTAs && (
     <div class="homeCTA">
-      <CTAs 
+      {/* <CTAs 
         title={content.CTAs.title}
         description={content.CTAs.description}
         ctaUrl={content.CTAs.ctaUrl}
         showFancy={content.CTAs.showFancy}
         showTransition={content.CTAs.showTransition}
-      />
+      /> */}
     </div>
   )}
   
@@ -76,11 +76,15 @@ const optimizedImage = await getImage({
         <Image
           src={optimizedImage.src}
           alt={content.featureImage.alt || ""}
-          width='800'
-          height='600'
           class="max-w-full h-auto border-transparent"
-          loading="eager"
-          fetchpriority="high"
+          // loading="eager"
+          // fetchpriority="high"
+          // layout="full-width"
+          // fit="cover"
+          // position="center top"
+          width={1200}
+          height={600}
+          priority
         />
       </div>
     ) : null

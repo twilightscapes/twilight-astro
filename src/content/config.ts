@@ -90,17 +90,7 @@ export const collections = {
     })
   }),
 
-  // CTAs collection
-  CTAs: defineCollection({
-    type: 'data',
-    schema: z.object({
-      title: z.string().optional(),
-      ctaUrl: z.string().optional(),
-      description: z.string().optional(),
-      showFancy: z.boolean().optional(),
-      showTransition: z.boolean().optional()
-    })
-  }),
+
 
   // StyleApps collection
   styleapps: defineCollection({
@@ -150,9 +140,6 @@ export const collections = {
       layout: z.string().optional(),
       draft: z.boolean().optional(),
     }),
-    slug: ({ defaultSlug, id }) => {
-      return id.split('/').pop()?.replace(/\.(md|mdx|mdoc)$/, '') || defaultSlug;
-    },
   }),
 
   pitches: defineCollection({
@@ -369,7 +356,29 @@ export const collections = {
       rightColumnItems: z.array(z.string()).optional(),
     }),
   }),
+
+  CTAs: defineCollection({
+    type: 'data',
+    schema: z.object({
+      title: z.string().optional(),
+      ctaUrl: z.string().optional(),
+      description: z.string().optional(),
+      showFancy: z.boolean().optional(),
+      showTransition: z.boolean().optional()
+    })
+  }),
 };
+
+  // ctas: defineCollection({
+  //   type: 'data',
+  //   schema: z.object({
+  //     title: z.string().optional(),
+  //     ctaUrl: z.string().optional(),
+  //     description: z.string().optional(),
+  //     showFancy: z.boolean().optional(),
+  //     showTransition: z.boolean().optional()
+  //   })
+  // });
 
 
 

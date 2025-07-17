@@ -32,7 +32,7 @@ interface Props {
   description?: string;
   themeMode?: 'light' | 'dark' | 'user';
   articleDate?: Date | string;
-  ogImage?: string;  // Add this line
+  ogImage?: string; 
 }
 
 const { 
@@ -41,7 +41,7 @@ const {
   description,
   themeMode = 'user',
   articleDate,
-  ogImage = '/socialCard.webp'  // Add default value
+  ogImage = '/socialCard.webp'  
 } = Astro.props;
 
 // Add error handling for content entries
@@ -81,7 +81,7 @@ const pageOgImage = ogImage || meta?.ogImage;
 
 ---
 
-<html lang={siteConfig.lang} data-theme="light">
+<html lang="en" data-theme="light">
 	<head>
 		<!-- <ViewTransitions /> -->
 		<script>

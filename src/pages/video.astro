@@ -1,26 +1,12 @@
- ---
-import PageLayout from "@/layouts/Base.astro";
-const meta = {
-  description: "Contact",
-  title: "Contact",
-  ogImage: ""
-};
+---
+
 ---
 
 
-
-<PageLayout
-  meta={meta}
-  title={meta.title}
-  description={meta.description}
-  ogImage={meta.ogImage}
->
-
     <style>
-      html, body { height: 100%; margin: 0; padding: 0; }
-      body { width: 100vw; height: 100vh; overflow: hidden;}
+
       #menu-bar {
-        position: fixed;
+        position: absolute;
         width: 100vw;
         z-index: 10;
         top:0;
@@ -39,7 +25,7 @@ const meta = {
       .menu-label { font-size: 0.95em; }
       #video-frame {
         position: fixed;
-        top: 60px; left: 0;
+        top: 0; left: 0;
         width: 100vw; height: 100vh;
         border: none;
         z-index: 1;
@@ -197,10 +183,11 @@ const meta = {
         <div id="pastebox" style="display: none; flex-direction:row; gap: 2vw; align-items: center; justify-content:center; width:100%;">
           <span id="share-link"></span>
         </div>
-        <button id="copy-btn" type="button">Copy Link</button>
+        <button id="copy-btn" aria-label="Create Link" style={{ display: "flex", gap: '.5vw', justifyContent: "center", padding: ".6vh .5vw", width:'100%', minWidth:'60px', maxHeight: "", margin: "0 auto", textAlign: 'center', fontSize: '14px', fontWeight: 'light', textShadow: '0 1px 0 #444', marginLeft:'', }} className="button font print">
+Copy Link
+</button>
       </div>
     </div>
     <iframe id="video-frame" allow="autoplay; fullscreen"></iframe>
 
 
-</PageLayout>

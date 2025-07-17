@@ -64,7 +64,13 @@ body {
 	 height: 0;
 	 width: 0;
 }
+
 	
+
+	html {
+		scrollbar-width: none;
+		scrollbar-color: transparent transparent;
+	}
 	  
 	  .button {
 		background-color: var(--theme-accent2);
