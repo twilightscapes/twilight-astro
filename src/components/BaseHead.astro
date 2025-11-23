@@ -22,7 +22,27 @@ try {
 
   if (pwaSettings?.data) {
     showRobots = pwaSettings.data.showRobots ?? showRobots;
-    themeColor = pwaSettings.data.themeColor ?? themeColor;
+    // Convert rgba to hex for theme-color meta tag
+    const pwaThemeColor = pwaSettings.data.themeColor;
+    if (pwaThemeColor === 'rgba(0, 0, 0, 1)') {
+      themeColor = '#000000';
+    } else if (pwaThemeColor?.includes('rgba(')) {
+      // Extract RGB values and convert to hex - fixed regex to handle spaces
+      const match = pwaThemeColor.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+      if (match) {
+        const [, r, g, b] = match;
+        themeColor = `#${parseInt(r).toString(16).padStart(2, '0')}${parseInt(g).toString(16).padStart(2, '0')}${parseInt(b).toString(16).padStart(2, '0')}`;
+      } else {
+        themeColor = '#000000';
+      }
+    } else if (pwaThemeColor && pwaThemeColor.startsWith('#')) {
+      themeColor = pwaThemeColor;
+    } else if (pwaThemeColor) {
+      // If it's already a hex or valid CSS color, use it
+      themeColor = pwaThemeColor;
+    } else {
+      themeColor = '#000000';
+    }
   }
 } catch (error) {
   console.error('Error loading content entries:', error);
@@ -33,17 +53,21 @@ const { articleDate, description, ogImage, title } = Astro.props;
 const titleSeparator = "•";
 const siteTitle = `${description} ${titleSeparator} ${siteConfig.title}`;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://example.com');
-const socialImageURL = ogImage ? new URL(ogImage, Astro.site).href : new URL("/socialCard.webp", Astro.site).href;
+
+// Handle both absolute URLs (like YouTube thumbnails) and relative paths
+const socialImageURL = ogImage 
+  ? (ogImage.startsWith('http') ? ogImage : new URL(ogImage, Astro.site).href)
+  : new URL("/socialCard.webp", Astro.site).href;
 ---
 
 <meta name="language" content={siteConfig.language || "en"} />
-<meta charset="utf-8" />
 <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
 <meta content="IE=edge" http-equiv="X-UA-Compatible" />
 <title>{title}</title>
 
 {/* Icons / Favicon */}
 <link href={siteConfig.logoImage} rel="icon" type="image/svg+xml" />
+<link href="/images/pwa/icon192.png" rel="apple-touch-icon" sizes="192x192" />
 <link href="/manifest.webmanifest" rel="manifest" />
 <link href={canonicalURL.toString()} rel="canonical" />
 
@@ -112,4 +136,7 @@ const socialImageURL = ogImage ? new URL(ogImage, Astro.site).href : new URL("/s
 <meta content={Astro.generator} name="generator" />
 <meta content={canonicalURL.toString()} property="og:url" />
 <meta name="mobile-web-app-capable" content="yes">
+
+<!-- PWA Service Worker Registration -->
+<script src="/src/pwa.ts"></script>
 

@@ -116,9 +116,15 @@ PIRATE is built on industry leading technologies, and is designed from the groun
 - All set up and control is done through the built-in CMS. 
 - In order to to do so online, you will need to create a free account @ [KeyStatic Cloud](https://keystatic.cloud)
 - Connect your Keystatic account to your Github repo
-<!-- - Copy/paste the Keystatic project settings into your Netlify Env Variables -->
-- Copy and Paste the Keystatic Cloud project settings you are given into this file:     [https://github.com/YourGitAccount/YourRepo/edit/main/keystatic.config.ts](https://github.com/piratewebsite/pirate/edit/main/keystatic.config.ts)
-Edit this file on line 7 - replace "yourproject/projectid" with your project settings from Keystatic Cloud.
+- Set up your environment variables:
+  - **Local Development**: Copy your Keystatic project ID (format: `username/project-name`) and add it to your `.env` file:
+    ```bash
+    VITE_KEYSTATIC_PROJECT=your-username/your-project-name
+    ```
+  - **Netlify Deployment**: Go to your Netlify dashboard → Site settings → Environment variables and add:
+    ```
+    VITE_KEYSTATIC_PROJECT = your-username/your-project-name
+    ```
 - Redeploy your site on Netlify and then go to yoursite.netlify.app/admin to login to the CMS and configure the rest of your site.
 
 ## Using Local Development

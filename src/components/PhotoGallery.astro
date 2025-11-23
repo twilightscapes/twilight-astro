@@ -1,11 +1,13 @@
 ---
 import { Image } from 'astro:assets';
-import { createReader } from '@keystatic/core/reader';
-import keystaticConfig from '../../keystatic.config';
-import GalleryLightbox from './GalleryLightbox.jsx';
 import { getEntry } from 'astro:content';
+import GalleryLightbox from './GalleryLightbox.jsx';
 
-import Switch from "@/components/Switch.jsx";
+interface Props {
+  sectionId?: string;
+}
+
+const { sectionId = 'photo-gallery' } = Astro.props;
 
 
 // Default values
@@ -41,16 +43,15 @@ try {
 
 const { defaultView } = siteSettingsData;
 
-const reader = createReader(process.cwd(), keystaticConfig);
-const photoSettings = await reader.singletons.photoSettings.read();
-const defaultDirectory = photoSettings?.defaultDirectory || 'all';
-const galleryMode = photoSettings?.galleryMode || 'directory';
+const photoSettings = await getEntry('photoSettings', 'index');
+const defaultDirectory = photoSettings?.data?.defaultDirectory || 'all';
+const galleryMode = photoSettings?.data?.galleryMode || 'directory';
 
 
 const imageFiles = import.meta.glob('/public/images/photos/**/*.{jpg,jpeg,png,gif,webp,avif}', { eager: true });
 let allImages;
 if (galleryMode === 'keystatic') {
-  allImages = photoSettings?.galleryImages?.map((item) => ({
+  allImages = photoSettings?.data?.galleryImages?.map((item) => ({
     src: item.image,
     alt: item.caption || '',
     title: item.caption || '',
@@ -67,7 +68,7 @@ if (galleryMode === 'keystatic') {
   }));
 }
 
-const directories = [
+const directories = ([
   'all',
   defaultDirectory,
   ...new Set(
@@ -75,7 +76,7 @@ const directories = [
       .map(img => img.directory)
       .filter(dir => dir !== defaultDirectory)
   )
-].filter(Boolean).sort((a, b) => {
+] as string[]).filter(Boolean).sort((a, b) => {
   if (a === 'all') return -1;
   if (b === 'all') return 1;
   if (a === defaultDirectory) return -1;
@@ -83,9 +84,8 @@ const directories = [
   return a.localeCompare(b);
 });
 
-const showCaptions = photoSettings?.showCaptions ?? true;
-const showGallerySelector = photoSettings?.showGallerySelector && galleryMode === 'directory';
-const showSwitch = photoSettings?.showSwitch;
+const showCaptions = photoSettings?.data?.showCaptions ?? true;
+const showGallerySelector = photoSettings?.data?.showGallerySelector && galleryMode === 'directory';
 
 const images = allImages.map(img => ({
   src: img.src,
@@ -94,7 +94,7 @@ const images = allImages.map(img => ({
 
 // Pre-process images for the client component
 const processedImages = allImages.map(image => ({
-  src: image.src,
+  src: image.src, // Use original high-quality source for lightbox
   alt: image.alt || '',
   title: image.title || '',
   // Only include data needed by GalleryLightbox
@@ -104,42 +104,36 @@ const processedImages = allImages.map(image => ({
 
 
 
-  <div class="cattags" style={{ width: '', display: 'flex', justifyContent:'center', gap: '0', color: '' }}>
-    
-    {showGallerySelector && (
-    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
+<!-- Gallery selector - positioned absolutely outside flow -->
+{showGallerySelector && (
+  <div class="cattags" style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', width: 'auto', display: 'flex', justifyContent:'center', gap: '0', color: '', zIndex: defaultView === 'grid' ? '1' : '20', background: 'var(--theme-bg, #1a1a1a)', padding: '0.5rem', borderRadius: 'var(--border-radius)' }}>
+    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
       {directories.map((dir) => (
-        <option value={dir} selected={dir === defaultDirectory}>
+        <option value={dir}>
           {dir === 'all' ? languageData.allimages : dir}
         </option>
       ))}
     </select>
-    )}
-    
-    {showSwitch && (
-    <div class="switcher" style={{marginTop:'10px'}}><Switch client:load defaultView={defaultView} /></div>
-    )}
   </div>
+)}
 
-
-
-
-
-<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider panels horizontal-slider' : 'grid-container'}`} style="padding-top:20px;">
+<div data-section-id={sectionId} style="position: relative; padding-top: 50px;">
+<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:20px;">
   <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
 
 
   
-  {allImages.map((image) => (
+  {allImages.map((image, index) => (
     <div class="post-card1" data-directory={image.directory}>
-      <Image 
-        src={image.src ?? ''} 
-        alt={image.alt ?? ''}
-        width={800}
-        height={600}
-        class="object-contain rounded-image"
-        // style="border-radius: 20px;"
-      />
+      <div class="image-wrapper">
+        <img 
+          src={image.src ?? ''} 
+          alt={image.alt ?? ''}
+          class="object-contain rounded-image"
+          style="border-radius: var(--border-radius);"
+          data-image-index={index}
+        />
+      </div>
       {showCaptions && (
         <div class="image-caption">
           <h2>{image.title}</h2>
@@ -147,6 +141,7 @@ const processedImages = allImages.map(image => ({
       )}
     </div>
   ))}
+</div>
 </div>
 
 <!-- Pass only processed data to client component -->
@@ -162,11 +157,7 @@ const processedImages = allImages.map(image => ({
 
 <style>
 
-
 .post-card1 {
-  /* display: flex;
-  flex-direction: column;
-  align-items: center; */
   border-radius: var(--border-radius);
 }
 img{border-radius: var(--border-radius) !important;}
@@ -185,25 +176,118 @@ img{border-radius: var(--border-radius) !important;}
   display: block;
 }
 
+
+.homegallery.slider,
+[data-section-id*="gallery"] .homegallery.slider,
+[data-section-id*="gallery"] .section-content .homegallery.slider,
+div[data-section-id*="gallery"] div.section-content div.homegallery.slider {
+  display: flex !important;
+  flex-direction: row !important;
+  overflow-x: scroll !important;
+  overflow-y: hidden !important;
+  gap: 5vw !important;
+  padding: 0 2% !important;
+  width: 100% !important;
+  scroll-snap-type: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.homegallery.slider .post-card1,
+[data-section-id*="gallery"] .homegallery.slider .post-card1,
+[data-section-id*="gallery"] .section-content .homegallery.slider .post-card1,
+div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post-card1 {
+  flex: 0 0 auto !important;
+
+  margin-bottom: 0 !important;
+}
+
+/* Layout: ensure post-card contains an image wrapper and caption below */
+.post-card1 {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Grid mode: fixed aspect ratio for the image area, caption stays below */
+.homegallery.grid-container .post-card1 .image-wrapper,
+[data-section-id*="gallery"] .homegallery.grid-container .post-card1 .image-wrapper {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  width: 100%;
+  display: block;
+}
+
+.homegallery.grid-container .post-card1 .image-wrapper img,
+[data-section-id*="gallery"] .homegallery.grid-container .post-card1 .image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crop to fill */
+  display: block;
+}
+
+/* Slider (swipe) mode: allow images to keep natural proportions but limit height; caption visible below */
+.homegallery.slider .post-card1,
+[data-section-id*="gallery"] .homegallery.slider .post-card1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Use a fixed slide height so portrait and landscape images match height in swipe mode */
+.homegallery.slider,
+[data-section-id*="gallery"] .homegallery.slider {
+  --gallery-slide-height: 40vh; /* adjust default slide height here */
+}
+
+.homegallery.slider .post-card1 .image-wrapper,
+[data-section-id*="gallery"] .homegallery.slider .image-wrapper {
+  width: auto;
+  height: var(--gallery-slide-height);
+  display: block;
+}
+
+.homegallery.slider .post-card1 .image-wrapper img,
+[data-section-id*="gallery"] .homegallery.slider .image-wrapper img {
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
 @media(max-width:48rem) {
   #directorySelect {right:inherit; left:1rem; width:60%;}
   body:has(.header) #directorySelect{left:0 !important; right:0 !important; }
 }
 </style>
-<script define:vars={{ defaultDirectory }}>
+<script define:vars={{ defaultDirectory, sectionId }}>
   function filterImages(selectedDir) {
-    const galleryContainer = document.querySelector('.contentpanel');
-    if (!galleryContainer) return;
+    const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+    if (!galleryContainer) {
+      console.log('Gallery container not found for sectionId:', sectionId);
+      return;
+    }
     
     const images = galleryContainer.querySelectorAll('.post-card1');
+    console.log('Filtering images for directory:', selectedDir, 'Found images:', images.length);
     
     images.forEach((image) => {
       if (image instanceof HTMLElement) {
         const imageDir = image.dataset.directory;
         if (selectedDir === 'all' || imageDir === selectedDir) {
-          image.style.display = 'block';
+          image.style.display = '';
+          image.style.visibility = '';
+          image.style.position = '';
+          image.style.left = '';
+          image.classList.remove('hidden');
+          image.classList.add('visible');
         } else {
           image.style.display = 'none';
+          image.style.visibility = 'hidden';
+          image.style.position = 'absolute';
+          image.style.left = '-9999px';
+          image.classList.add('hidden');
+          image.classList.remove('visible');
         }
       }
     });
@@ -212,22 +296,87 @@ img{border-radius: var(--border-radius) !important;}
   function initializeGallery() {
     // Use defaultDirectory instead of reading from select
     filterImages(defaultDirectory);
+    // Ensure wheel/drag scroll functionality is added when in swipe mode
+    try {
+      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+      if (galleryContainer && typeof window !== 'undefined' && window.ViewModeSwitchScrollFunctions) {
+        if (galleryContainer.classList.contains('slider')) {
+          window.ViewModeSwitchScrollFunctions.addScrollFunctionality(galleryContainer);
+        } else {
+          window.ViewModeSwitchScrollFunctions.removeScrollFunctionality(galleryContainer);
+        }
+      }
+    } catch (err) {
+      console.warn('Error initializing gallery scroll handlers', err);
+    }
+    // Ensure the select reflects the active default directory
+    try {
+      const sel = document.getElementById('directorySelect');
+      if (sel && sel instanceof HTMLSelectElement) {
+        sel.value = defaultDirectory;
+      }
+    } catch (err) {
+      console.warn('Error setting directory select value', err);
+    }
   }
 
   // Wait for both DOM and images to load
   window.addEventListener('load', initializeGallery);
 
+  // Listen for view mode changes to re-filter images
+  window.addEventListener('viewModeChanged', (event) => {
+    console.log('viewModeChanged event received:', event.detail);
+    if (event.detail?.sectionId === sectionId) {
+      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+      const directorySelect = document.getElementById('directorySelect');
+      const selectorContainer = document.querySelector('.cattags');
+      
+      console.log('Gallery container found:', galleryContainer);
+      console.log('Current classes:', galleryContainer?.className);
+      
+      // Fix: Use viewMode instead of mode to match ViewModeSwitch dispatch
+      if (galleryContainer && event.detail?.viewMode) {
+        // Switch between grid-container and slider classes
+        galleryContainer.classList.remove('grid-container', 'slider');
+        galleryContainer.classList.add(event.detail.viewMode === 'swipe' ? 'slider' : 'grid-container');
+        
+        console.log('Updated classes:', galleryContainer.className);
+        
+        // Update selector z-index based on mode
+        if (selectorContainer) {
+          selectorContainer.style.zIndex = event.detail.viewMode === 'grid' ? '1' : '20';
+        }
+        // Add/remove shared scroll functionality (wheel/drag)
+        try {
+          if (typeof window !== 'undefined' && window.ViewModeSwitchScrollFunctions) {
+            if (event.detail.viewMode === 'swipe') {
+              window.ViewModeSwitchScrollFunctions.addScrollFunctionality(galleryContainer);
+            } else {
+              window.ViewModeSwitchScrollFunctions.removeScrollFunctionality(galleryContainer);
+            }
+          }
+        } catch (err) {
+          console.warn('Error toggling gallery scroll handlers', err);
+        }
+      }
+      
+      if (directorySelect && directorySelect instanceof HTMLSelectElement) {
+        filterImages(directorySelect.value);
+      }
+    }
+  });
+
   const directorySelect = document.getElementById('directorySelect');
   directorySelect?.addEventListener('change', (event) => {
     if (event.target instanceof HTMLSelectElement) {
       filterImages(event.target.value);
-      scrollToTop();
+      // Don't automatically scroll to top - let user stay where they are
     }
   });
 
   function scrollToTop() {
-    const target = document.querySelector('.contentpanel');
-    if (target?.classList.contains('horizontal-slider')) {
+    const target = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+    if (target?.classList.contains('slider')) {
       target.scrollTo({ left: 0, behavior: 'smooth' });
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });

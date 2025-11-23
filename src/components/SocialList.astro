@@ -1,7 +1,6 @@
 ---
 import { getEntry, getCollection } from 'astro:content';
 import { Icon } from "astro-icon/components";
-// import BlueCheck from "@/components/BlueCheck.astro";
 
 const siteSettings = await getEntry('siteSettings', 'main');
 const showCheck = siteSettings?.data?.showCheck;
@@ -64,7 +63,6 @@ const socialLinks = (await getCollection('socialLinks'))
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                   document.referrer.includes('android-app://');
     
-    console.log('PWA Status:', isPWA);x
                   
     document.querySelectorAll('[data-standalone-only="true"]').forEach((el) => {
       if (el instanceof HTMLElement) {

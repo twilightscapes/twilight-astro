@@ -1,0 +1,10 @@
+title: My Resume
+showTitle: true
+name: My Name
+contact: 555-555-1212
+leftColumnItems:
+  - highlights
+  - proficiency
+  - education
+rightColumnItems:
+  - experience

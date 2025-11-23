@@ -5,6 +5,7 @@ import type { CollectionEntry } from "astro:content";
 import { getEntry } from 'astro:content';
 import Pagination from "@/components/Paginator.astro";
 import PostPreview from "@/components/blog/PostPreview.astro";
+import ViewModeSwitch from "@/components/ViewModeSwitch.jsx";
 import { getAllPosts, getUniqueTags, groupPostsByYear, sortMDByDate } from "@/data/post";
 import PageLayout from "@/layouts/Base.astro";
 
@@ -55,7 +56,7 @@ interface Props {
 const { page, uniqueTags, defaultView, showTags, showDates } = Astro.props;
 
 const meta = {
-	description: "Read my collection of posts and the things that interest me",
+	description: "Collection of posts",
 	title: "Posts",
 };
 
@@ -80,13 +81,20 @@ const descYearKeys = Object.keys(groupedByYear).sort((a, b) => +b - +a);
 ---
 
 <PageLayout meta={meta} themeMode="user">
-
-	
-		<br />
-<span class="prose prose-lg dark:prose-invert">
-		<div class={`contentpanel ${defaultView === 'swipe' ? 'slider panels horizontal-slider' : 'grid-container'}`} style="">
+	<br />
+	<span class="">
+		<div data-section-id="posts-page">
+			<div class="posts-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 0 1rem;">
+				<h1 class="title text-2xl" style="margin: 0; flex: 1;">Posts</h1>
+				<ViewModeSwitch 
+					sectionId="posts-page" 
+					defaultView={defaultView} 
+					client:load
+				/>
+			</div>
 			
-			<div class="sliderSpacer"></div>
+			<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="">
+				<div class="sliderSpacer"></div>
 				{descYearKeys.map((yearKey) => (
 					<>
 						{typeof showDates !== 'undefined' && showDates && (
@@ -104,6 +112,7 @@ const descYearKeys = Object.keys(groupedByYear).sort((a, b) => +b - +a);
 					<Pagination {...paginationProps} />
 				</div>
 			</div>
+		</div>
 		{typeof showTags !== 'undefined' && showTags && (
 <div class="">
 		{!!uniqueTags.length && (
@@ -127,7 +136,7 @@ const descYearKeys = Object.keys(groupedByYear).sort((a, b) => +b - +a);
 					</svg>
 					{language?.data?.tags ?? "Tags"}
 				</h2>
-				<ul class="flex flex-wrap gap-2 text-bgColor button" style="">
+				<ul class="flex flex-wrap gap-2 " style="">
 					{uniqueTags.map((tag) => (
 						<li>
 							<a

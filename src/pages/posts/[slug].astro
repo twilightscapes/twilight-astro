@@ -11,14 +11,30 @@ export async function getStaticPaths() {
 	}));
 }
 
+// For server mode, fetch the post dynamically if not provided via static paths
+const { slug } = Astro.params;
+let post: CollectionEntry<"post"> | undefined;
+
+if (Astro.props.post) {
+	// Static mode - post provided via getStaticPaths
+	post = Astro.props.post;
+} else {
+	// Server mode - fetch post dynamically
+	const posts = await getCollection("post");
+	post = posts.find((p) => p.slug === slug);
+}
+
+if (!post) {
+	return Astro.redirect("/404");
+}
+
 type Props = {
-	post: CollectionEntry<"post">;
+	post?: CollectionEntry<"post">;
 };
 
-const { post } = Astro.props;
 const { Content } = await post.render();
 ---
 
-<BlogPost post={post}>
+<BlogPost post={post!}>
 	<Content />
 </BlogPost>

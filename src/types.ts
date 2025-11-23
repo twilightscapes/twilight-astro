@@ -1,14 +1,24 @@
 export interface SiteConfig {
-	author: string | undefined;
+	title: string;
+	description: string;
+	author: string;
+	siteUrl: string;
+	themeColor: string;
+	backgroundColor: string;
+	logoImage: string;
+	showRobots: boolean;
+	themeMode?: 'light' | 'dark' | 'user';
 	date: {
-		locale: string | string[] | undefined;
-		options: Intl.DateTimeFormatOptions;
+		locale: string;
+		options: {
+			day: string;
+			month: string;
+			year: string;
+		};
 	};
-	description: string | undefined;
 	lang: string;
 	ogLocale: string;
 	sortPostsByUpdatedDate: boolean;
-	title: string | undefined;
 }
 
 export interface PaginationLink {

@@ -1,8 +1,6 @@
 ---
 import ThemeToggle from "../ThemeToggle.astro";
 import Search from "../Search.astro";
-import Switch from "@/components/Switch.jsx";
-// import BlueCheck from "@/components/BlueCheck.astro";
 import { getEntry, getCollection } from 'astro:content';
 import { siteConfig } from "@/site-config";
 import GoBack from "@/components/GoBack.astro";
@@ -20,23 +18,26 @@ let showCheck = false;
 let backgroundImage = '';
 let backgroundVideo = '';
 let topText = 'Top';
-let menuLinks: { title: string; path: string }[] = [];
-
-
-
+// Get menu items and sort them
+let sortedMenuLinks: Array<{title: string, path: string}> = [];
 try {
-  const siteSettings = await getEntry('siteSettings', 'main');
+  const menuItems = await getCollection('menuItems');
+  if (menuItems) {
+    sortedMenuLinks = menuItems
+      .sort((a, b) => (a.data.order || 0) - (b.data.order || 0))
+      .map(item => ({
+        title: item.data.title || '',
+        path: item.data.path || '/',
+      }));
+  }
+} catch (error) {
+  console.error('Error loading menu items:', error);
+}
+
+const siteSettings = await getEntry('siteSettings', 'main');
+try {
   const language = await getEntry('language', 'index');
   const styleapps = await getEntry('styleapps', 'index');
-  
-  // Get menu items and sort them by order
-  const menuItems = await getCollection('menuItems');
-  menuLinks = menuItems
-    .sort((a, b) => (a.data.order || 0) - (b.data.order || 0))
-    .map(item => ({
-      title: item.data.title || '',
-      path: item.data.path || '/',
-    }));
 
   if (siteSettings?.data) {
     ({ 
@@ -48,7 +49,6 @@ try {
       showHome = true, 
       logoImage = '', 
       defaultView = 'grid', 
-      showCheck = false 
     } = siteSettings.data);
   }
 
@@ -65,18 +65,38 @@ try {
 }
 
 const url = new URL(Astro.request.url);
+
+
 ---
 
 
+<style>
+
+  @media all and (display-mode: browser) {
+        .pwaonly {
+          position:absolute;
+          left:-9999px;
+          visibility: hidden;
+        }
+    }
+    
+@media all and (display-mode: standalone) {
+        .pwaonly {
+          display:flex; flex-direction: row;
+        }
+    }
+
+.pwa-button{display:flex; justify-content: center;}
+</style>
 
 
 {showHeader && (
   <div id="menu" class="menu header" style="min-height:60px; padding: 2px 0 2px 0;">
     {showLogo && (
       <a href="/" aria-current={url.pathname === "/" ? "page" : false} class="relative px-1">
-        {logoImage ? (
+        {siteSettings?.data?.logoImage ? (
           <img 
-            src={logoImage}
+            src={siteSettings.data.logoImage}
             alt="Site Logo"
             class="headerlogo"
             loading="eager"
@@ -86,13 +106,13 @@ const url = new URL(Astro.request.url);
             style="max-height:60px; min-width: 50px;"
           />
         ) : (
-          <span class="text-lg font-bold logotext" style="margin-left:10px;">{siteConfig.author}</span>
+          <span class="text-lg font-bold logotext" style="margin-left:10px;">Dog Poopers</span>
         )}
       </a>
     )}
 
     <ul class="topmenu flex justify-around items-center gap-4 m-auto p-0 h-15 text-center text-[clamp(0.6rem,1.6vw,1.8rem)]">
-      {menuLinks.map((link: { path: string; title: string }) => (
+      {sortedMenuLinks.map((link: { path: string; title: string }) => (
         <li>
           <a
             href={link.path}
@@ -109,13 +129,14 @@ const url = new URL(Astro.request.url);
 
     
   </div>
+  
 )}
 
 
-<div id="missioncontrol" class="missioncontrol1 sitecontrols flex justify-center items-center panel" style="padding-right:2vw; gap:3vw;">
-  
-  <!-- {showCheck && <div style="position:absolute; bottom:1vh; left: 1vw; opacity:.2;"><BlueCheck /></div>} -->
-  
+
+<div id="missioncontrol" class="missioncontrol1 sitecontrols flex items-center panel" style="padding:0 2vw 0 2vw; gap:3vw;">
+
+
   {showHome && (
     <button
     aria-label="Return to Home"
@@ -127,8 +148,10 @@ const url = new URL(Astro.request.url);
     )}
 
   {showTheme && <ThemeToggle style="margin-left:1vw;" />}
+
   {showSearch && <Search />}
-  {showSwitch && <Switch client:load defaultView={defaultView} />}
+
+  
 
   
 
@@ -203,4 +226,3 @@ style="flex-direction: column;"
   // Re-initialize after each page navigation
   document.addEventListener('astro:after-swap', initializeBackToTopButton);
 </script>
-
