@@ -131,32 +131,7 @@ export const collections = {
     }),
   }),
 
-  membershipTokens: defineCollection({
-    type: 'data',
-    schema: z.object({
-      code: z.string(),
-      description: z.string(),
-      expiresAt: z.union([z.string(), z.date()]).transform((val) => {
-        if (val instanceof Date) return val;
-        return new Date(val);
-      }),
-      isActive: z.boolean().default(true),
-      maxUses: z.number().default(0),
-      usedCount: z.number().default(0),
-      createdBy: z.string().optional(),
-      accessLevel: z.enum(['basic', 'premium', 'unlimited']).default('basic'),
-      features: z.array(z.string()).default([]),
-      createdAt: z.union([z.string(), z.date()]).optional().transform((val) => {
-        if (!val) return new Date();
-        if (val instanceof Date) return val;
-        return new Date(val);
-      }),
-      metadata: z.object({
-        source: z.string().optional(),
-        notes: z.string().optional(),
-      }).optional(),
-    }),
-  }),
+
 
   // Optional menuItems collection - can be empty if not needed
   menuItems: defineCollection({

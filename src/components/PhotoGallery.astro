@@ -127,9 +127,11 @@ const processedImages = allImages.map(image => ({
     <div class="post-card1" data-directory={image.directory}>
       <div class="image-wrapper">
         <img 
-          src={image.src ?? ''} 
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+          data-src={image.src ?? ''}
           alt={image.alt ?? ''}
-          class="object-contain rounded-image"
+          class="object-contain rounded-image lazyload"
+          loading="lazy"
           style="border-radius: var(--border-radius);"
           data-image-index={index}
         />
@@ -161,6 +163,40 @@ const processedImages = allImages.map(image => ({
   border-radius: var(--border-radius);
 }
 img{border-radius: var(--border-radius) !important;}
+
+/* Image wrapper placeholder so page background doesn't show through */
+.image-wrapper {
+  background-color: var(--image-placeholder-bg, #111);
+  display: block;
+}
+
+/* Ensure the image element itself shows the placeholder color (avoids white 1x1 gif showing) */
+.homegallery .image-wrapper img,
+.homegallery img.lazyload {
+  background-color: var(--image-placeholder-bg, #111);
+  color: transparent;
+}
+
+/* Lazy-loading transition: start blurred, then clear when loaded.
+   Keep opacity at 1 so background doesn't show through blurred image. */
+.homegallery img.lazyload {
+  filter: blur(14px);
+  opacity: 1;
+  transform: scale(1.03);
+  transition: filter 600ms cubic-bezier(.2,.9,.2,1), transform 600ms cubic-bezier(.2,.9,.2,1), opacity 400ms ease;
+  will-change: filter, transform, opacity;
+}
+.homegallery img.loaded {
+  filter: blur(0);
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Optional subtle scale up on hover for desktop */
+.homegallery .post-card1:hover img {
+  transform: scale(1.02);
+  transition: transform 220ms ease;
+}
 
 .image-caption {
   margin-top: 8px;
@@ -320,8 +356,23 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     }
   }
 
-  // Wait for both DOM and images to load
-  window.addEventListener('load', initializeGallery);
+  // Initialize once DOM is ready (run immediately if DOMContentLoaded already fired)
+  function initGalleryAndObserve() {
+    try {
+      initializeGallery();
+      // After init, start observing images
+      observeLazyImages();
+    } catch (e) {
+      console.warn('Error during gallery init:', e);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGalleryAndObserve);
+  } else {
+    // DOMContentLoaded already fired — run immediately
+    initGalleryAndObserve();
+  }
 
   // Listen for view mode changes to re-filter images
   window.addEventListener('viewModeChanged', (event) => {
@@ -362,6 +413,8 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       
       if (directorySelect && directorySelect instanceof HTMLSelectElement) {
         filterImages(directorySelect.value);
+        // Make sure we observe any images that just became visible
+        observeLazyImages();
       }
     }
   });
@@ -370,9 +423,117 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   directorySelect?.addEventListener('change', (event) => {
     if (event.target instanceof HTMLSelectElement) {
       filterImages(event.target.value);
+      // Start observing any newly-visible images
+      observeLazyImages();
       // Don't automatically scroll to top - let user stay where they are
     }
   });
+
+  // Lazy-loading: IntersectionObserver that swaps data-src -> src
+  const LAZY_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+  let lazyObserver = null;
+  let lazyObserverRoot = null;
+
+  function observeLazyImages() {
+    try {
+      // Use the gallery container as root for slider (horizontal) mode so
+      // images that are inside the scroll container are observed correctly.
+      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+      const newRoot = (galleryContainer && galleryContainer.classList.contains('slider')) ? galleryContainer : null;
+      // If the root changed since last observer, recreate the observer.
+      if (lazyObserver && lazyObserverRoot !== newRoot) {
+        try { lazyObserver.disconnect(); } catch (e) { /* ignore */ }
+        lazyObserver = null;
+        lazyObserverRoot = null;
+      }
+
+      const opts = {
+        root: newRoot,
+        rootMargin: '400px',
+        threshold: 0.01,
+      };
+
+      if ('IntersectionObserver' in window) {
+        if (!lazyObserver) {
+          lazyObserverRoot = newRoot;
+          lazyObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+              const img = entry.target;
+              console.debug('IntersectionObserver entry:', { isIntersecting: entry.isIntersecting, src: img?.getAttribute('data-src') });
+              if (entry.isIntersecting) {
+                const realSrc = img.getAttribute('data-src');
+                if (realSrc) {
+                  // Attach load handler to enable transition to 'loaded'
+                  const onLoad = () => {
+                    try {
+                      img.classList.add('loaded');
+                      img.classList.remove('lazyload');
+                    } catch (e) {
+                      /* ignore */
+                    }
+                    img.removeEventListener('load', onLoad);
+                  };
+                  img.addEventListener('load', onLoad);
+                  console.debug('Setting src for image:', realSrc);
+                  img.src = realSrc;
+                  img.removeAttribute('data-src');
+                  // If image already cached/complete, call handler immediately
+                  if (img.complete) onLoad();
+                } else {
+                  img.classList.add('loaded');
+                  img.classList.remove('lazyload');
+                }
+                observer.unobserve(img);
+              }
+            });
+          }, opts);
+        }
+
+        const images = Array.from(document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img.lazyload'));
+        console.debug('observeLazyImages found lazy images count:', images.length);
+        images.forEach(img => {
+          // Ensure placeholder if missing
+          if (!img.getAttribute('src')) img.src = LAZY_PLACEHOLDER;
+          lazyObserver.observe(img);
+        });
+
+        // Fallback: after a short delay, force-load any lazy images that are visible
+        setTimeout(() => {
+          try {
+            const pending = Array.from(document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img.lazyload'));
+            pending.forEach(img => {
+              const rect = img.getBoundingClientRect();
+              const inViewport = rect.top < (window.innerHeight + 400) && rect.bottom > -400;
+              if (inViewport) {
+                const real = img.getAttribute('data-src');
+                if (real) {
+                  console.debug('Fallback loading visible lazy image:', real);
+                  img.src = real;
+                  img.removeAttribute('data-src');
+                  img.classList.add('loaded');
+                  img.classList.remove('lazyload');
+                }
+              }
+            });
+          } catch (e) {
+            /* ignore fallback errors */
+          }
+        }, 1200);
+      } else {
+        // Fallback: load all images immediately
+        const images = document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img');
+        images.forEach(img => {
+          const realSrc = img.getAttribute('data-src');
+          if (realSrc) {
+            img.src = realSrc;
+            img.removeAttribute('data-src');
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('Error initializing lazy observer', err);
+    }
+  }
 
   function scrollToTop() {
     const target = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
