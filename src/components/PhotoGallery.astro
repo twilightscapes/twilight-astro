@@ -123,7 +123,9 @@ const imagesByDirectory = allImages.reduce((acc, img) => {
 }, {} as Record<string, Array<typeof allImages[0]> >);
 
 const normalizedDefaultKey = (defaultDirectory || 'all').toString().trim().toLowerCase();
-const initialImages = (normalizedDefaultKey && normalizedDefaultKey !== 'all') ? (imagesByDirectory[normalizedDefaultKey] || []) : allImages;
+// If default is 'all', avoid server-rendering all images to prevent loading everything at once.
+// Client will render the selected directory on demand.
+const initialImages = (normalizedDefaultKey && normalizedDefaultKey !== 'all') ? (imagesByDirectory[normalizedDefaultKey] || []) : [];
 const serializedGalleryData = JSON.stringify({ byKey: imagesByDirectory, map: directoryMap });
 const encodedGalleryData = encodeURIComponent(serializedGalleryData);
 ---
