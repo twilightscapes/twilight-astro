@@ -188,11 +188,33 @@ img.loaded {
 }
 
 .post-card1.hidden {
-  display: none;
+  display: none !important;
 }
 
 .post-card1.visible {
   display: block;
+}
+
+/* Override for slider mode - visible items need flex display */
+.homegallery.slider .post-card1.visible,
+[data-section-id*="gallery"] .homegallery.slider .post-card1.visible {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.homegallery.slider .post-card1.visible .image-wrapper,
+[data-section-id*="gallery"] .homegallery.slider .post-card1.visible .image-wrapper {
+  height: var(--gallery-slide-height) !important;
+  width: auto !important;
+  max-height: 40vh !important;
+}
+
+.homegallery.slider .post-card1.visible .image-wrapper img,
+[data-section-id*="gallery"] .homegallery.slider .post-card1.visible .image-wrapper img {
+  height: 100% !important;
+  width: auto !important;
+  object-fit: contain !important;
 }
 
 
@@ -338,16 +360,22 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     const images = galleryContainer.querySelectorAll('.post-card1');
     console.log('Filtering images for directory:', selectedDir, 'Found images:', images.length);
     
+    let visibleCount = 0;
+    let hiddenCount = 0;
     images.forEach((image) => {
       if (image instanceof HTMLElement) {
         const imageDir = image.dataset.directory;
-        if (selectedDir === 'all' || imageDir === selectedDir) {
+        const shouldShow = selectedDir === 'all' || imageDir === selectedDir;
+        console.log(`Image dir: "${imageDir}", Selected: "${selectedDir}", Show: ${shouldShow}`);
+        
+        if (shouldShow) {
           image.style.display = '';
           image.style.visibility = '';
           image.style.position = '';
           image.style.left = '';
           image.classList.remove('hidden');
           image.classList.add('visible');
+          visibleCount++;
         } else {
           image.style.display = 'none';
           image.style.visibility = 'hidden';
@@ -355,9 +383,11 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
           image.style.left = '-9999px';
           image.classList.add('hidden');
           image.classList.remove('visible');
+          hiddenCount++;
         }
       }
     });
+    console.log(`Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
   }
 
   function initializeGallery() {
@@ -366,14 +396,18 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
     
     if (galleryContainer) {
-      if (isMobile) {
-        // Mobile: use grid mode
-        galleryContainer.classList.remove('slider');
-        galleryContainer.classList.add('grid-container');
-      } else {
+      const needsSlider = !isMobile;
+      const hasSlider = galleryContainer.classList.contains('slider');
+      
+      // Only modify classes if they need to change
+      if (needsSlider && !hasSlider) {
         // Desktop: use swipe mode (default)
         galleryContainer.classList.remove('grid-container');
         galleryContainer.classList.add('slider');
+      } else if (!needsSlider && hasSlider) {
+        // Mobile: use grid mode
+        galleryContainer.classList.remove('slider');
+        galleryContainer.classList.add('grid-container');
       }
       
       // Ensure wheel/drag scroll functionality is added when in swipe mode
@@ -391,6 +425,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     }
     
     // Use defaultDirectory instead of reading from select
+    console.log('Initializing gallery with defaultDirectory:', defaultDirectory);
     filterImages(defaultDirectory);
     
     // Initialize lazy loading after filtering completes
