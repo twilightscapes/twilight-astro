@@ -221,6 +221,10 @@ img{border-radius: var(--border-radius) !important;}
   transform: scale(1.03);
   transition: filter 600ms cubic-bezier(.2,.9,.2,1), transform 600ms cubic-bezier(.2,.9,.2,1), opacity 400ms ease;
   will-change: filter, transform, opacity;
+
+/* Hide until JS initializes to avoid layout flash/stacks */
+.homegallery { opacity: 0; pointer-events: none; }
+.homegallery[data-ready="true"] { opacity: 1; pointer-events: auto; transition: opacity 250ms ease; }
 }
 .homegallery img.loaded {
   filter: blur(0);
@@ -372,6 +376,12 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     const normalizedDefault = (defaultDirectory || 'all').toString().trim().toLowerCase();
     // Use normalized default instead of reading from select
     filterImages(normalizedDefault);
+    // Ensure the selected directory is rendered client-side (if server didn't render it)
+    try {
+      renderDirectory(normalizedDefault);
+    } catch (e) {
+      console.debug('renderDirectory failed during init (may be fine):', e);
+    }
     // Ensure wheel/drag scroll functionality is added when in swipe mode
     try {
       const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
@@ -402,6 +412,11 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       initializeGallery();
       // After init, start observing images
       observeLazyImages();
+      // Reveal gallery after JS initialization to avoid layout flashes
+      try {
+        const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+        if (galleryContainer) galleryContainer.dataset.ready = 'true';
+      } catch (e) { /* ignore */ }
       // Re-check on scroll/resize to catch images that enter viewport via scrolling
       try {
         let scheduled = false;
@@ -590,7 +605,8 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
 
       const opts = {
         root: newRoot,
-        rootMargin: '400px',
+        // Smaller rootMargin so we don't pre-load huge numbers of images offscreen
+        rootMargin: '200px',
         threshold: 0.01,
       };
 
