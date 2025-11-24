@@ -282,7 +282,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   let imageObserver = null;
   let fallbackTimer = null;
 
-  // Lazy load images using IntersectionObserver
+  // Lazy load images - simply load all visible images
   function lazyLoadImages(forceViewportLoad = false) {
     // Clear any pending fallback timer
     if (fallbackTimer) {
@@ -293,71 +293,21 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     // Disconnect existing observer if any
     if (imageObserver) {
       imageObserver.disconnect();
+      imageObserver = null;
     }
 
-    // Only select visible lazy images (not hidden by directory filter)
+    // Load all visible lazy images immediately
     const images = document.querySelectorAll(`[data-section-id="${sectionId}"] .post-card1.visible img.lazy, [data-section-id="${sectionId}"] .post-card1:not(.hidden) img.lazy`);
-    console.log('lazyLoadImages: Found', images.length, 'visible lazy images to observe');
+    console.log('lazyLoadImages: Found', images.length, 'visible lazy images to load');
     
-    // If forcing viewport load (e.g., after gallery switch), immediately load visible images
-    if (forceViewportLoad) {
-      const viewportHeight = window.innerHeight;
-      images.forEach(img => {
-        const rect = img.getBoundingClientRect();
-        // Load images currently in viewport
-        if (rect.top < viewportHeight && rect.bottom > 0) {
-          const src = img.getAttribute('data-src');
-          if (src) {
-            img.src = src;
-            img.classList.remove('lazy');
-            img.classList.add('loaded');
-          }
-        }
-      });
-    }
-    
-    if ('IntersectionObserver' in window) {
-      // Get the gallery container to use as root for swipe mode
-      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-      const isSwipeMode = galleryContainer?.classList.contains('slider');
-      
-      imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const src = img.getAttribute('data-src');
-            console.log('Image entering viewport:', src);
-            if (src) {
-              img.src = src;
-              img.classList.remove('lazy');
-              img.classList.add('loaded');
-              observer.unobserve(img);
-            }
-          }
-        });
-      }, {
-        root: isSwipeMode ? galleryContainer : null, // Use container as root for horizontal scroll
-        rootMargin: '100px', // Increased for swipe mode
-        threshold: 0.01
-      });
-
-      images.forEach(img => {
-        // Only observe images that are still lazy (not already loaded)
-        if (img.classList.contains('lazy')) {
-          imageObserver.observe(img);
-        }
-      });
-    } else {
-      // Fallback for browsers without IntersectionObserver
-      images.forEach(img => {
-        const src = img.getAttribute('data-src');
-        if (src) {
-          img.src = src;
-          img.classList.remove('lazy');
-          img.classList.add('loaded');
-        }
-      });
-    }
+    images.forEach(img => {
+      const src = img.getAttribute('data-src');
+      if (src) {
+        img.src = src;
+        img.classList.remove('lazy');
+        img.classList.add('loaded');
+      }
+    });
   }
 
   function filterImages(selectedDir) {
@@ -399,37 +349,6 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     // Initialize lazy loading after a short delay to ensure DOM is ready
     setTimeout(() => {
       lazyLoadImages();
-      
-      // Progressive fallback: Load remaining images gradually, not all at once
-      fallbackTimer = setTimeout(() => {
-        const stillLazy = document.querySelectorAll(`[data-section-id="${sectionId}"] .post-card1.visible img.lazy`);
-        if (stillLazy.length > 0) {
-          console.log('Progressively loading remaining', stillLazy.length, 'images...');
-          
-          // Load images in small batches to avoid overwhelming the browser
-          let index = 0;
-          const batchSize = 5;
-          
-          function loadNextBatch() {
-            const batch = Array.from(stillLazy).slice(index, index + batchSize);
-            batch.forEach(img => {
-              const src = img.getAttribute('data-src');
-              if (src) {
-                img.src = src;
-                img.classList.remove('lazy');
-                img.classList.add('loaded');
-              }
-            });
-            
-            index += batchSize;
-            if (index < stillLazy.length) {
-              setTimeout(loadNextBatch, 100); // Small delay between batches
-            }
-          }
-          
-          loadNextBatch();
-        }
-      }, 1000); // Reduced from 2000ms to 1000ms
     }, 100);
     
     // Ensure wheel/drag scroll functionality is added when in swipe mode
@@ -458,15 +377,6 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
 
   // Wait for both DOM and images to load
   window.addEventListener('load', initializeGallery);
-
-  // Also reinitialize on scroll to catch any missed images
-  let scrollTimer;
-  window.addEventListener('scroll', () => {
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(() => {
-      lazyLoadImages();
-    }, 150);
-  }, { passive: true });
 
   // Listen for view mode changes to re-filter images
   window.addEventListener('viewModeChanged', (event) => {
@@ -507,8 +417,8 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       
       if (directorySelect && directorySelect instanceof HTMLSelectElement) {
         filterImages(directorySelect.value);
-        // Force immediate load of viewport images when view mode changes
-        setTimeout(() => lazyLoadImages(true), 50);
+        // Load all newly visible images
+        setTimeout(() => lazyLoadImages(), 50);
       }
     }
   });
@@ -516,15 +426,9 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   const directorySelect = document.getElementById('directorySelect');
   directorySelect?.addEventListener('change', (event) => {
     if (event.target instanceof HTMLSelectElement) {
-      // Clear any pending fallback timer when switching galleries
-      if (fallbackTimer) {
-        clearTimeout(fallbackTimer);
-        fallbackTimer = null;
-      }
-      
       filterImages(event.target.value);
-      // Force immediate load of viewport images, then set up observer for the rest
-      setTimeout(() => lazyLoadImages(true), 50);
+      // Load all newly visible images
+      setTimeout(() => lazyLoadImages(), 50);
       // Don't automatically scroll to top - let user stay where they are
     }
   });
