@@ -168,15 +168,13 @@ img{border-radius: var(--border-radius) !important;}
 img.lazy {
   background: #222;
   min-height: 200px;
-  opacity: 0;
-  filter: blur(10px);
-  transform: scale(1.05);
-  transition: opacity 0.5s ease-in-out, filter 0.5s ease-in-out, transform 0.5s ease-in-out;
+  filter: blur(20px);
+  transform: scale(1.1);
+  transition: filter 0.6s ease-in-out, transform 0.6s ease-in-out;
 }
 
 img.loaded {
   background: transparent;
-  opacity: 1;
   filter: blur(0);
   transform: scale(1);
 }
