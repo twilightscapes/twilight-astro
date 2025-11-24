@@ -132,6 +132,7 @@ const processedImages = allImages.map(image => ({
           alt={image.alt ?? ''}
           class="object-contain rounded-image lazy"
           style="border-radius: var(--border-radius);"
+          loading="lazy"
           data-image-index={index}
         />
       </div>
@@ -169,13 +170,10 @@ img.lazy {
   min-height: 200px;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  transition: opacity 0.3s ease-in;
 }
 
 img.loaded {
   background: transparent !important;
-  opacity: 1;
 }
 
 .image-caption {
@@ -301,12 +299,15 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     
     images.forEach(img => {
       const src = img.getAttribute('data-src');
-      if (src) {
+      // Only set src if it hasn't been set yet (still has placeholder)
+      if (src && (!img.src || img.src.includes('data:image/svg'))) {
         img.src = src;
         // Wait for image to fully load before removing lazy class
         img.onload = () => {
           img.classList.remove('lazy');
           img.classList.add('loaded');
+          // Remove any blur filter applied by global blur script
+          img.style.filter = 'blur(0px)';
         };
       }
     });
