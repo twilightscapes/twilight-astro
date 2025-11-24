@@ -68,7 +68,8 @@ if (galleryMode === 'keystatic') {
   }));
 }
 
-const directories = ([
+// Build directory list and keep a normalized key map (lowercased) so client and select values match
+const rawDirectories = [
   'all',
   defaultDirectory,
   ...new Set(
@@ -76,7 +77,9 @@ const directories = ([
       .map(img => img.directory)
       .filter(dir => dir !== defaultDirectory)
   )
-] as string[]).filter(Boolean).sort((a, b) => {
+] as string[];
+
+const directories = rawDirectories.filter(Boolean).sort((a, b) => {
   if (a === 'all') return -1;
   if (b === 'all') return 1;
   if (a === defaultDirectory) return -1;
@@ -84,21 +87,45 @@ const directories = ([
   return a.localeCompare(b);
 });
 
+// directoryMap: normalizedKey -> displayName
+const directoryMap: Record<string, string> = {};
+directories.forEach(dir => {
+  const key = (dir || '').toString().trim().toLowerCase();
+  directoryMap[key] = dir;
+});
+
 const showCaptions = photoSettings?.data?.showCaptions ?? true;
 const showGallerySelector = photoSettings?.data?.showGallerySelector && galleryMode === 'directory';
 
+// Attach global index so client components (lightbox) can reference images
+allImages = allImages.map((img, idx) => ({ ...img, index: idx }));
+
 const images = allImages.map(img => ({
   src: img.src,
-  caption: img.title, 
+  caption: img.title,
 }));
 
-// Pre-process images for the client component
+// Pre-process images for the client component (lightbox expects full list)
 const processedImages = allImages.map(image => ({
   src: image.src, // Use original high-quality source for lightbox
   alt: image.alt || '',
   title: image.title || '',
-  // Only include data needed by GalleryLightbox
 }));
+
+// Group images by directory so we can render only the active directory initially
+// Group images by normalized directory key
+const imagesByDirectory = allImages.reduce((acc, img) => {
+  const dirRaw = img.directory || 'default';
+  const key = dirRaw.toString().trim().toLowerCase();
+  if (!acc[key]) acc[key] = [];
+  acc[key].push(img);
+  return acc;
+}, {} as Record<string, Array<typeof allImages[0]> >);
+
+const normalizedDefaultKey = (defaultDirectory || 'all').toString().trim().toLowerCase();
+const initialImages = (normalizedDefaultKey && normalizedDefaultKey !== 'all') ? (imagesByDirectory[normalizedDefaultKey] || []) : allImages;
+const serializedGalleryData = JSON.stringify({ byKey: imagesByDirectory, map: directoryMap });
+const encodedGalleryData = encodeURIComponent(serializedGalleryData);
 ---
 
 
@@ -107,42 +134,49 @@ const processedImages = allImages.map(image => ({
 <!-- Gallery selector - positioned absolutely outside flow -->
 {showGallerySelector && (
   <div class="cattags" style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', width: 'auto', display: 'flex', justifyContent:'center', gap: '0', color: '', zIndex: defaultView === 'grid' ? '1' : '20', background: 'var(--theme-bg, #1a1a1a)', padding: '0.5rem', borderRadius: 'var(--border-radius)' }}>
-    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
-      {directories.map((dir) => (
-        <option value={dir}>
-          {dir === 'all' ? languageData.allimages : dir}
-        </option>
-      ))}
+    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={normalizedDefaultKey} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
+      {directories.map((dir) => {
+        const key = (dir || '').toString().trim().toLowerCase();
+        const label = key === 'all' ? languageData.allimages : (directoryMap[key] || dir);
+        return (
+          <option value={key}>{label}</option>
+        );
+      })}
     </select>
   </div>
 )}
 
 <div data-section-id={sectionId} style="position: relative; padding-top: 50px;">
-<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:20px;">
+<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} data-show-captions={showCaptions} data-gallery-json={encodedGalleryData} style="padding-top:20px;">
   <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
 
 
   
-  {allImages.map((image, index) => (
-    <div class="post-card1" data-directory={image.directory}>
-      <div class="image-wrapper">
-        <img 
-          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
-          data-src={image.src ?? ''}
-          alt={image.alt ?? ''}
-          class="object-contain rounded-image lazyload"
-          loading="lazy"
-          style="border-radius: var(--border-radius);"
-          data-image-index={index}
-        />
-      </div>
-      {showCaptions && (
-        <div class="image-caption">
-          <h2>{image.title}</h2>
+  {initialImages.map((image) => (
+      <div class="post-card1" data-directory={(image.directory || 'default').toString().trim().toLowerCase()}>
+        <div class="image-wrapper">
+          <img 
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+            data-src={image.src ?? ''}
+            alt={image.alt ?? ''}
+            class="object-contain rounded-image lazyload"
+            loading="lazy"
+            style="border-radius: var(--border-radius);"
+            data-image-index={image.index}
+          />
         </div>
-      )}
-    </div>
-  ))}
+        {showCaptions && (
+          <div class="image-caption">
+            <h2>{image.title}</h2>
+          </div>
+        )}
+      </div>
+    ))}
+
+  <!-- Serialized gallery data for client-side rendering of other directories -->
+  <script type="application/json" id={`gallery-data-${sectionId}`}>
+    {serializedGalleryData}
+  </script>
 </div>
 </div>
 
@@ -327,11 +361,15 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
         }
       }
     });
+    // After changing visibility, ensure lazy observer is watching newly-visible images
+    try { observeLazyImages(); } catch (e) { /* ignore */ }
   }
 
   function initializeGallery() {
-    // Use defaultDirectory instead of reading from select
-    filterImages(defaultDirectory);
+    // Normalize defaultDirectory for client-side comparison
+    const normalizedDefault = (defaultDirectory || 'all').toString().trim().toLowerCase();
+    // Use normalized default instead of reading from select
+    filterImages(normalizedDefault);
     // Ensure wheel/drag scroll functionality is added when in swipe mode
     try {
       const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
@@ -349,7 +387,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     try {
       const sel = document.getElementById('directorySelect');
       if (sel && sel instanceof HTMLSelectElement) {
-        sel.value = defaultDirectory;
+        sel.value = normalizedDefault;
       }
     } catch (err) {
       console.warn('Error setting directory select value', err);
@@ -362,6 +400,24 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       initializeGallery();
       // After init, start observing images
       observeLazyImages();
+      // Re-check on scroll/resize to catch images that enter viewport via scrolling
+      try {
+        let scheduled = false;
+        const scheduleCheck = () => {
+          if (scheduled) return;
+          scheduled = true;
+          setTimeout(() => {
+            observeLazyImages();
+            // Also force-load any visible images as a backup
+            try { forceLoadVisibleLazyImages(); } catch (e) { /* ignore */ }
+            scheduled = false;
+          }, 180);
+        };
+        window.addEventListener('scroll', scheduleCheck, { passive: true });
+        window.addEventListener('resize', scheduleCheck);
+      } catch (e) {
+        /* ignore */
+      }
     } catch (e) {
       console.warn('Error during gallery init:', e);
     }
@@ -420,11 +476,94 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   });
 
   const directorySelect = document.getElementById('directorySelect');
+  // Render directory on select change (render only requested directory's images)
+  function createImageCard(img, showCaps) {
+    const card = document.createElement('div');
+    card.className = 'post-card1';
+    card.setAttribute('data-directory', (img.directory || 'default').toString().trim().toLowerCase());
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'image-wrapper';
+
+    const imageEl = document.createElement('img');
+    imageEl.src = LAZY_PLACEHOLDER;
+    if (img.src) imageEl.setAttribute('data-src', img.src);
+    imageEl.alt = img.alt || '';
+    imageEl.className = 'object-contain rounded-image lazyload';
+    imageEl.loading = 'lazy';
+    imageEl.style.borderRadius = 'var(--border-radius)';
+    imageEl.setAttribute('data-image-index', String(img.index || 0));
+
+    wrapper.appendChild(imageEl);
+    card.appendChild(wrapper);
+
+    if (img.title && showCaps) {
+      const cap = document.createElement('div');
+      cap.className = 'image-caption';
+      const h2 = document.createElement('h2');
+      h2.textContent = img.title;
+      cap.appendChild(h2);
+      card.appendChild(cap);
+    }
+
+    return card;
+  }
+
+  function getGalleryDataFromDom() {
+    try {
+      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+      const raw = galleryContainer?.dataset?.galleryJson;
+      if (!raw) {
+        console.debug('No gallery-json dataset found on gallery container');
+        return {};
+      }
+      const parsed = JSON.parse(decodeURIComponent(raw));
+      // Support serialized shape { byKey, map } as well as legacy raw-by-key objects
+      const byKey = parsed?.byKey || parsed;
+      console.debug('Parsed gallery data keys:', Object.keys(byKey || {}));
+      return { byKey, map: parsed?.map || {} };
+    } catch (e) {
+      console.warn('Failed to parse gallery data', e);
+      return {};
+    }
+  }
+
+  function renderDirectory(dir) {
+    const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+    if (!galleryContainer) return;
+
+    // Remove existing dynamically-inserted cards (keep server-rendered initial ones if they match)
+    const existing = Array.from(galleryContainer.querySelectorAll('.post-card1'));
+    existing.forEach(el => el.remove());
+
+    const data = getGalleryDataFromDom();
+    const byKey = data.byKey || {};
+    let imagesToRender = [];
+    if (!dir || dir === 'all') {
+      imagesToRender = Object.values(byKey).flat();
+    } else {
+      imagesToRender = byKey[dir] || [];
+    }
+
+    const showCaps = String(galleryContainer.dataset.showCaptions) === 'true';
+    imagesToRender.forEach(img => {
+      const card = createImageCard(img, showCaps);
+      galleryContainer.appendChild(card);
+    });
+
+    // Apply filter logic (visibility) and start observing lazy images
+    filterImages(dir);
+    observeLazyImages();
+    // Extra safety: re-run observer shortly after rendering in case images weren't picked up
+    setTimeout(() => observeLazyImages(), 300);
+    console.debug('renderDirectory appended images count:', imagesToRender.length, 'for dir:', dir);
+  }
+
   directorySelect?.addEventListener('change', (event) => {
     if (event.target instanceof HTMLSelectElement) {
-      filterImages(event.target.value);
-      // Start observing any newly-visible images
-      observeLazyImages();
+      const val = event.target.value;
+      // Render the selected directory's images on demand
+      renderDirectory(val);
       // Don't automatically scroll to top - let user stay where they are
     }
   });
@@ -500,21 +639,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
         // Fallback: after a short delay, force-load any lazy images that are visible
         setTimeout(() => {
           try {
-            const pending = Array.from(document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img.lazyload'));
-            pending.forEach(img => {
-              const rect = img.getBoundingClientRect();
-              const inViewport = rect.top < (window.innerHeight + 400) && rect.bottom > -400;
-              if (inViewport) {
-                const real = img.getAttribute('data-src');
-                if (real) {
-                  console.debug('Fallback loading visible lazy image:', real);
-                  img.src = real;
-                  img.removeAttribute('data-src');
-                  img.classList.add('loaded');
-                  img.classList.remove('lazyload');
-                }
-              }
-            });
+            forceLoadVisibleLazyImages();
           } catch (e) {
             /* ignore fallback errors */
           }
@@ -533,6 +658,34 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     } catch (err) {
       console.warn('Error initializing lazy observer', err);
     }
+  }
+
+  // Force-load any lazy images that are visible in the viewport (reliable fallback)
+  function forceLoadVisibleLazyImages() {
+    const pending = Array.from(document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img.lazyload'));
+    if (!pending.length) return 0;
+    const margin = 400;
+    let loadedCount = 0;
+    pending.forEach(img => {
+      try {
+        const rect = img.getBoundingClientRect();
+        const inViewport = rect.top < (window.innerHeight + margin) && rect.bottom > -margin;
+        if (inViewport) {
+          const real = img.getAttribute('data-src');
+          if (real) {
+            console.debug('forceLoadVisibleLazyImages loading:', real);
+            img.src = real;
+            img.removeAttribute('data-src');
+            img.classList.add('loaded');
+            img.classList.remove('lazyload');
+            loadedCount++;
+          }
+        }
+      } catch (e) {
+        /* ignore per-image errors */
+      }
+    });
+    return loadedCount;
   }
 
   function scrollToTop() {
