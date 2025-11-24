@@ -132,7 +132,6 @@ const processedImages = allImages.map(image => ({
           alt={image.alt ?? ''}
           class="object-contain rounded-image lazy"
           style="border-radius: var(--border-radius);"
-          loading="lazy"
           data-image-index={index}
         />
       </div>
@@ -302,13 +301,22 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       // Only set src if it hasn't been set yet (still has placeholder)
       if (src && (!img.src || img.src.includes('data:image/svg'))) {
         img.src = src;
-        // Wait for image to fully load before removing lazy class
-        img.onload = () => {
+        
+        // Handler to unblur when loaded
+        const handleLoad = () => {
           img.classList.remove('lazy');
           img.classList.add('loaded');
-          // Remove any blur filter applied by global blur script
-          img.style.filter = 'blur(0px)';
+          img.style.filter = '';
+          img.style.removeProperty('filter');
         };
+        
+        // If already loaded (cached), unblur immediately
+        if (img.complete && img.naturalHeight !== 0) {
+          handleLoad();
+        } else {
+          // Otherwise wait for load event
+          img.addEventListener('load', handleLoad, { once: true });
+        }
       }
     });
   }

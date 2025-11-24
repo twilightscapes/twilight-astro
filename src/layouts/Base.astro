@@ -125,6 +125,11 @@ const pageOgImage = ogImage || meta?.ogImage;
 
             const images = document.querySelectorAll('img');
             images.forEach(img => {
+                // Skip gallery images with data-src attribute - they handle their own blur
+                if (img.hasAttribute('data-src')) {
+                    return;
+                }
+                
                 // Apply initial blur
                 img.style.filter = 'blur(20px)';
                 img.style.transition = 'filter 0.5s ease-in-out';
