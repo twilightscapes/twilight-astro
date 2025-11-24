@@ -168,10 +168,13 @@ img{border-radius: var(--border-radius) !important;}
 img.lazy {
   background: #222;
   min-height: 200px;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
 }
 
 img.loaded {
   background: transparent;
+  opacity: 1;
 }
 
 .image-caption {
