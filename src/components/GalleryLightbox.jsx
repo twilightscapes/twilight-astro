@@ -70,6 +70,7 @@ export default function GalleryLightbox({ images, showCaptions }) {
   };
 
   useEffect(() => {
+    console.debug('GalleryLightbox mount: slides count', images?.length);
     const setupClickListeners = () => {
       const imageElements = document.querySelectorAll('.post-card1:not(.hidden) img');
       

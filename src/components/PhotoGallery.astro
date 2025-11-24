@@ -427,6 +427,15 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   // Initialize once DOM is ready (run immediately if DOMContentLoaded already fired)
   function initGalleryAndObserve() {
     try {
+      // Debug: log pre-existing images and gallery dataset before initialization
+      try {
+        const preImgs = Array.from(document.querySelectorAll('.post-card1 img'));
+        console.debug('Gallery init: pre-existing .post-card1 img count:', preImgs.length, 'sample srcs:', preImgs.slice(0, 10).map(i => i.src));
+        const galleryContainerDbg = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+        console.debug('Gallery init: galleryContainer found?:', !!galleryContainerDbg, 'has galleryJson dataset?:', !!galleryContainerDbg?.dataset?.galleryJson, 'data-ready:', galleryContainerDbg?.dataset?.ready);
+      } catch (dbgErr) {
+        console.debug('Gallery init: pre-init debug error', dbgErr);
+      }
       initializeGallery();
       // After init, start observing images
       observeLazyImages();
