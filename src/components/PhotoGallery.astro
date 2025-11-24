@@ -353,20 +353,15 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   function filterImages(selectedDir) {
     const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
     if (!galleryContainer) {
-      console.log('Gallery container not found for sectionId:', sectionId);
       return;
     }
     
     const images = galleryContainer.querySelectorAll('.post-card1');
-    console.log('Filtering images for directory:', selectedDir, 'Found images:', images.length);
     
-    let visibleCount = 0;
-    let hiddenCount = 0;
     images.forEach((image) => {
       if (image instanceof HTMLElement) {
         const imageDir = image.dataset.directory;
         const shouldShow = selectedDir === 'all' || imageDir === selectedDir;
-        console.log(`Image dir: "${imageDir}", Selected: "${selectedDir}", Show: ${shouldShow}`);
         
         if (shouldShow) {
           image.style.display = '';
@@ -375,7 +370,6 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
           image.style.left = '';
           image.classList.remove('hidden');
           image.classList.add('visible');
-          visibleCount++;
         } else {
           image.style.display = 'none';
           image.style.visibility = 'hidden';
@@ -383,11 +377,9 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
           image.style.left = '-9999px';
           image.classList.add('hidden');
           image.classList.remove('visible');
-          hiddenCount++;
         }
       }
     });
-    console.log(`Filter complete: ${visibleCount} visible, ${hiddenCount} hidden`);
   }
 
   function initializeGallery() {
@@ -420,12 +412,11 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
           }
         }
       } catch (err) {
-        console.warn('Error initializing gallery scroll handlers', err);
+        // Silent error handling
       }
     }
     
     // Use defaultDirectory instead of reading from select
-    console.log('Initializing gallery with defaultDirectory:', defaultDirectory);
     filterImages(defaultDirectory);
     
     // Initialize lazy loading after filtering completes
@@ -440,7 +431,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
         sel.value = defaultDirectory;
       }
     } catch (err) {
-      console.warn('Error setting directory select value', err);
+      // Silent error handling
     }
   }
 
@@ -480,7 +471,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
             }
           }
         } catch (err) {
-          console.warn('Error toggling gallery scroll handlers', err);
+          // Silent error handling
         }
       }
       
