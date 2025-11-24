@@ -154,26 +154,8 @@ const encodedGalleryData = encodeURIComponent(serializedGalleryData);
 
 
   
-  {initialImages.map((image) => (
-      <div class="post-card1" data-directory={(image.directory || 'default').toString().trim().toLowerCase()}>
-        <div class="image-wrapper">
-          <img 
-            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
-            data-src={image.src ?? ''}
-            alt={image.alt ?? ''}
-            class="object-contain rounded-image lazyload"
-            loading="lazy"
-            style="border-radius: var(--border-radius);"
-            data-image-index={image.index}
-          />
-        </div>
-        {showCaptions && (
-          <div class="image-caption">
-            <h2>{image.title}</h2>
-          </div>
-        )}
-      </div>
-    ))}
+  <!-- Server will not render image cards to avoid loading all images before JS initializes.
+       Images are rendered client-side by `renderDirectory()` to ensure lazy-loading works reliably. -->
 
   <!-- Serialized gallery data for client-side rendering of other directories -->
   <script type="application/json" id={`gallery-data-${sectionId}`}>
