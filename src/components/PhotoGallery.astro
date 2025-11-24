@@ -127,10 +127,12 @@ const processedImages = allImages.map(image => ({
     <div class="post-card1" data-directory={image.directory}>
       <div class="image-wrapper">
         <img 
-          src={image.src ?? ''} 
+          data-src={image.src ?? ''} 
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3C/svg%3E"
           alt={image.alt ?? ''}
-          class="object-contain rounded-image"
+          class="object-contain rounded-image lazy"
           style="border-radius: var(--border-radius);"
+          loading="lazy"
           data-image-index={index}
         />
       </div>
@@ -161,6 +163,16 @@ const processedImages = allImages.map(image => ({
   border-radius: var(--border-radius);
 }
 img{border-radius: var(--border-radius) !important;}
+
+/* Lazy loading images - show placeholder background */
+img.lazy {
+  background: #222;
+  min-height: 200px;
+}
+
+img.loaded {
+  background: transparent;
+}
 
 .image-caption {
   margin-top: 8px;
@@ -261,6 +273,82 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
 }
 </style>
 <script define:vars={{ defaultDirectory, sectionId }}>
+  let imageObserver = null;
+  let fallbackTimer = null;
+
+  // Lazy load images using IntersectionObserver
+  function lazyLoadImages(forceViewportLoad = false) {
+    // Clear any pending fallback timer
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+
+    // Disconnect existing observer if any
+    if (imageObserver) {
+      imageObserver.disconnect();
+    }
+
+    // Only select visible lazy images (not hidden by directory filter)
+    const images = document.querySelectorAll(`[data-section-id="${sectionId}"] .post-card1.visible img.lazy, [data-section-id="${sectionId}"] .post-card1:not(.hidden) img.lazy`);
+    console.log('lazyLoadImages: Found', images.length, 'visible lazy images to observe');
+    
+    // If forcing viewport load (e.g., after gallery switch), immediately load visible images
+    if (forceViewportLoad) {
+      const viewportHeight = window.innerHeight;
+      images.forEach(img => {
+        const rect = img.getBoundingClientRect();
+        // Load images currently in viewport
+        if (rect.top < viewportHeight && rect.bottom > 0) {
+          const src = img.getAttribute('data-src');
+          if (src) {
+            img.src = src;
+            img.classList.remove('lazy');
+            img.classList.add('loaded');
+          }
+        }
+      });
+    }
+    
+    if ('IntersectionObserver' in window) {
+      imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            const src = img.getAttribute('data-src');
+            console.log('Image entering viewport:', src);
+            if (src) {
+              img.src = src;
+              img.classList.remove('lazy');
+              img.classList.add('loaded');
+              observer.unobserve(img);
+            }
+          }
+        });
+      }, {
+        rootMargin: '50px', // Load just slightly before entering viewport
+        threshold: 0.01
+      });
+
+      images.forEach(img => {
+        // Only observe images that are still lazy (not already loaded)
+        if (img.classList.contains('lazy')) {
+          imageObserver.observe(img);
+        }
+      });
+    } else {
+      // Fallback for browsers without IntersectionObserver
+      images.forEach(img => {
+        const src = img.getAttribute('data-src');
+        if (src) {
+          img.src = src;
+          img.classList.remove('lazy');
+          img.classList.add('loaded');
+        }
+      });
+    }
+  }
+
   function filterImages(selectedDir) {
     const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
     if (!galleryContainer) {
@@ -296,6 +384,43 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   function initializeGallery() {
     // Use defaultDirectory instead of reading from select
     filterImages(defaultDirectory);
+    
+    // Initialize lazy loading after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      lazyLoadImages();
+      
+      // Progressive fallback: Load remaining images gradually, not all at once
+      fallbackTimer = setTimeout(() => {
+        const stillLazy = document.querySelectorAll(`[data-section-id="${sectionId}"] .post-card1.visible img.lazy`);
+        if (stillLazy.length > 0) {
+          console.log('Progressively loading remaining', stillLazy.length, 'images...');
+          
+          // Load images in small batches to avoid overwhelming the browser
+          let index = 0;
+          const batchSize = 5;
+          
+          function loadNextBatch() {
+            const batch = Array.from(stillLazy).slice(index, index + batchSize);
+            batch.forEach(img => {
+              const src = img.getAttribute('data-src');
+              if (src) {
+                img.src = src;
+                img.classList.remove('lazy');
+                img.classList.add('loaded');
+              }
+            });
+            
+            index += batchSize;
+            if (index < stillLazy.length) {
+              setTimeout(loadNextBatch, 100); // Small delay between batches
+            }
+          }
+          
+          loadNextBatch();
+        }
+      }, 1000); // Reduced from 2000ms to 1000ms
+    }, 100);
+    
     // Ensure wheel/drag scroll functionality is added when in swipe mode
     try {
       const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
@@ -322,6 +447,15 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
 
   // Wait for both DOM and images to load
   window.addEventListener('load', initializeGallery);
+
+  // Also reinitialize on scroll to catch any missed images
+  let scrollTimer;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      lazyLoadImages();
+    }, 150);
+  }, { passive: true });
 
   // Listen for view mode changes to re-filter images
   window.addEventListener('viewModeChanged', (event) => {
@@ -362,6 +496,8 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       
       if (directorySelect && directorySelect instanceof HTMLSelectElement) {
         filterImages(directorySelect.value);
+        // Force immediate load of viewport images when view mode changes
+        setTimeout(() => lazyLoadImages(true), 50);
       }
     }
   });
@@ -369,7 +505,15 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   const directorySelect = document.getElementById('directorySelect');
   directorySelect?.addEventListener('change', (event) => {
     if (event.target instanceof HTMLSelectElement) {
+      // Clear any pending fallback timer when switching galleries
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+      }
+      
       filterImages(event.target.value);
+      // Force immediate load of viewport images, then set up observer for the rest
+      setTimeout(() => lazyLoadImages(true), 50);
       // Don't automatically scroll to top - let user stay where they are
     }
   });
