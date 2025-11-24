@@ -104,9 +104,11 @@ const processedImages = allImages.map(image => ({
 
 
 
-<!-- Gallery selector - positioned absolutely outside flow -->
+<div data-section-id={sectionId} style="position: relative;">
+
+<!-- Gallery selector - fixed positioned to stay visible -->
 {showGallerySelector && (
-  <div class="cattags" style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', width: 'auto', display: 'flex', justifyContent:'center', gap: '0', color: '', zIndex: defaultView === 'grid' ? '1' : '20', background: 'var(--theme-bg, #1a1a1a)', padding: '0.5rem', borderRadius: 'var(--border-radius)' }}>
+  <div class="cattags gallery-selector-sticky" style={{ position: 'fixed', top: '60px', left: '0', right: '0', display: 'flex', justifyContent:'center', zIndex: '1', padding: '0.5rem', borderRadius: 'var(--border-radius)', }}>
     <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
       {directories.map((dir) => (
         <option value={dir}>
@@ -117,7 +119,6 @@ const processedImages = allImages.map(image => ({
   </div>
 )}
 
-<div data-section-id={sectionId} style="position: relative; padding-top: 50px;">
 <div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:20px;">
   <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
 
