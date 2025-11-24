@@ -107,9 +107,13 @@ const processedImages = allImages.map(image => ({
 <div data-section-id={sectionId} style="position: relative;">
 
 
-{showGallerySelector && (
-  <div class="cattags gallery-selector-sticky" style={{ position: 'fixed', left: '0', top:'', bottom:'', right: '0', display: 'grid', placeSelf:'center', justifyContent:'center', zIndex: '1', padding: '0.5rem', borderRadius: 'var(--border-radius)', marginTop:'' }}>
-    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
+
+
+<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:60px;">
+
+  {showGallerySelector && (
+  <div class="cattags" style={{ position: '', left: '0', top:'', bottom:'', right: '0', display: 'grid', placeSelf:'', justifyContent:'center', zIndex: '1', padding: '0', borderRadius: 'var(--border-radius)', marginTop:'', width:'', margin:'0 auto', maxHeight:'50px' }}>
+    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ width: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '', opacity:'.9', color:'#fff' }}>
       {directories.map((dir) => (
         <option value={dir}>
           {dir === 'all' ? languageData.allimages : dir}
@@ -119,7 +123,6 @@ const processedImages = allImages.map(image => ({
   </div>
 )}
 
-<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:20px;">
   <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
 
 
