@@ -925,10 +925,9 @@ body:has(.video) #footer{display: none !important;}
 		/* Fix gallery dropdown positioning in slider mode */
 		[data-section-id*="gallery-section"] .slider .cattags {
 			position: sticky;
-			top: 0;
-			z-index: 10;
-			background: var(--theme-bg, #1a1a1a);
-			padding: 1rem 0;
+			top: ;
+			z-index: 1;
+			padding: 0 0;
 		}
 		
 		/* Mobile responsive fixes */
