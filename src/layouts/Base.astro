@@ -118,49 +118,47 @@ const pageOgImage = ogImage || meta?.ogImage;
     </body>
 
     <script is:inline define:vars={{ enableImageBlur }}>
-      if (false) {
         function initializeImageLoader() {
-          const blurEnabled = typeof enableImageBlur !== 'undefined' ? enableImageBlur : true;
+            const blurEnabled = typeof enableImageBlur !== 'undefined' ? enableImageBlur : true;
 
-          if (!blurEnabled) return;
+            if (!blurEnabled) return;
 
-          const images = document.querySelectorAll('img');
-          images.forEach(img => {
-            // Apply initial blur
-            img.style.filter = 'blur(20px)';
-            img.style.transition = 'filter 0.5s ease-in-out';
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                // Apply initial blur
+                img.style.filter = 'blur(20px)';
+                img.style.transition = 'filter 0.5s ease-in-out';
 
-            if (img.complete) {
-              img.style.filter = 'blur(0px)';
-            } else {
-              img.addEventListener('load', function() {
-                this.style.filter = 'blur(0px)';
-              });
-            }
-          });
+                if (img.complete) {
+                    img.style.filter = 'blur(0px)';
+                } else {
+                    img.addEventListener('load', function() {
+                        this.style.filter = 'blur(0px)';
+                    });
+                }
+            });
         }
 
         function initializeScrollListener() {
-          // DISABLED - ViewModeSwitch component now handles all scroll functionality
-          return;
+            // DISABLED - ViewModeSwitch component now handles all scroll functionality
+            return;
         }
 
         // Make it globally accessible
         window.initializeScrollListener = initializeScrollListener;
 
         document.addEventListener('DOMContentLoaded', () => {
-          initializeImageLoader();
-          // initializeScrollListener(); // Disabled - ViewModeSwitch handles scroll functionality
+            initializeImageLoader();
+            // initializeScrollListener(); // Disabled - ViewModeSwitch handles scroll functionality
         });
         document.addEventListener('astro:page-load', () => {
-          initializeImageLoader();
-          // initializeScrollListener(); // Disabled - ViewModeSwitch handles scroll functionality
+            initializeImageLoader();
+            // initializeScrollListener(); // Disabled - ViewModeSwitch handles scroll functionality
         });
         window.addEventListener('viewModeChanged', () => {
-          // Disabled - ViewModeSwitch handles this now
-          // setTimeout(initializeScrollListener, 100);
+            // Disabled - ViewModeSwitch handles this now
+            // setTimeout(initializeScrollListener, 100);
         });
-      }
     </script>
 
     <script>

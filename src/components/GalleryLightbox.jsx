@@ -5,9 +5,9 @@ import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 
 import "yet-another-react-lightbox/plugins/thumbnails.css";
 
-export default function GalleryLightbox({ images, showCaptions, initialIndex = null, autoOpen = false }) {
-  const [open, setOpen] = useState(Boolean(autoOpen && initialIndex !== null));
-  const [index, setIndex] = useState(initialIndex || 0);
+export default function GalleryLightbox({ images, showCaptions }) {
+  const [open, setOpen] = useState(false);
+  const [index, setIndex] = useState(0);
 
   const options = {
     settings: {
@@ -70,12 +70,6 @@ export default function GalleryLightbox({ images, showCaptions, initialIndex = n
   };
 
   useEffect(() => {
-    // If mounted with autoOpen and an initialIndex, open immediately
-    if (autoOpen && initialIndex !== null) {
-      setIndex(initialIndex);
-      setOpen(true);
-    }
-    console.debug('GalleryLightbox mount: slides count', images?.length);
     const setupClickListeners = () => {
       const imageElements = document.querySelectorAll('.post-card1:not(.hidden) img');
       

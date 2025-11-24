@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import { getEntry } from 'astro:content';
+import GalleryLightbox from './GalleryLightbox.jsx';
 
 interface Props {
   sectionId?: string;
@@ -67,8 +68,7 @@ if (galleryMode === 'keystatic') {
   }));
 }
 
-// Build directory list and keep a normalized key map (lowercased) so client and select values match
-const rawDirectories = [
+const directories = ([
   'all',
   defaultDirectory,
   ...new Set(
@@ -76,9 +76,7 @@ const rawDirectories = [
       .map(img => img.directory)
       .filter(dir => dir !== defaultDirectory)
   )
-] as string[];
-
-const directories = rawDirectories.filter(Boolean).sort((a, b) => {
+] as string[]).filter(Boolean).sort((a, b) => {
   if (a === 'all') return -1;
   if (b === 'all') return 1;
   if (a === defaultDirectory) return -1;
@@ -86,47 +84,21 @@ const directories = rawDirectories.filter(Boolean).sort((a, b) => {
   return a.localeCompare(b);
 });
 
-// directoryMap: normalizedKey -> displayName
-const directoryMap: Record<string, string> = {};
-directories.forEach(dir => {
-  const key = (dir || '').toString().trim().toLowerCase();
-  directoryMap[key] = dir;
-});
-
 const showCaptions = photoSettings?.data?.showCaptions ?? true;
 const showGallerySelector = photoSettings?.data?.showGallerySelector && galleryMode === 'directory';
 
-// Attach global index so client components (lightbox) can reference images
-allImages = allImages.map((img, idx) => ({ ...img, index: idx }));
-
 const images = allImages.map(img => ({
   src: img.src,
-  caption: img.title,
+  caption: img.title, 
 }));
 
-// Pre-process images for the client component (lightbox expects full list)
+// Pre-process images for the client component
 const processedImages = allImages.map(image => ({
   src: image.src, // Use original high-quality source for lightbox
   alt: image.alt || '',
   title: image.title || '',
+  // Only include data needed by GalleryLightbox
 }));
-
-// Group images by directory so we can render only the active directory initially
-// Group images by normalized directory key
-const imagesByDirectory = allImages.reduce((acc, img) => {
-  const dirRaw = img.directory || 'default';
-  const key = dirRaw.toString().trim().toLowerCase();
-  if (!acc[key]) acc[key] = [];
-  acc[key].push(img);
-  return acc;
-}, {} as Record<string, Array<typeof allImages[0]> >);
-
-const normalizedDefaultKey = (defaultDirectory || 'all').toString().trim().toLowerCase();
-// If default is 'all', avoid server-rendering all images to prevent loading everything at once.
-// Client will render the selected directory on demand.
-const initialImages = (normalizedDefaultKey && normalizedDefaultKey !== 'all') ? (imagesByDirectory[normalizedDefaultKey] || []) : [];
-const serializedGalleryData = JSON.stringify({ byKey: imagesByDirectory, map: directoryMap });
-const encodedGalleryData = encodeURIComponent(serializedGalleryData);
 ---
 
 
@@ -135,41 +107,49 @@ const encodedGalleryData = encodeURIComponent(serializedGalleryData);
 <!-- Gallery selector - positioned absolutely outside flow -->
 {showGallerySelector && (
   <div class="cattags" style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', width: 'auto', display: 'flex', justifyContent:'center', gap: '0', color: '', zIndex: defaultView === 'grid' ? '1' : '20', background: 'var(--theme-bg, #1a1a1a)', padding: '0.5rem', borderRadius: 'var(--border-radius)' }}>
-    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={normalizedDefaultKey} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
-      {directories.map((dir) => {
-        const key = (dir || '').toString().trim().toLowerCase();
-        const label = key === 'all' ? languageData.allimages : (directoryMap[key] || dir);
-        return (
-          <option value={key}>{label}</option>
-        );
-      })}
+    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
+      {directories.map((dir) => (
+        <option value={dir}>
+          {dir === 'all' ? languageData.allimages : dir}
+        </option>
+      ))}
     </select>
   </div>
 )}
 
 <div data-section-id={sectionId} style="position: relative; padding-top: 50px;">
-<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} data-show-captions={showCaptions} data-gallery-json={encodedGalleryData} style="padding-top:20px;">
+<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:20px;">
   <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
 
 
   
-  <!-- Server will not render image cards to avoid loading all images before JS initializes.
-       Images are rendered client-side by `renderDirectory()` to ensure lazy-loading works reliably. -->
-
-  <!-- Serialized gallery data for client-side rendering of other directories -->
-  <script type="application/json" id={`gallery-data-${sectionId}`}>
-    {serializedGalleryData}
-  </script>
+  {allImages.map((image, index) => (
+    <div class="post-card1" data-directory={image.directory}>
+      <div class="image-wrapper">
+        <img 
+          src={image.src ?? ''} 
+          alt={image.alt ?? ''}
+          class="object-contain rounded-image"
+          style="border-radius: var(--border-radius);"
+          data-image-index={index}
+        />
+      </div>
+      {showCaptions && (
+        <div class="image-caption">
+          <h2>{image.title}</h2>
+        </div>
+      )}
+    </div>
+  ))}
 </div>
 </div>
 
-<!-- Lightbox will be mounted dynamically on first use to avoid preloading all images -->
-<div id={`gallery-lightbox-root-${sectionId}`} aria-hidden="true"></div>
-
-<!-- Expose processed images for the client lightbox loader -->
-<script type="application/json" id={`processed-images-${sectionId}`}>
-  {JSON.stringify(processedImages)}
-</script>
+<!-- Pass only processed data to client component -->
+<GalleryLightbox 
+  client:only="react" 
+  images={processedImages} 
+  showCaptions={showCaptions} 
+/>
 
 
 
@@ -181,44 +161,6 @@ const encodedGalleryData = encodeURIComponent(serializedGalleryData);
   border-radius: var(--border-radius);
 }
 img{border-radius: var(--border-radius) !important;}
-
-/* Image wrapper placeholder so page background doesn't show through */
-.image-wrapper {
-  background-color: var(--image-placeholder-bg, #111);
-  display: block;
-}
-
-/* Ensure the image element itself shows the placeholder color (avoids white 1x1 gif showing) */
-.homegallery .image-wrapper img,
-.homegallery img.lazyload {
-  background-color: var(--image-placeholder-bg, #111);
-  color: transparent;
-}
-
-/* Lazy-loading transition: start blurred, then clear when loaded.
-   Keep opacity at 1 so background doesn't show through blurred image. */
-.homegallery img.lazyload {
-  filter: blur(14px);
-  opacity: 1;
-  transform: scale(1.03);
-  transition: filter 600ms cubic-bezier(.2,.9,.2,1), transform 600ms cubic-bezier(.2,.9,.2,1), opacity 400ms ease;
-  will-change: filter, transform, opacity;
-}
-
-/* Hide until JS initializes to avoid layout flash/stacks */
-.homegallery { opacity: 0; pointer-events: none; }
-.homegallery[data-ready="true"] { opacity: 1; pointer-events: auto; transition: opacity 250ms ease; }
-.homegallery img.loaded {
-  filter: blur(0);
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Optional subtle scale up on hover for desktop */
-.homegallery .post-card1:hover img {
-  transform: scale(1.02);
-  transition: transform 220ms ease;
-}
 
 .image-caption {
   margin-top: 8px;
@@ -349,57 +291,11 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
         }
       }
     });
-    // After changing visibility, ensure lazy observer is watching newly-visible images
-    try { observeLazyImages(); } catch (e) { /* ignore */ }
   }
 
   function initializeGallery() {
-    // Normalize defaultDirectory for client-side comparison
-    const normalizedDefault = (defaultDirectory || 'all').toString().trim().toLowerCase();
-    // Use normalized default instead of reading from select
-    filterImages(normalizedDefault);
-    // Render a small initial set of thumbnails synchronously so the gallery is visible
-    // without loading everything. Then schedule the remaining images during idle time.
-    try {
-      const INITIAL_COUNT = 12;
-      const renderInitial = () => {
-        try {
-          renderDirectoryPartial(normalizedDefault, INITIAL_COUNT);
-        } catch (e) {
-          console.debug('renderDirectoryPartial error:', e);
-        }
-      };
-
-      const renderRemaining = () => {
-        try {
-          // Append the rest of the images for the directory
-          const byKey = (getGalleryDataFromDom() || {}).byKey || {};
-          const all = normalizedDefault === 'all' ? Object.values(byKey).flat() : (byKey[normalizedDefault] || []);
-          if (!all || !all.length) return;
-          const rest = all.slice(INITIAL_COUNT);
-          if (!rest.length) return;
-          const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-          const showCaps = String(galleryContainer?.dataset?.showCaptions) === 'true';
-          rest.forEach(img => galleryContainer?.appendChild(createImageCard(img, showCaps)));
-          // Ensure visibility/filtering and lazy observer pick them up
-          filterImages(normalizedDefault);
-          observeLazyImages();
-        } catch (e) {
-          console.debug('Error rendering remaining images:', e);
-        }
-      };
-
-      renderInitial();
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(renderRemaining, { timeout: 3000 });
-      } else {
-        // Fallback: schedule shortly after load
-        window.addEventListener('load', () => setTimeout(renderRemaining, 300));
-        setTimeout(renderRemaining, 1500);
-      }
-    } catch (e) {
-      console.debug('Failed to schedule initial/remaining render:', e);
-    }
+    // Use defaultDirectory instead of reading from select
+    filterImages(defaultDirectory);
     // Ensure wheel/drag scroll functionality is added when in swipe mode
     try {
       const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
@@ -417,62 +313,15 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     try {
       const sel = document.getElementById('directorySelect');
       if (sel && sel instanceof HTMLSelectElement) {
-        sel.value = normalizedDefault;
+        sel.value = defaultDirectory;
       }
     } catch (err) {
       console.warn('Error setting directory select value', err);
     }
   }
 
-  // Initialize once DOM is ready (run immediately if DOMContentLoaded already fired)
-  function initGalleryAndObserve() {
-    try {
-      // Debug: log pre-existing images and gallery dataset before initialization
-      try {
-        const preImgs = Array.from(document.querySelectorAll('.post-card1 img'));
-        console.debug('Gallery init: pre-existing .post-card1 img count:', preImgs.length, 'sample srcs:', preImgs.slice(0, 10).map(i => i.src));
-        const galleryContainerDbg = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-        console.debug('Gallery init: galleryContainer found?:', !!galleryContainerDbg, 'has galleryJson dataset?:', !!galleryContainerDbg?.dataset?.galleryJson, 'data-ready:', galleryContainerDbg?.dataset?.ready);
-      } catch (dbgErr) {
-        console.debug('Gallery init: pre-init debug error', dbgErr);
-      }
-      initializeGallery();
-      // After init, start observing images
-      observeLazyImages();
-      // Reveal gallery after JS initialization to avoid layout flashes
-      try {
-        const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-        if (galleryContainer) galleryContainer.dataset.ready = 'true';
-      } catch (e) { /* ignore */ }
-      // Re-check on scroll/resize to catch images that enter viewport via scrolling
-      try {
-        let scheduled = false;
-        const scheduleCheck = () => {
-          if (scheduled) return;
-          scheduled = true;
-          setTimeout(() => {
-            observeLazyImages();
-            // Also force-load any visible images as a backup
-            try { forceLoadVisibleLazyImages(); } catch (e) { /* ignore */ }
-            scheduled = false;
-          }, 180);
-        };
-        window.addEventListener('scroll', scheduleCheck, { passive: true });
-        window.addEventListener('resize', scheduleCheck);
-      } catch (e) {
-        /* ignore */
-      }
-    } catch (e) {
-      console.warn('Error during gallery init:', e);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGalleryAndObserve);
-  } else {
-    // DOMContentLoaded already fired — run immediately
-    initGalleryAndObserve();
-  }
+  // Wait for both DOM and images to load
+  window.addEventListener('load', initializeGallery);
 
   // Listen for view mode changes to re-filter images
   window.addEventListener('viewModeChanged', (event) => {
@@ -513,304 +362,17 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       
       if (directorySelect && directorySelect instanceof HTMLSelectElement) {
         filterImages(directorySelect.value);
-        // Make sure we observe any images that just became visible
-        observeLazyImages();
       }
     }
   });
 
   const directorySelect = document.getElementById('directorySelect');
-  // Dynamic lightbox loader: mount React lightbox on first demand
-  async function ensureLightboxMounted(images, showCaptions, initialIndex) {
-    try {
-      window.__galleryLightboxMountedForSection = window.__galleryLightboxMountedForSection || {};
-      if (window.__galleryLightboxMountedForSection[sectionId]) {
-        // already mounted: dispatch event to open at index
-        window.dispatchEvent(new CustomEvent('openGalleryLightbox', { detail: { sectionId, initialIndex } }));
-        return;
-      }
-
-      const [mod, React, ReactDOMClient] = await Promise.all([
-        import('./GalleryLightbox.jsx'),
-        import('react'),
-        import('react-dom/client')
-      ]);
-      const GalleryLightboxComp = mod?.default;
-      const container = document.getElementById(`gallery-lightbox-root-${sectionId}`);
-      if (!container || !GalleryLightboxComp) return;
-      const root = ReactDOMClient.createRoot(container);
-      // initial render with autoOpen
-      root.render(React.createElement(GalleryLightboxComp, { images, showCaptions, initialIndex: initialIndex || 0, autoOpen: true }));
-      window.__galleryLightboxMountedForSection[sectionId] = true;
-
-      // Listen for future open requests and re-render to open at a new index
-      window.addEventListener('openGalleryLightbox', (ev) => {
-        try {
-          if (ev.detail?.sectionId !== sectionId) return;
-          const idx = ev.detail?.initialIndex || 0;
-          root.render(React.createElement(GalleryLightboxComp, { images, showCaptions, initialIndex: idx, autoOpen: true }));
-        } catch (e) { /* ignore */ }
-      });
-    } catch (e) {
-      console.debug('ensureLightboxMounted error', e);
-    }
-  }
-
-  // Render directory on select change (render only requested directory's images)
-  function createImageCard(img, showCaps) {
-    const card = document.createElement('div');
-    card.className = 'post-card1';
-    card.setAttribute('data-directory', (img.directory || 'default').toString().trim().toLowerCase());
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'image-wrapper';
-
-    const imageEl = document.createElement('img');
-    imageEl.src = LAZY_PLACEHOLDER;
-    if (img.src) imageEl.setAttribute('data-src', img.src);
-    imageEl.alt = img.alt || '';
-    imageEl.className = 'object-contain rounded-image lazyload';
-    imageEl.loading = 'lazy';
-    imageEl.style.borderRadius = 'var(--border-radius)';
-    imageEl.setAttribute('data-image-index', String(img.index || 0));
-
-    wrapper.appendChild(imageEl);
-    card.appendChild(wrapper);
-
-    // Open lightbox on click — ensure the React lightbox is mounted dynamically
-    imageEl.addEventListener('click', async (ev) => {
-      try {
-        ev.preventDefault();
-        const imgsJsonEl = document.getElementById(`processed-images-${sectionId}`);
-        const imgs = imgsJsonEl ? JSON.parse(imgsJsonEl.textContent || '[]') : [];
-        await ensureLightboxMounted(imgs, showCaps, img.index || 0);
-      } catch (e) {
-        console.debug('Error opening dynamic lightbox:', e);
-      }
-    });
-
-    if (img.title && showCaps) {
-      const cap = document.createElement('div');
-      cap.className = 'image-caption';
-      const h2 = document.createElement('h2');
-      h2.textContent = img.title;
-      cap.appendChild(h2);
-      card.appendChild(cap);
-    }
-
-    return card;
-  }
-
-  function getGalleryDataFromDom() {
-    try {
-      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-      const raw = galleryContainer?.dataset?.galleryJson;
-      if (!raw) {
-        console.debug('No gallery-json dataset found on gallery container');
-        return {};
-      }
-      const parsed = JSON.parse(decodeURIComponent(raw));
-      // Support serialized shape { byKey, map } as well as legacy raw-by-key objects
-      const byKey = parsed?.byKey || parsed;
-      console.debug('Parsed gallery data keys:', Object.keys(byKey || {}));
-      return { byKey, map: parsed?.map || {} };
-    } catch (e) {
-      console.warn('Failed to parse gallery data', e);
-      return {};
-    }
-  }
-
-  // Render only the first `count` images for `dir` to show initial content quickly.
-  function renderDirectoryPartial(dir, count) {
-    const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-    if (!galleryContainer) return;
-
-    // Remove any existing dynamic cards so we start fresh
-    const existing = Array.from(galleryContainer.querySelectorAll('.post-card1'));
-    existing.forEach(el => el.remove());
-
-    const data = getGalleryDataFromDom();
-    const byKey = data.byKey || {};
-    let imagesToRender = [];
-    if (!dir || dir === 'all') {
-      imagesToRender = Object.values(byKey).flat();
-    } else {
-      imagesToRender = byKey[dir] || [];
-    }
-
-    const showCaps = String(galleryContainer.dataset.showCaptions) === 'true';
-    const slice = imagesToRender.slice(0, count || 0);
-    slice.forEach(img => {
-      const card = createImageCard(img, showCaps);
-      galleryContainer.appendChild(card);
-    });
-
-    // Apply filter logic (visibility) and start observing lazy images for what we just added
-    filterImages(dir);
-    observeLazyImages();
-    console.debug('renderDirectoryPartial appended images count:', slice.length, 'for dir:', dir);
-  }
-
-  function renderDirectory(dir) {
-    const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-    if (!galleryContainer) return;
-
-    // Remove existing dynamically-inserted cards (keep server-rendered initial ones if they match)
-    const existing = Array.from(galleryContainer.querySelectorAll('.post-card1'));
-    existing.forEach(el => el.remove());
-
-    const data = getGalleryDataFromDom();
-    const byKey = data.byKey || {};
-    let imagesToRender = [];
-    if (!dir || dir === 'all') {
-      imagesToRender = Object.values(byKey).flat();
-    } else {
-      imagesToRender = byKey[dir] || [];
-    }
-
-    const showCaps = String(galleryContainer.dataset.showCaptions) === 'true';
-    imagesToRender.forEach(img => {
-      const card = createImageCard(img, showCaps);
-      galleryContainer.appendChild(card);
-    });
-
-    // Apply filter logic (visibility) and start observing lazy images
-    filterImages(dir);
-    observeLazyImages();
-    // Extra safety: re-run observer shortly after rendering in case images weren't picked up
-    setTimeout(() => observeLazyImages(), 300);
-    console.debug('renderDirectory appended images count:', imagesToRender.length, 'for dir:', dir);
-  }
-
   directorySelect?.addEventListener('change', (event) => {
     if (event.target instanceof HTMLSelectElement) {
-      const val = event.target.value;
-      // Render the selected directory's images on demand
-      renderDirectory(val);
+      filterImages(event.target.value);
       // Don't automatically scroll to top - let user stay where they are
     }
   });
-
-  // Lazy-loading: IntersectionObserver that swaps data-src -> src
-  const LAZY_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
-  let lazyObserver = null;
-  let lazyObserverRoot = null;
-
-  function observeLazyImages() {
-    try {
-      // Use the gallery container as root for slider (horizontal) mode so
-      // images that are inside the scroll container are observed correctly.
-      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-      const newRoot = (galleryContainer && galleryContainer.classList.contains('slider')) ? galleryContainer : null;
-      // If the root changed since last observer, recreate the observer.
-      if (lazyObserver && lazyObserverRoot !== newRoot) {
-        try { lazyObserver.disconnect(); } catch (e) { /* ignore */ }
-        lazyObserver = null;
-        lazyObserverRoot = null;
-      }
-
-      const opts = {
-        root: newRoot,
-        // Smaller rootMargin so we don't pre-load huge numbers of images offscreen
-        rootMargin: '200px',
-        threshold: 0.01,
-      };
-
-      if ('IntersectionObserver' in window) {
-        if (!lazyObserver) {
-          lazyObserverRoot = newRoot;
-          lazyObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-              const img = entry.target;
-              console.debug('IntersectionObserver entry:', { isIntersecting: entry.isIntersecting, src: img?.getAttribute('data-src') });
-              if (entry.isIntersecting) {
-                const realSrc = img.getAttribute('data-src');
-                if (realSrc) {
-                  // Attach load handler to enable transition to 'loaded'
-                  const onLoad = () => {
-                    try {
-                      img.classList.add('loaded');
-                      img.classList.remove('lazyload');
-                    } catch (e) {
-                      /* ignore */
-                    }
-                    img.removeEventListener('load', onLoad);
-                  };
-                  img.addEventListener('load', onLoad);
-                  console.debug('Setting src for image:', realSrc);
-                  img.src = realSrc;
-                  img.removeAttribute('data-src');
-                  // If image already cached/complete, call handler immediately
-                  if (img.complete) onLoad();
-                } else {
-                  img.classList.add('loaded');
-                  img.classList.remove('lazyload');
-                }
-                observer.unobserve(img);
-              }
-            });
-          }, opts);
-        }
-
-        const images = Array.from(document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img.lazyload'));
-        console.debug('observeLazyImages found lazy images count:', images.length);
-        images.forEach(img => {
-          // Ensure placeholder if missing
-          if (!img.getAttribute('src')) img.src = LAZY_PLACEHOLDER;
-          lazyObserver.observe(img);
-        });
-
-        // Fallback: after a short delay, force-load any lazy images that are visible
-        setTimeout(() => {
-          try {
-            forceLoadVisibleLazyImages();
-          } catch (e) {
-            /* ignore fallback errors */
-          }
-        }, 1200);
-      } else {
-        // Fallback: load all images immediately
-        const images = document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img');
-        images.forEach(img => {
-          const realSrc = img.getAttribute('data-src');
-          if (realSrc) {
-            img.src = realSrc;
-            img.removeAttribute('data-src');
-          }
-        });
-      }
-    } catch (err) {
-      console.warn('Error initializing lazy observer', err);
-    }
-  }
-
-  // Force-load any lazy images that are visible in the viewport (reliable fallback)
-  function forceLoadVisibleLazyImages() {
-    const pending = Array.from(document.querySelectorAll('[data-section-id="' + sectionId + '"] .homegallery img.lazyload'));
-    if (!pending.length) return 0;
-    const margin = 400;
-    let loadedCount = 0;
-    pending.forEach(img => {
-      try {
-        const rect = img.getBoundingClientRect();
-        const inViewport = rect.top < (window.innerHeight + margin) && rect.bottom > -margin;
-        if (inViewport) {
-          const real = img.getAttribute('data-src');
-          if (real) {
-            console.debug('forceLoadVisibleLazyImages loading:', real);
-            img.src = real;
-            img.removeAttribute('data-src');
-            img.classList.add('loaded');
-            img.classList.remove('lazyload');
-            loadedCount++;
-          }
-        }
-      } catch (e) {
-        /* ignore per-image errors */
-      }
-    });
-    return loadedCount;
-  }
 
   function scrollToTop() {
     const target = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
