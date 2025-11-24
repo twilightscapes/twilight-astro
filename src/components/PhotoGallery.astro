@@ -43,6 +43,10 @@ try {
 
 const { defaultView } = siteSettingsData;
 
+// Set photo gallery default view: swipe for desktop, grid for mobile
+const isMobile = false; // Will be determined client-side
+const photoDefaultView = 'swipe'; // Default to swipe for desktop
+
 const photoSettings = await getEntry('photoSettings', 'index');
 const defaultDirectory = photoSettings?.data?.defaultDirectory || 'all';
 const galleryMode = photoSettings?.data?.galleryMode || 'directory';
@@ -104,16 +108,12 @@ const processedImages = allImages.map(image => ({
 
 
 
-<div data-section-id={sectionId} style="position: relative; margin-bottom:10vw;">
+<div data-section-id={sectionId} style="position: relative; padding-bottom: 10vh;">
 
-
-
-
-<div class={`homegallery contentpanel ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:60px;">
-
-  {showGallerySelector && (
-  <div class="cattags" style={{ position: '', left: '0', top:'', bottom:'', right: '0', display: 'grid', placeSelf:'', justifyContent:'center', zIndex: '1', padding: '0', borderRadius: 'var(--border-radius)', marginTop:'', width:'', margin:'0 auto', maxHeight:'50px' }}>Choose a gallery:<br />
-    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ width: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '', opacity:'.9', color:'#fff' }}>
+<!-- Gallery selector - fixed positioned to stay visible -->
+{showGallerySelector && (
+  <div class="cattags gallery-selector-sticky" style={{ position: 'fixed', top: '70px', left: '0', right: '0', width: '100%', display: 'flex', justifyContent:'center', zIndex: '9999', background: 'var(--theme-bg, #1a1a1a)', padding: '0.5rem', borderRadius: 'var(--border-radius)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+    <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
       {directories.map((dir) => (
         <option value={dir}>
           {dir === 'all' ? languageData.allimages : dir}
@@ -122,6 +122,8 @@ const processedImages = allImages.map(image => ({
     </select>
   </div>
 )}
+
+<div class={`homegallery contentpanel ${photoDefaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:20px;" data-default-view={photoDefaultView}>
 
   <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
 
@@ -214,7 +216,8 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider {
 [data-section-id*="gallery"] .section-content .homegallery.slider .post-card1,
 div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post-card1 {
   flex: 0 0 auto !important;
-
+  width: auto !important;
+  min-width: fit-content !important;
   margin-bottom: 0 !important;
 }
 
@@ -333,7 +336,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     }
     
     const images = galleryContainer.querySelectorAll('.post-card1');
-    // console.log('Filtering images for directory:', selectedDir, 'Found images:', images.length);
+    console.log('Filtering images for directory:', selectedDir, 'Found images:', images.length);
     
     images.forEach((image) => {
       if (image instanceof HTMLElement) {
@@ -358,27 +361,43 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   }
 
   function initializeGallery() {
+    // Check if mobile and adjust view accordingly
+    const isMobile = window.innerWidth <= 768;
+    const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+    
+    if (galleryContainer) {
+      if (isMobile) {
+        // Mobile: use grid mode
+        galleryContainer.classList.remove('slider');
+        galleryContainer.classList.add('grid-container');
+      } else {
+        // Desktop: use swipe mode (default)
+        galleryContainer.classList.remove('grid-container');
+        galleryContainer.classList.add('slider');
+      }
+      
+      // Ensure wheel/drag scroll functionality is added when in swipe mode
+      try {
+        if (typeof window !== 'undefined' && window.ViewModeSwitchScrollFunctions) {
+          if (galleryContainer.classList.contains('slider')) {
+            window.ViewModeSwitchScrollFunctions.addScrollFunctionality(galleryContainer);
+          } else {
+            window.ViewModeSwitchScrollFunctions.removeScrollFunctionality(galleryContainer);
+          }
+        }
+      } catch (err) {
+        console.warn('Error initializing gallery scroll handlers', err);
+      }
+    }
+    
     // Use defaultDirectory instead of reading from select
     filterImages(defaultDirectory);
     
-    // Initialize lazy loading after a short delay to ensure DOM is ready
+    // Initialize lazy loading after filtering completes
     setTimeout(() => {
       lazyLoadImages();
-    }, 100);
+    }, 150);
     
-    // Ensure wheel/drag scroll functionality is added when in swipe mode
-    try {
-      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
-      if (galleryContainer && typeof window !== 'undefined' && window.ViewModeSwitchScrollFunctions) {
-        if (galleryContainer.classList.contains('slider')) {
-          window.ViewModeSwitchScrollFunctions.addScrollFunctionality(galleryContainer);
-        } else {
-          window.ViewModeSwitchScrollFunctions.removeScrollFunctionality(galleryContainer);
-        }
-      }
-    } catch (err) {
-      console.warn('Error initializing gallery scroll handlers', err);
-    }
     // Ensure the select reflects the active default directory
     try {
       const sel = document.getElementById('directorySelect');
