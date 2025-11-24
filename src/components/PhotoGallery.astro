@@ -358,11 +358,47 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     const normalizedDefault = (defaultDirectory || 'all').toString().trim().toLowerCase();
     // Use normalized default instead of reading from select
     filterImages(normalizedDefault);
-    // Ensure the selected directory is rendered client-side (if server didn't render it)
+    // Render a small initial set of thumbnails synchronously so the gallery is visible
+    // without loading everything. Then schedule the remaining images during idle time.
     try {
-      renderDirectory(normalizedDefault);
+      const INITIAL_COUNT = 12;
+      const renderInitial = () => {
+        try {
+          renderDirectoryPartial(normalizedDefault, INITIAL_COUNT);
+        } catch (e) {
+          console.debug('renderDirectoryPartial error:', e);
+        }
+      };
+
+      const renderRemaining = () => {
+        try {
+          // Append the rest of the images for the directory
+          const byKey = (getGalleryDataFromDom() || {}).byKey || {};
+          const all = normalizedDefault === 'all' ? Object.values(byKey).flat() : (byKey[normalizedDefault] || []);
+          if (!all || !all.length) return;
+          const rest = all.slice(INITIAL_COUNT);
+          if (!rest.length) return;
+          const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+          const showCaps = String(galleryContainer?.dataset?.showCaptions) === 'true';
+          rest.forEach(img => galleryContainer?.appendChild(createImageCard(img, showCaps)));
+          // Ensure visibility/filtering and lazy observer pick them up
+          filterImages(normalizedDefault);
+          observeLazyImages();
+        } catch (e) {
+          console.debug('Error rendering remaining images:', e);
+        }
+      };
+
+      renderInitial();
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(renderRemaining, { timeout: 3000 });
+      } else {
+        // Fallback: schedule shortly after load
+        window.addEventListener('load', () => setTimeout(renderRemaining, 300));
+        setTimeout(renderRemaining, 1500);
+      }
     } catch (e) {
-      console.debug('renderDirectory failed during init (may be fine):', e);
+      console.debug('Failed to schedule initial/remaining render:', e);
     }
     // Ensure wheel/drag scroll functionality is added when in swipe mode
     try {
@@ -525,6 +561,37 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       console.warn('Failed to parse gallery data', e);
       return {};
     }
+  }
+
+  // Render only the first `count` images for `dir` to show initial content quickly.
+  function renderDirectoryPartial(dir, count) {
+    const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+    if (!galleryContainer) return;
+
+    // Remove any existing dynamic cards so we start fresh
+    const existing = Array.from(galleryContainer.querySelectorAll('.post-card1'));
+    existing.forEach(el => el.remove());
+
+    const data = getGalleryDataFromDom();
+    const byKey = data.byKey || {};
+    let imagesToRender = [];
+    if (!dir || dir === 'all') {
+      imagesToRender = Object.values(byKey).flat();
+    } else {
+      imagesToRender = byKey[dir] || [];
+    }
+
+    const showCaps = String(galleryContainer.dataset.showCaptions) === 'true';
+    const slice = imagesToRender.slice(0, count || 0);
+    slice.forEach(img => {
+      const card = createImageCard(img, showCaps);
+      galleryContainer.appendChild(card);
+    });
+
+    // Apply filter logic (visibility) and start observing lazy images for what we just added
+    filterImages(dir);
+    observeLazyImages();
+    console.debug('renderDirectoryPartial appended images count:', slice.length, 'for dir:', dir);
   }
 
   function renderDirectory(dir) {
