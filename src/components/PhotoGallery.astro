@@ -132,7 +132,6 @@ const processedImages = allImages.map(image => ({
           alt={image.alt ?? ''}
           class="object-contain rounded-image lazy"
           style="border-radius: var(--border-radius);"
-          loading="lazy"
           data-image-index={index}
         />
       </div>
@@ -304,8 +303,11 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
       const src = img.getAttribute('data-src');
       if (src) {
         img.src = src;
-        img.classList.remove('lazy');
-        img.classList.add('loaded');
+        // Wait for image to fully load before removing lazy class
+        img.onload = () => {
+          img.classList.remove('lazy');
+          img.classList.add('loaded');
+        };
       }
     });
   }
