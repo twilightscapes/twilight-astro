@@ -1,7 +1,6 @@
 ---
 import { Image } from 'astro:assets';
 import { getEntry } from 'astro:content';
-import GalleryLightbox from './GalleryLightbox.jsx';
 
 interface Props {
   sectionId?: string;
@@ -164,12 +163,13 @@ const encodedGalleryData = encodeURIComponent(serializedGalleryData);
 </div>
 </div>
 
-<!-- Pass only processed data to client component -->
-<GalleryLightbox 
-  client:only="react" 
-  images={processedImages} 
-  showCaptions={showCaptions} 
-/>
+<!-- Lightbox will be mounted dynamically on first use to avoid preloading all images -->
+<div id={`gallery-lightbox-root-${sectionId}`} aria-hidden="true"></div>
+
+<!-- Expose processed images for the client lightbox loader -->
+<script type="application/json" id={`processed-images-${sectionId}`}>
+  {JSON.stringify(processedImages)}
+</script>
 
 
 
@@ -203,11 +203,11 @@ img{border-radius: var(--border-radius) !important;}
   transform: scale(1.03);
   transition: filter 600ms cubic-bezier(.2,.9,.2,1), transform 600ms cubic-bezier(.2,.9,.2,1), opacity 400ms ease;
   will-change: filter, transform, opacity;
+}
 
 /* Hide until JS initializes to avoid layout flash/stacks */
 .homegallery { opacity: 0; pointer-events: none; }
 .homegallery[data-ready="true"] { opacity: 1; pointer-events: auto; transition: opacity 250ms ease; }
-}
 .homegallery img.loaded {
   filter: blur(0);
   opacity: 1;
@@ -520,6 +520,42 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   });
 
   const directorySelect = document.getElementById('directorySelect');
+  // Dynamic lightbox loader: mount React lightbox on first demand
+  async function ensureLightboxMounted(images, showCaptions, initialIndex) {
+    try {
+      window.__galleryLightboxMountedForSection = window.__galleryLightboxMountedForSection || {};
+      if (window.__galleryLightboxMountedForSection[sectionId]) {
+        // already mounted: dispatch event to open at index
+        window.dispatchEvent(new CustomEvent('openGalleryLightbox', { detail: { sectionId, initialIndex } }));
+        return;
+      }
+
+      const [mod, React, ReactDOMClient] = await Promise.all([
+        import('./GalleryLightbox.jsx'),
+        import('react'),
+        import('react-dom/client')
+      ]);
+      const GalleryLightboxComp = mod?.default;
+      const container = document.getElementById(`gallery-lightbox-root-${sectionId}`);
+      if (!container || !GalleryLightboxComp) return;
+      const root = ReactDOMClient.createRoot(container);
+      // initial render with autoOpen
+      root.render(React.createElement(GalleryLightboxComp, { images, showCaptions, initialIndex: initialIndex || 0, autoOpen: true }));
+      window.__galleryLightboxMountedForSection[sectionId] = true;
+
+      // Listen for future open requests and re-render to open at a new index
+      window.addEventListener('openGalleryLightbox', (ev) => {
+        try {
+          if (ev.detail?.sectionId !== sectionId) return;
+          const idx = ev.detail?.initialIndex || 0;
+          root.render(React.createElement(GalleryLightboxComp, { images, showCaptions, initialIndex: idx, autoOpen: true }));
+        } catch (e) { /* ignore */ }
+      });
+    } catch (e) {
+      console.debug('ensureLightboxMounted error', e);
+    }
+  }
+
   // Render directory on select change (render only requested directory's images)
   function createImageCard(img, showCaps) {
     const card = document.createElement('div');
@@ -540,6 +576,18 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
 
     wrapper.appendChild(imageEl);
     card.appendChild(wrapper);
+
+    // Open lightbox on click — ensure the React lightbox is mounted dynamically
+    imageEl.addEventListener('click', async (ev) => {
+      try {
+        ev.preventDefault();
+        const imgsJsonEl = document.getElementById(`processed-images-${sectionId}`);
+        const imgs = imgsJsonEl ? JSON.parse(imgsJsonEl.textContent || '[]') : [];
+        await ensureLightboxMounted(imgs, showCaps, img.index || 0);
+      } catch (e) {
+        console.debug('Error opening dynamic lightbox:', e);
+      }
+    });
 
     if (img.title && showCaps) {
       const cap = document.createElement('div');
