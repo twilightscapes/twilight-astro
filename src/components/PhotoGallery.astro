@@ -112,7 +112,7 @@ const processedImages = allImages.map(image => ({
 
 <!-- Gallery selector - fixed positioned to stay visible -->
 {showGallerySelector && (
-  <div class="cattags gallery-selector-sticky" style={{ position: 'fixed', top: '70px', left: '0', right: '0', width: '100%', display: 'flex', justifyContent:'center', zIndex: '9999', background: 'var(--theme-bg, #1a1a1a)', padding: '0.5rem', borderRadius: 'var(--border-radius)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+  <div class="cattags gallery-selector-sticky" style={{ position: 'fixed', top: '20px', left: '0', right: '0', width: '100%', display: 'grid', placeSelf:'top', justifyContent:'center', zIndex: '1', background: '', padding: '0', borderRadius: 'var(--border-radius)', margin:'0 auto', maxWidth:'50%' }}>
     <select aria-label="View Available Galleries" id="directorySelect" name="directorySelect" value={defaultDirectory} style={{ background: '', border: '1px solid #000', borderRadius: 'var(--border-radius)', padding: '8px', boxShadow: '0px 0px 0px 1px #000', opacity:'.9', color:'#fff' }}>
       {directories.map((dir) => (
         <option value={dir}>
@@ -207,7 +207,7 @@ img.loaded {
 [data-section-id*="gallery"] .homegallery.slider .post-card1.visible .image-wrapper {
   height: var(--gallery-slide-height) !important;
   width: auto !important;
-  max-height: 40vh !important;
+  /* max-height: 40vh !important; */
 }
 
 .homegallery.slider .post-card1.visible .image-wrapper img,
@@ -279,7 +279,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
 /* Use a fixed slide height so portrait and landscape images match height in swipe mode */
 .homegallery.slider,
 [data-section-id*="gallery"] .homegallery.slider {
-  --gallery-slide-height: 40vh; /* adjust default slide height here */
+  --gallery-slide-height: 50vh; /* adjust default slide height here */
 }
 
 .homegallery.slider .post-card1 .image-wrapper,
