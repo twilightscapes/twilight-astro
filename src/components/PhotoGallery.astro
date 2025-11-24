@@ -168,6 +168,8 @@ img{border-radius: var(--border-radius) !important;}
 img.lazy {
   background: #222 !important;
   min-height: 200px;
+  width: 100%;
+  height: 100%;
   filter: blur(20px) brightness(0.7);
   transform: scale(1.1);
   transition: filter 0.6s ease-in-out, transform 0.6s ease-in-out;
@@ -232,6 +234,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   overflow: hidden;
   width: 100%;
   display: block;
+  position: relative;
 }
 
 .homegallery.grid-container .post-card1 .image-wrapper img,
@@ -319,6 +322,10 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
     }
     
     if ('IntersectionObserver' in window) {
+      // Get the gallery container to use as root for swipe mode
+      const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
+      const isSwipeMode = galleryContainer?.classList.contains('slider');
+      
       imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
@@ -337,7 +344,8 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
           }
         });
       }, {
-        rootMargin: '50px', // Load just slightly before entering viewport
+        root: isSwipeMode ? galleryContainer : null, // Use container as root for horizontal scroll
+        rootMargin: '100px', // Increased for swipe mode
         threshold: 0.01
       });
 
