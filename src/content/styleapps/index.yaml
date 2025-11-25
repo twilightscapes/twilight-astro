@@ -2,7 +2,7 @@ siteFont: Winky Sans
 borderRadius: 5px
 lightBg: rgba(34, 34, 34, 1)
 lightAccent2: rgba(40, 42, 108, 1)
-darkBg: rgba(16, 16, 16, 1)
+darkBg: rgba(9, 8, 10, 1)
 darkAccent2: rgba(40, 42, 108, 1)
 lightHeader: rgba(0, 0, 0, 0.9)
 darkHeader: rgba(0, 0, 0, 0.9)
