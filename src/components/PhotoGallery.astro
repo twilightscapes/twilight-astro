@@ -89,6 +89,7 @@ const directories = ([
 });
 
 const showCaptions = photoSettings?.data?.showCaptions ?? true;
+const autoOpenLightbox = photoSettings?.data?.autoOpenLightbox ?? false;
 const showGallerySelector = photoSettings?.data?.showGallerySelector && galleryMode === 'directory';
 
 const images = allImages.map(img => ({
@@ -96,11 +97,12 @@ const images = allImages.map(img => ({
   caption: img.title, 
 }));
 
-// Pre-process images for the client component
+// Pre-process ALL images for the client component (it will filter to visible ones)
 const processedImages = allImages.map(image => ({
   src: image.src, // Use original high-quality source for lightbox
   alt: image.alt || '',
   title: image.title || '',
+  directory: image.directory || '',
   // Only include data needed by GalleryLightbox
 }));
 ---
@@ -109,10 +111,11 @@ const processedImages = allImages.map(image => ({
 
 
 <!-- Pass processed data to client component - load eagerly before gallery images -->
+<div data-auto-open={autoOpenLightbox ? 'true' : 'false'} style="display: none;"></div>
 <GalleryLightbox 
-  client:load
+  client:only="react"
   images={processedImages} 
-  showCaptions={showCaptions} 
+  showCaptions={showCaptions}
 />
 
 <div data-section-id={sectionId} style="position: relative; padding-bottom: 10vh;">
@@ -303,7 +306,7 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   body:has(.header) #directorySelect{left:0 !important; right:0 !important; }
 }
 </style>
-<script define:vars={{ defaultDirectory, sectionId }}>
+<script define:vars={{ defaultDirectory, sectionId, autoOpenLightbox }}>
   let imageObserver = null;
   let fallbackTimer = null;
 
@@ -438,14 +441,6 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   // Wait for both DOM and images to load
   window.addEventListener('load', () => {
     initializeGallery();
-    
-    // Auto-open lightbox after gallery initializes
-    setTimeout(() => {
-      const firstImage = document.querySelector(`[data-section-id="${sectionId}"] .post-card1.visible img[data-image-index]`);
-      if (firstImage) {
-        firstImage.click();
-      }
-    }, 200);
   });
 
   // Listen for view mode changes to re-filter images

@@ -976,6 +976,12 @@ export default config({
           defaultValue: true,
         }),
 
+        autoOpenLightbox: fields.checkbox({
+          label: 'Auto-Open Lightbox on Page Load',
+          description: 'Automatically open the lightbox gallery when the page loads',
+          defaultValue: false,
+        }),
+
         divider: fields.empty(),
 
         // showFaqsOnPhotos: fields.checkbox({
