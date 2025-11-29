@@ -108,6 +108,13 @@ const processedImages = allImages.map(image => ({
 
 
 
+<!-- Pass processed data to client component - load eagerly before gallery images -->
+<GalleryLightbox 
+  client:load
+  images={processedImages} 
+  showCaptions={showCaptions} 
+/>
+
 <div data-section-id={sectionId} style="position: relative; padding-bottom: 10vh;">
 
 <!-- Gallery selector - fixed positioned to stay visible -->
@@ -150,13 +157,6 @@ const processedImages = allImages.map(image => ({
   ))}
 </div>
 </div>
-
-<!-- Pass only processed data to client component -->
-<GalleryLightbox 
-  client:only="react" 
-  images={processedImages} 
-  showCaptions={showCaptions} 
-/>
 
 
 
@@ -436,7 +436,17 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   }
 
   // Wait for both DOM and images to load
-  window.addEventListener('load', initializeGallery);
+  window.addEventListener('load', () => {
+    initializeGallery();
+    
+    // Auto-open lightbox after gallery initializes
+    setTimeout(() => {
+      const firstImage = document.querySelector(`[data-section-id="${sectionId}"] .post-card1.visible img[data-image-index]`);
+      if (firstImage) {
+        firstImage.click();
+      }
+    }, 200);
+  });
 
   // Listen for view mode changes to re-filter images
   window.addEventListener('viewModeChanged', (event) => {
