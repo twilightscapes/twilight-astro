@@ -24,11 +24,19 @@ export function getPostSortDate(post: CollectionEntry<"post">) {
 export function sortMDByDate(posts: CollectionEntry<"post">[], prioritizeOrder = false) {
 	return posts.sort((a, b) => {
 		if (prioritizeOrder) {
-			if (a.data.order?.value !== undefined && b.data.order?.value !== undefined) {
-				return a.data.order.value - b.data.order.value;
+			// Only prioritize posts where discriminant is true (sticky is enabled)
+			const aIsSticky = a.data.order?.discriminant === true && a.data.order?.value !== undefined;
+			const bIsSticky = b.data.order?.discriminant === true && b.data.order?.value !== undefined;
+			
+			// Both sticky: sort by order value
+			if (aIsSticky && bIsSticky) {
+				return a.data.order.value! - b.data.order.value!;
 			}
-			if (a.data.order?.value !== undefined) return -1;
-			if (b.data.order?.value !== undefined) return 1;
+			// Only a is sticky: a comes first
+			if (aIsSticky) return -1;
+			// Only b is sticky: b comes first
+			if (bIsSticky) return 1;
+			// Neither sticky: fall through to date sorting
 		}
 		const aDate = getPostSortDate(a).valueOf();
 		const bDate = getPostSortDate(b).valueOf();
@@ -46,6 +54,27 @@ export function groupPostsByYear(posts: CollectionEntry<"post">[]) {
 			acc[year] = [];
 		}
 		acc[year]?.push(post);
+		return acc;
+	}, {});
+}
+
+/** groups posts by year and month (based on option siteConfig.sortPostsByUpdatedDate)
+ *  Returns nested structure: { year: { month: [posts] } }
+ *  Note: This function doesn't filter draft posts, pass it the result of getAllPosts above to do so.
+ */
+export function groupPostsByYearMonth(posts: CollectionEntry<"post">[]) {
+	return posts.reduce<Record<string, Record<string, CollectionEntry<"post">[]>>>((acc, post) => {
+		const date = getPostSortDate(post);
+		const year = date.getFullYear().toString();
+		const month = date.toLocaleString('en-US', { month: 'long' });
+		
+		if (!acc[year]) {
+			acc[year] = {};
+		}
+		if (!acc[year][month]) {
+			acc[year][month] = [];
+		}
+		acc[year][month]?.push(post);
 		return acc;
 	}, {});
 }

@@ -1,0 +1,216 @@
+---
+/**
+ * Interactive Video Meme Example
+ * Demonstrates SVGator integration with YouTube videos
+ * This is a proof-of-concept showing sync, independent, and controller modes
+ */
+
+import YouTubeEmbed from './YouTubeEmbed.astro';
+import TickerOverlay from './TickerOverlay.astro';
+
+interface Props {
+  mode?: 'sync' | 'independent' | 'controller' | 'ticker';
+}
+
+const { mode = 'sync' } = Astro.props;
+---
+
+<div class="meme-examples">
+  <h1>Interactive Video Meme Examples</h1>
+  
+  <!-- Example 1: Synced SVGator Animation -->
+  {mode === 'sync' && (
+    <section class="example">
+      <h2>Sync Mode: SVGator animation syncs with video playback</h2>
+      <p>When you play/pause the video, the SVG animation plays/pauses too.</p>
+      
+      <div style="max-width: 800px; margin: 2rem auto;">
+        <YouTubeEmbed
+          url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          title="Synced Animation Example"
+          clickToLoad={true}
+          overlaySvg="/path/to/your/svgator-animation.svg"
+          overlaySvgAlt="Animated overlay"
+          svgatorSync={true}
+          svgatorId="sync-example-svg"
+          interactiveMode="sync"
+          showMuteButton={true}
+        />
+      </div>
+      
+      <div class="instructions">
+        <h3>How to use:</h3>
+        <ol>
+          <li>Export your animation from SVGator as an SVG file</li>
+          <li>Place it in your <code>public/</code> folder</li>
+          <li>Set <code>overlaySvg="/your-animation.svg"</code></li>
+          <li>Enable <code>svgatorSync={true}</code></li>
+          <li>The animation will play/pause with the video</li>
+        </ol>
+      </div>
+    </section>
+  )}
+  
+  <!-- Example 2: Independent Mode -->
+  {mode === 'independent' && (
+    <section class="example">
+      <h2>Independent Mode: SVG and video run separately</h2>
+      <p>The SVG animation runs on its own, regardless of video state.</p>
+      
+      <div style="max-width: 800px; margin: 2rem auto;">
+        <YouTubeEmbed
+          url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          title="Independent Animation Example"
+          clickToLoad={true}
+          overlaySvg="/path/to/your/svgator-animation.svg"
+          overlaySvgAlt="Animated overlay"
+          svgatorSync={true}
+          svgatorId="independent-example-svg"
+          interactiveMode="independent"
+          showMuteButton={true}
+        />
+      </div>
+      
+      <div class="instructions">
+        <h3>Use cases:</h3>
+        <ul>
+          <li>Looping animations that don't need to match video timing</li>
+          <li>Decorative elements that animate continuously</li>
+          <li>Background effects</li>
+        </ul>
+      </div>
+    </section>
+  )}
+  
+  <!-- Example 3: Ticker Overlay -->
+  {mode === 'ticker' && (
+    <section class="example">
+      <h2>Ticker Mode: Scrolling text overlay</h2>
+      <p>Classic news-style scrolling ticker built with inline SVG.</p>
+      
+      <div style="max-width: 800px; margin: 2rem auto; position: relative;">
+        <YouTubeEmbed
+          url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          title="Ticker Example"
+          clickToLoad={true}
+          showMuteButton={true}
+        />
+        
+        <!-- Ticker overlay - positioned absolutely over the video -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+          <TickerOverlay 
+            text="🚨 BREAKING: This is a scrolling ticker overlay! You can customize the text, speed, and position. 🚨"
+            speed={20}
+            fontSize={28}
+            textColor="#ffffff"
+            backgroundColor="rgba(255, 0, 0, 0.9)"
+            position="bottom"
+          />
+        </div>
+      </div>
+      
+      <div class="instructions">
+        <h3>Customization options:</h3>
+        <ul>
+          <li><code>text</code>: Your ticker message</li>
+          <li><code>speed</code>: Animation duration in seconds</li>
+          <li><code>fontSize</code>: Text size in pixels</li>
+          <li><code>textColor</code>: Hex or rgba color</li>
+          <li><code>backgroundColor</code>: Bar background color</li>
+          <li><code>position</code>: 'top', 'middle', or 'bottom'</li>
+        </ul>
+      </div>
+    </section>
+  )}
+  
+  <!-- Example 4: Controller Mode (advanced) -->
+  {mode === 'controller' && (
+    <section class="example">
+      <h2>Controller Mode: SVG elements control video</h2>
+      <p>Click elements in the SVG to control video playback (requires custom SVG with clickable elements).</p>
+      
+      <div style="max-width: 800px; margin: 2rem auto;">
+        <YouTubeEmbed
+          url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          title="Controller Example"
+          clickToLoad={true}
+          overlaySvg="/path/to/interactive-controls.svg"
+          overlaySvgAlt="Interactive controls"
+          svgatorSync={true}
+          svgatorId="controller-example-svg"
+          interactiveMode="controller"
+        />
+      </div>
+      
+      <div class="instructions">
+        <h3>Implementation:</h3>
+        <p>This mode requires custom JavaScript to handle SVG element clicks:</p>
+        <pre><code>{`// In your SVG or additional script:
+const controller = window.SVGatorController;
+const svg = document.getElementById('controller-example-svg');
+
+// Add click handlers to SVG elements
+svg.addEventListener('click', (e) => {
+  if (e.target.id === 'play-button') {
+    // Trigger video play
+  }
+  if (e.target.id === 'pause-button') {
+    // Trigger video pause
+  }
+});`}</code></pre>
+      </div>
+    </section>
+  )}
+</div>
+
+<style>
+  .meme-examples {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .example {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: var(--theme-card-bg, #f5f5f5);
+    border-radius: 12px;
+  }
+  
+  .example h2 {
+    margin-top: 0;
+    color: var(--theme-text, #333);
+  }
+  
+  .instructions {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--theme-bg, #fff);
+    border-radius: 8px;
+    border-left: 4px solid var(--accent, #0066cc);
+  }
+  
+  .instructions h3 {
+    margin-top: 0;
+  }
+  
+  .instructions code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+  
+  .instructions pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+  
+  .instructions pre code {
+    background: none;
+    padding: 0;
+  }
+</style>

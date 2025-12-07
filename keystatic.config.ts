@@ -39,7 +39,7 @@ export default config({
           validation: { isRequired: false } 
         }),
         title: fields.slug({ name: { label: 'Title' } }),
-        description: fields.text({ label: 'Description', validation: { length: { min: 50, max: 160 } } }),
+        description: fields.text({ label: 'Description', validation: { length: { min: 10, max: 160 } } }),
         draft: fields.checkbox({ label: 'Draft', defaultValue: false }),
         order: fields.conditional(
           fields.checkbox({ label: 'Make Sticky On Homepage?' }),
@@ -62,6 +62,31 @@ export default config({
           alt: fields.text({ 
             label: 'Alt Text',
           }),
+        }),
+
+        overlayImage: fields.image({
+          label: 'Overlay Image (PNG)',
+          description: 'Transparent PNG image to layer over the video (e.g., logo, watermark, frame)',
+          directory: 'public/images/posts',
+          publicPath: '/images/posts',
+          validation: { isRequired: false }
+        }),
+        overlayImageAlt: fields.text({
+          label: 'Overlay Image Alt Text',
+          description: 'Alternative text for the overlay image (for accessibility)',
+          validation: { isRequired: false }
+        }),
+        overlaySvg: fields.image({
+          label: 'Overlay SVG',
+          description: 'SVG image to layer over the video (scalable, ideal for logos and graphics)',
+          directory: 'public/images/posts',
+          publicPath: '/images/posts',
+          validation: { isRequired: false }
+        }),
+        overlaySvgAlt: fields.text({
+          label: 'Overlay SVG Alt Text',
+          description: 'Alternative text for the SVG overlay (for accessibility)',
+          validation: { isRequired: false }
         }),
 
         externalUrl: fields.text({ label: 'External Url', description: 'A url of an external site will be loaded into an iframe', }),
@@ -101,7 +126,96 @@ export default config({
                 description: 'Show thumbnail with play button instead of loading video immediately.',
                 defaultValue: true 
               }),
+              showMuteButton: fields.checkbox({ 
+                label: 'Show Mute/Play Button', 
+                description: 'Display the mute button (which also acts as play/pause control)',
+                defaultValue: false 
+              }),
               videoOnly: fields.checkbox({ label: 'Video Only', defaultValue: false }),
+              svgatorSync: fields.checkbox({
+                label: 'Sync with SVGator Animation',
+                description: 'Enable synchronization with overlay SVG animation',
+                defaultValue: false
+              }),
+              svgatorId: fields.text({
+                label: 'SVGator Animation ID',
+                description: 'Unique ID for the SVGator animation (required if sync is enabled)',
+                validation: { isRequired: false }
+              }),
+              interactiveMode: fields.select({
+                label: 'Interactive Mode',
+                description: 'How the animation interacts with video controls',
+                options: [
+                  { label: 'Sync', value: 'sync' },
+                  { label: 'Independent', value: 'independent' },
+                  { label: 'Controller', value: 'controller' }
+                ],
+                defaultValue: 'sync'
+              }),
+            }),
+            false: fields.empty(),
+          }
+        ),
+        secondaryVideo: fields.conditional(
+          fields.checkbox({ label: 'Include Secondary Video (hidden, synced with main)' }),
+          {
+            true: fields.object({
+              url: fields.text({ 
+                label: 'Secondary Video URL',
+                description: 'Enter the full YouTube video URL for secondary video'
+              }),
+              title: fields.text({ 
+                label: 'Video Title',
+                description: 'Enter a title for the secondary video (optional)',
+                validation: { isRequired: false }
+              }),
+              controls: fields.checkbox({ label: 'Use YouTube Player Controls' }),
+              useCustomPlayer: fields.checkbox({ 
+                label: 'Use Custom Player Controls', 
+                defaultValue: true 
+              }),
+              mute: fields.checkbox({ label: 'Mute Video', defaultValue: true }),
+              loop: fields.checkbox({ label: 'Loop Video' }),
+              start: fields.number({ 
+                label: 'Start Time (seconds)', 
+                defaultValue: 0,
+                validation: { min: 0 }
+              }),
+              end: fields.number({ 
+                label: 'End Time (seconds)', 
+                validation: { min: 0, isRequired: false }
+              }),
+              clickToLoad: fields.checkbox({ 
+                label: 'Click to Load Video', 
+                description: 'Show thumbnail with play button instead of loading video immediately.',
+                defaultValue: true 
+              }),
+              showMuteButton: fields.checkbox({ 
+                label: 'Show Mute/Play Button', 
+                description: 'Display the mute button (which also acts as play/pause control)',
+                defaultValue: false 
+              }),
+              videoOnly: fields.checkbox({ label: 'Video Only', defaultValue: false }),
+              svgatorSync: fields.checkbox({ 
+                label: 'Sync with SVGator Animation',
+                description: 'Sync this video with an SVGator SVG animation',
+                defaultValue: false 
+              }),
+              svgatorId: fields.text({ 
+                label: 'SVGator SVG ID',
+                description: 'The ID of the SVGator SVG element to sync with this video',
+                validation: { isRequired: false }
+              }),
+              interactiveMode: fields.select({
+                label: 'SVGator Interactive Mode',
+                description: 'Control mode when SVGator sync is enabled',
+                options: [
+                  { label: 'Sync', value: 'sync' },
+                  { label: 'Independent', value: 'independent' },
+                  { label: 'Controller', value: 'controller' }
+                ],
+                defaultValue: 'sync'
+              }),
             }),
             false: fields.empty(),
           }
@@ -147,6 +261,7 @@ export default config({
                 { label: 'Form Section', value: 'form' },
                 { label: 'YouTube Feeds', value: 'youtubefeeds' },
                 { label: 'Posts Section', value: 'posts' },
+                { label: 'Magic Search', value: 'magicsearch' },
                 { label: 'Testimonials Section', value: 'testimonials' },
                 { label: 'FAQ Section', value: 'faqs' },
                 { label: 'Resume Section', value: 'resume' },
@@ -200,6 +315,21 @@ export default config({
               collection: 'CTAs',
               validation: { isRequired: false }
             }),
+            showSearch: fields.checkbox({
+              label: 'Show Search Bar',
+              description: 'Show/hide the search bar in Magic Search sections',
+              defaultValue: true
+            }),
+            searchMethod: fields.select({
+              label: 'Search Method',
+              description: 'Choose search method for Magic Search: Client-side (fast, title/description only) or Pagefind (full content, requires build)',
+              options: [
+                { label: 'Client-side (Fast)', value: 'client' },
+                { label: 'Pagefind (Full Content)', value: 'pagefind' },
+                { label: 'Hybrid (Both)', value: 'hybrid' }
+              ],
+              defaultValue: 'client'
+            }),
             hideCollapseButton: fields.checkbox({
               label: 'Hide Collapse Button',
               description: 'Hide the collapse/expand button for this section. When unchecked, users can collapse this section and the state persists.',
@@ -220,6 +350,7 @@ export default config({
               if (sectionType === 'contentblock' && contentBlockSlug) return `Content Block - ${contentBlockSlug}`;
               if (sectionType === 'youtubefeeds' && feedConfig) return `YouTube Feed - ${feedConfig}`;
               if (sectionType === 'ctas' && cta) return `CTA - ${cta}`;
+              if (sectionType === 'magicsearch') return 'Magic Search';
               return sectionType || 'Untitled Section';
             }
           }
@@ -272,7 +403,7 @@ export default config({
             { label: 'Snapchat', value: 'bi:snapchat' },
             { label: 'SoundCloud', value: 'mdi:soundcloud' },
             { label: 'WhatsApp', value: 'bi:whatsapp' },
-            { label: 'Wordpress', value: 'bi:wordpress' },
+            { label: 'Wordpress', value: 'bi:wordpress' }
           ],
           defaultValue: 'game-icons:pirate-flag'
         }),
@@ -536,6 +667,31 @@ export default config({
           defaultValue: 'top'
         }),
         
+        overlayImage: fields.image({
+          label: 'Overlay Image (PNG)',
+          description: 'Transparent PNG image to layer over the video (e.g., logo, watermark, frame)',
+          directory: 'public/images/content-blocks',
+          publicPath: '/images/content-blocks',
+          validation: { isRequired: false }
+        }),
+        overlayImageAlt: fields.text({
+          label: 'Overlay Image Alt Text',
+          description: 'Alternative text for the overlay image (for accessibility)',
+          validation: { isRequired: false }
+        }),
+        overlaySvg: fields.image({
+          label: 'Overlay SVG',
+          description: 'SVG image to layer over the video (scalable, ideal for logos and graphics)',
+          directory: 'public/images/content-blocks',
+          publicPath: '/images/content-blocks',
+          validation: { isRequired: false }
+        }),
+        overlaySvgAlt: fields.text({
+          label: 'Overlay SVG Alt Text',
+          description: 'Alternative text for the SVG overlay (for accessibility)',
+          validation: { isRequired: false }
+        }),
+        
         // CTA Integration
         cta: fields.relationship({
           label: 'Call to Action',
@@ -693,7 +849,17 @@ export default config({
       },
     }),
 
-
+    footerMenuItems: collection({
+      label: 'Footer Menu Items',
+      path: 'src/content/footerMenuItems/*',
+      slugField: 'name', 
+      schema: {
+        name: fields.text({ label: 'Name' }),
+        title: fields.text({ label: 'Title' }),
+        path: fields.text({ label: 'Path' }), 
+        order: fields.number({ label: 'Order' }),
+      },
+    }),
 
     rssFeeds: collection({
       label: 'RSS Feeds',
@@ -815,7 +981,8 @@ export default config({
           defaultValue: true 
         }),
         showSocial: fields.checkbox({ label: 'Show Social Links in Posts' }),
-        showTags: fields.checkbox({ label: 'Show Post Tags', description: 'Hide/Show the post tags', defaultValue: false }),
+        showTags: fields.checkbox({ label: 'Show Post Tags', description: 'Show/hide tags displayed on individual posts', defaultValue: false }),
+        showTagFilters: fields.checkbox({ label: 'Show Tag Filter Pills', description: 'Show/hide tag filter pills in search components on posts and tags pages', defaultValue: true }),
         showShare: fields.checkbox({ label: 'Show Share section on posts', description: 'Hide/Show the share this copy button on posts', defaultValue: false }),
         divider3: fields.empty(),
         videoTimeLimitMinutes: fields.number({ 
@@ -1097,6 +1264,15 @@ export default config({
           description: '(dark) Quote Color2 - can use any color value',
         }),
         divider8: fields.empty(),
+        lightCardBg: colorPicker({ 
+          label: 'Light Post Card Background', 
+          description: '(light) Background color for post cards',
+        }),
+        darkCardBg: colorPicker({ 
+          label: 'Dark Post Card Background', 
+          description: '(dark) Background color for post cards',
+        }),
+        divider8b: fields.empty(),
         lightText: colorPicker({ 
           label: 'Light Text Color', 
           description: '(light) Text Color - can use any color value',
@@ -1156,6 +1332,19 @@ export default config({
         shareText: fields.text({ label: 'Share This' }),
         copyButton: fields.text({ label: 'Copy' }),
         siteDisclaimer: fields.text({ label: 'Site Disclaimer', multiline: true }),
+        
+        // Magic Search Component Labels
+        magicSearchPlaceholder: fields.text({ label: 'Magic Search Placeholder', defaultValue: 'Search posts by title or description...' }),
+        magicSearchTopics: fields.text({ label: 'Magic Search Topics Label', defaultValue: 'Topics:' }),
+        magicSearchAll: fields.text({ label: 'Magic Search All Label', defaultValue: 'All' }),
+        magicSearchShowing: fields.text({ label: 'Magic Search Showing Text', defaultValue: 'Showing' }),
+        magicSearchOf: fields.text({ label: 'Magic Search Of Text', defaultValue: 'of' }),
+        magicSearchPosts: fields.text({ label: 'Magic Search Posts Text', defaultValue: 'posts' }),
+        magicSearchPost: fields.text({ label: 'Magic Search Post Text (singular)', defaultValue: 'post' }),
+        magicSearchShowMoreTopics: fields.text({ label: 'Magic Search Show More Topics', defaultValue: 'Show More Topics ▼' }),
+        magicSearchShowLessTopics: fields.text({ label: 'Magic Search Show Less Topics', defaultValue: 'Show Less Topics ▲' }),
+        magicSearchNoResults: fields.text({ label: 'Magic Search No Results Title', defaultValue: 'No posts found' }),
+        magicSearchNoResultsDesc: fields.text({ label: 'Magic Search No Results Description', defaultValue: 'Try adjusting your search or filter criteria' }),
         
         // temp: fields.text({ label: 'temp', multiline: true }),
       },
@@ -1279,6 +1468,7 @@ ui: {
       'siteSettings',
       'pwaSettings',
       'menuItems',
+      'footerMenuItems',
       'socialCard',
       'styleapps',
       'language',

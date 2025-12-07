@@ -18,6 +18,13 @@ declare global {
 		pendingYouTubePlayers?: Array<{ init: () => void }>;
 		onYouTubeIframeAPIReady?: () => void;
 		YT?: any;
+		VideoPreferences?: {
+			getPreferences: () => { muted: boolean };
+			setMuted: (muted: boolean) => void;
+			isMuted: () => boolean;
+			updateAllVideoMuteStates?: (muted: boolean) => void;
+		};
+		handleYouTubeEmbedThumbnailError?: (img: HTMLImageElement) => void;
 	}
 	
 	interface HTMLElement {

@@ -1,10 +1,10 @@
 ---
 import { getCollection } from "astro:content"; // Changed this line
 
-// Replace getMenuLinks with direct collection access (handle empty collection)
+// Get footer menu items from separate collection
 let menuLinks: Array<any> = [];
 try {
-  menuLinks = (await getCollection("menuItems")) || [];
+  menuLinks = (await getCollection("footerMenuItems")) || [];
 } catch (error) {
   // Collection doesn't exist or is empty
   menuLinks = [];
@@ -38,14 +38,6 @@ const appName = pwaSettings?.data?.name || "App";
 		{appName}
 	</div>
 	<nav aria-label="Menu" class="flex gap-x-2 sm:gap-x-0 sm:divide-x sm:divide-gray-500">
-		<a
-			class="px-1 py-2 sm:px-1 sm:py-0 sm:hover:text-textColor sm:hover:underline"
-			href="/"
-			style="color:inherit"
-			aria-label="Go to homepage"
-		>
-			{homelink || "Home"}
-		</a>
 		{
 			sortedMenuLinks.map((link: { path: string | null; title: string }) => (
 				<a
@@ -58,21 +50,5 @@ const appName = pwaSettings?.data?.name || "App";
 				</a>
 			))
 		}
-		<a
-			class="px-1 py-2 sm:px-2 sm:py-0 sm:hover:text-textColor sm:hover:underline"
-			href="/privacy/"
-			style="color:inherit"
-			aria-label="Privacy Policy"
-		>
-			Privacy
-		</a>
-		<a
-			class="px-1 py-2 sm:px-2 sm:py-0 sm:hover:text-textColor sm:hover:underline"
-			href="/disclaimer/"
-			style="color:inherit"
-			aria-label="Disclaimer"
-		>
-			Disclaimer
-		</a>
 	</nav>
 </footer>

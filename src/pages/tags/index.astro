@@ -1,12 +1,15 @@
 ---
 import PageLayout from "@/layouts/Base.astro";
 import { getAllPosts, getUniqueTagsWithCount } from "@/data/post";
-import GoBack from "@/components/GoBack.astro";
 import ViewModeSwitch from "@/components/ViewModeSwitch.jsx";
 import { getEntry } from 'astro:content';
+
 const siteSettings = await getEntry('siteSettings', 'main');
-const defaultView = siteSettings?.data?.defaultView ?? 'default';
+const defaultView = siteSettings?.data?.defaultView ?? 'grid';
+const showTags = siteSettings?.data?.showTags ?? true;
 const language = await getEntry('language', 'index');
+const pwaSettings = await getEntry('pwaSettings', 'index');
+const shortName = pwaSettings?.data?.shortName || 'Todd Lambert';
 
 const allPosts = await getAllPosts();
 const allTags = getUniqueTagsWithCount(allPosts);
@@ -17,46 +20,161 @@ const meta = {
 };
 ---
 
-<PageLayout meta={meta} themeMode="user">
-	<GoBack  />
-	<span class="prose prose-lg dark:prose-invert">
+<PageLayout meta={meta}>
+	<br />
+	<span class="">
+		<!-- Tags Container -->
 		<div data-section-id="tags-page">
-			<div class="tags-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 0 4%;">
-				<h1 class="title my-4" style="margin: 0; flex: 1;">{language?.data?.tags}</h1>
-				<ViewModeSwitch 
-					sectionId="tags-page" 
-					defaultView={defaultView} 
-					client:load
-				/>
-			</div>
-			
-			<ul class="" style="padding:0 1%; margin:0 auto; width: 99%">
-				<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} >
-				<div class="sliderSpacer"></div>
-		
-		{
-			allTags.map(([tag, val]) => (
-				<div class="post-card1 button">
-					<a
-						class=" inline-block"
-						data-astro-prefetch
-						href={`/tags/${tag}/`}
-						title={`View posts with the tag: ${tag}`}
-						 style="display:grid; place-content: center; padding:15vh 25vw;"
-					>
-						&#35;{tag}
+			<!-- Search and Filter Controls -->
+			<div class="search-controls" style="padding: 0 1rem; max-width: 1400px; margin: 0 auto 1rem;">
+				<div class="search-filter-box" style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 0.75rem; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
 					
-					<span class="inline-block">
-						 ({val}) {val > 1 && ""}
-					</span></a>
-				</div></span>
-			))
-		}
+					<!-- Header with Title and View Toggle -->
+				<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+					<h1 class="title text-2xl" style="margin: 0;">{language?.data?.tags || 'All Tags'}</h1>
+					{/* @ts-ignore - client:load is valid Astro directive */}
+					<ViewModeSwitch 
+						sectionId="tags-page" 
+						defaultView={defaultView} 
+						client:load
+					/>
+				</div>					<!-- Search Bar -->
+					<div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap;">
+						<div class="search-bar-container" style="position: relative; flex: 1; min-width: 250px;">
+							<input
+								type="text"
+								id="tags-page-search-input"
+								placeholder="Search tags..."
+								style="width: 100%; padding: 1rem 3rem 1rem 1rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.4); color: var(--textColor); font-size: 1rem;"
+							/>
+							<button
+								id="tags-page-clear-search"
+								style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); padding: 0.5rem; background: transparent; border: none; cursor: pointer; display: none; color: var(--textColor);"
+								aria-label="Clear search"
+							>
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M18 6L6 18M6 6l12 12"/>
+								</svg>
+							</button>
+						</div>
 
+						<!-- Clear All Filters Button -->
+						<button
+							id="tags-page-clear-all"
+							style="padding: 1rem 1.5rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(255, 0, 0, 0.2); color: white; cursor: pointer; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: none;"
+							onmouseover="this.style.background='rgba(255, 0, 0, 0.4)'"
+							onmouseout="this.style.background='rgba(255, 0, 0, 0.2)'"
+						>
+							Clear Filters
+						</button>
+					</div>
 
-
+					<!-- Results Count -->
+					<div id="tags-page-results-count" style="margin-top: 1rem; color: var(--textColor); opacity: 0.8; font-size: 0.95rem;">
+						Showing {allTags.length} {allTags.length === 1 ? 'tag' : 'tags'}
+					</div>
 				</div>
-			</ul>
+			</div>
+
+			<!-- Tags Grid/Swipe View -->
+			<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="">
+				<div class="sliderSpacer"></div>
+				{allTags.map(([tag, val]) => (
+					<div class="tag-item" data-tag={tag}>
+						<a
+							class="post-card1 button"
+							data-astro-prefetch
+							href={`/tags/${tag}/`}
+							title={`View ${val} ${val === 1 ? 'post' : 'posts'} with the tag: ${tag}`}
+							style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-decoration: none; height: 100%; min-height: 200px;"
+						>
+							<span style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 0.5rem;">
+								#{tag}
+							</span>
+							<span style="font-size: 1rem; opacity: 0.8; color: var(--textColor);">
+								{val} {val === 1 ? 'post' : 'posts'}
+							</span>
+						</a>
+					</div>
+				))}
+			</div>
+
+			<!-- No Results Message -->
+			<div id="tags-page-no-results" style="display: none; text-align: center; padding: 4rem 2rem; color: var(--textColor);">
+				<h2 style="margin-bottom: 1rem; color: var(--accent);">No tags found</h2>
+				<p style="opacity: 0.8;">Try adjusting your search criteria</p>
+			</div>
 		</div>
+
+		<br /><br />
 	</span>
 </PageLayout>
+
+<script>
+	// Search and filter functionality
+	const searchInput = document.getElementById('tags-page-search-input') as HTMLInputElement;
+	const clearSearchBtn = document.getElementById('tags-page-clear-search') as HTMLButtonElement;
+	const clearAllBtn = document.getElementById('tags-page-clear-all') as HTMLButtonElement;
+	const resultsCount = document.getElementById('tags-page-results-count') as HTMLElement;
+	const noResults = document.getElementById('tags-page-no-results') as HTMLElement;
+	const tagItems = document.querySelectorAll('.tag-item');
+
+	function filterTags() {
+		const searchTerm = searchInput?.value.toLowerCase().trim() || '';
+		let visibleCount = 0;
+
+		tagItems.forEach(item => {
+			const tag = item.getAttribute('data-tag')?.toLowerCase() || '';
+			const matches = tag.includes(searchTerm);
+
+			if (matches) {
+				(item as HTMLElement).style.display = '';
+				visibleCount++;
+			} else {
+				(item as HTMLElement).style.display = 'none';
+			}
+		});
+
+		// Update results count
+		if (resultsCount) {
+			resultsCount.textContent = `Showing ${visibleCount} ${visibleCount === 1 ? 'tag' : 'tags'}`;
+		}
+
+		// Show/hide no results message
+		if (noResults) {
+			noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+		}
+
+		// Show/hide clear buttons
+		const hasFilters = searchTerm !== '';
+		if (clearSearchBtn) {
+			clearSearchBtn.style.display = searchTerm ? 'block' : 'none';
+		}
+		if (clearAllBtn) {
+			clearAllBtn.style.display = hasFilters ? 'block' : 'none';
+		}
+	}
+
+	// Search input handler
+	searchInput?.addEventListener('input', filterTags);
+
+	// Clear search button
+	clearSearchBtn?.addEventListener('click', () => {
+		if (searchInput) {
+			searchInput.value = '';
+			filterTags();
+			searchInput.focus();
+		}
+	});
+
+	// Clear all filters button
+	clearAllBtn?.addEventListener('click', () => {
+		if (searchInput) {
+			searchInput.value = '';
+		}
+		filterTags();
+	});
+
+	// Initial filter
+	filterTags();
+</script>

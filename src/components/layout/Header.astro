@@ -18,6 +18,7 @@ let showCheck = false;
 let backgroundImage = '';
 let backgroundVideo = '';
 let topText = 'Top';
+let appName = 'Site Name';
 // Get menu items and sort them
 let sortedMenuLinks: Array<{title: string, path: string}> = [];
 try {
@@ -35,6 +36,8 @@ try {
 }
 
 const siteSettings = await getEntry('siteSettings', 'main');
+const pwaSettings = await getEntry('pwaSettings', 'index');
+
 try {
   const language = await getEntry('language', 'index');
   const styleapps = await getEntry('styleapps', 'index');
@@ -59,6 +62,10 @@ try {
 
   if (language?.data) {
     topText = language.data.top ?? 'Top';
+  }
+
+  if (pwaSettings?.data) {
+    appName = pwaSettings.data.name ?? 'Site Name';
   }
 } catch (error) {
   console.error('Error loading content:', error);
@@ -87,6 +94,67 @@ const url = new URL(Astro.request.url);
     }
 
 .pwa-button{display:flex; justify-content: center;}
+
+#bottom-menu-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 100;
+}
+
+  #bottom-menu-btn {
+    pointer-events: auto;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+
+  #bottom-menu-btn svg {
+    color: #fff;
+    stroke: #fff;
+  }#menu-popup {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--theme-header);
+  color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  z-index: 100;
+  display: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+}
+
+#menu-popup.show {
+  display: block;
+}
+
+#menu-popup ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#menu-popup a {
+  padding: 0.75rem 1rem;
+  display: block;
+  text-align: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+  color: #fff;
+}
+
+#menu-popup a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
 </style>
 
 
@@ -106,7 +174,7 @@ const url = new URL(Astro.request.url);
             style="max-height:60px; min-width: 50px;"
           />
         ) : (
-          <span class="text-lg font-bold logotext" style="margin-left:10px;">Dog Poopers</span>
+          <span class="text-lg font-bold logotext" style="margin-left:10px;">{appName}</span>
         )}
       </a>
     )}
@@ -134,7 +202,7 @@ const url = new URL(Astro.request.url);
 
 
 
-<div id="missioncontrol" class="missioncontrol1 sitecontrols flex items-center panel" style="padding:0 2vw 0 2vw; gap:3vw;">
+<div id="missioncontrol" class="missioncontrol1 sitecontrols flex items-center panel" style="padding:0 2vw 0 2vw; gap:1.5vw;">
 
 
   {showHome && (
@@ -142,9 +210,9 @@ const url = new URL(Astro.request.url);
     aria-label="Return to Home"
     name="Return to Home"
       class="flex h-10 w-10 items-center justify-center rounded-md ring-zinc-400 transition-all hover:ring-2"
-    
+      style="background: var(--theme-header);"
     ><a href="/" aria-current={url.pathname === "/" ? "page" : false} name="Return to Home" aria-label="Return to Home">
-    <svg aria-label="Return to Home" class="h-10 w-10" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 576 512" height="40px" width="40px" xmlns="http://www.w3.org/2000/svg"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"></path></svg></a></button>
+    <svg aria-label="Return to Home" class="h-7 w-7" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 576 512" height="28px" width="28px" xmlns="http://www.w3.org/2000/svg"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"></path></svg></a></button>
     )}
 
   {showTheme && <ThemeToggle style="margin-left:1vw;" />}
@@ -173,6 +241,35 @@ style="flex-direction: column;"
 </button>
 
 </div>
+
+<!-- Bottom centered menu button -->
+{sortedMenuLinks.length > 0 && (
+  <div id="bottom-menu-container">
+    <button
+      id="bottom-menu-btn"
+      aria-label="Toggle Menu"
+      class="flex h-12 w-12 items-center justify-center rounded-full ring-zinc-400 transition-all hover:ring-2"
+      style="background: var(--theme-header);"
+    >
+      <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Menu popup -->
+  <div id="menu-popup">
+    <ul>
+      {sortedMenuLinks.map((link: { path: string; title: string }) => (
+        <li>
+          <a href={link.path} rel="prefetch" data-astro-reload>
+            {link.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
 {backgroundImage && (
   <img class="backimage w-2.5 h-2.5" src={backgroundImage} alt="Default Background" width="10" height="10" />
@@ -225,4 +322,43 @@ style="flex-direction: column;"
 
   // Re-initialize after each page navigation
   document.addEventListener('astro:after-swap', initializeBackToTopButton);
+
+  // Bottom menu toggle functionality
+  function initializeBottomMenu() {
+    const menuBtn = document.getElementById('bottom-menu-btn');
+    const menuPopup = document.getElementById('menu-popup');
+    
+    if (!menuBtn || !menuPopup) {
+      return;
+    }
+    
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuPopup.classList.toggle('show');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!menuPopup.contains(target) && !menuBtn.contains(target)) {
+        menuPopup.classList.remove('show');
+      }
+    });
+    
+    // Close menu when clicking a link
+    menuPopup.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        menuPopup.classList.remove('show');
+      });
+    });
+  }
+
+  // Initialize bottom menu
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBottomMenu);
+  } else {
+    initializeBottomMenu();
+  }
+  
+  document.addEventListener('astro:after-swap', initializeBottomMenu);
 </script>

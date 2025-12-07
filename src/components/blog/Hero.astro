@@ -19,20 +19,29 @@ interface Props {
 const {
     content: { data },
 } = Astro.props;
+
+const hasOverlay = data.overlayImage || data.overlaySvg;
 ---
 {
   (data.youtube && data.youtube.discriminant && data.youtube.value && data.youtube.value.url) ? (
-    <YouTubeEmbed 
-      title={data.youtube.value.title}
-      url={data.youtube.value.url}
-      controls={data.youtube.value.controls}
-      mute={data.youtube.value.mute}
-      loop={data.youtube.value.loop}
-      start={data.youtube.value.start}
-      end={data.youtube.value.end}
-      clickToLoad={data.youtube.value.clickToLoad}
-      useCustomPlayer={data.youtube.value.useCustomPlayer}
-    />
+    <div class="video-container-with-overlay" style="position: relative;">
+      <YouTubeEmbed 
+        title={data.youtube.value.title}
+        url={data.youtube.value.url}
+        controls={data.youtube.value.controls}
+        mute={data.youtube.value.mute}
+        autoplay={data.youtube.value.mute ? true : false}
+        loop={data.youtube.value.loop}
+        start={data.youtube.value.start}
+        end={data.youtube.value.end}
+        clickToLoad={data.youtube.value.clickToLoad}
+        useCustomPlayer={data.youtube.value.useCustomPlayer}
+        overlayImage={data.overlayImage}
+        overlayImageAlt={data.overlayImageAlt}
+        overlaySvg={data.overlaySvg}
+        overlaySvgAlt={data.overlaySvgAlt}
+      />
+    </div>
   ) : data.coverImage && data.coverImage.src ? (
     <div class=" mb-6">
       <Image

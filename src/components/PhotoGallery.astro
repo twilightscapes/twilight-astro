@@ -43,9 +43,8 @@ try {
 
 const { defaultView } = siteSettingsData;
 
-// Set photo gallery default view: swipe for desktop, grid for mobile
-const isMobile = false; // Will be determined client-side
-const photoDefaultView = 'swipe'; // Default to swipe for desktop
+// Use the site-wide default view setting for photo gallery
+const photoDefaultView = defaultView || 'grid';
 
 const photoSettings = await getEntry('photoSettings', 'index');
 const defaultDirectory = photoSettings?.data?.defaultDirectory || 'all';
@@ -109,9 +108,9 @@ const processedImages = allImages.map(image => ({
 
 
 
-
 <!-- Pass processed data to client component - load eagerly before gallery images -->
 <div data-auto-open={autoOpenLightbox ? 'true' : 'false'} style="display: none;"></div>
+{/* @ts-ignore - client:only is valid Astro directive */}
 <GalleryLightbox 
   client:only="react"
   images={processedImages} 
@@ -133,7 +132,13 @@ const processedImages = allImages.map(image => ({
   </div>
 )}
 
-<div class={`homegallery contentpanel ${photoDefaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="padding-top:20px;" data-default-view={photoDefaultView}>
+<div 
+  class={`homegallery contentpanel ${photoDefaultView === 'swipe' ? 'slider' : 'grid-container'}`} 
+  style="padding-top:20px;" 
+  data-default-view={photoDefaultView}
+  data-debug-view={photoDefaultView}
+  data-is-swipe={photoDefaultView === 'swipe'}
+>
 
   <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
 
@@ -386,21 +391,19 @@ div[data-section-id*="gallery"] div.section-content div.homegallery.slider .post
   }
 
   function initializeGallery() {
-    // Check if mobile and adjust view accordingly
-    const isMobile = window.innerWidth <= 768;
     const galleryContainer = document.querySelector(`[data-section-id="${sectionId}"] .homegallery`);
     
     if (galleryContainer) {
-      const needsSlider = !isMobile;
+      // Respect the data-default-view attribute set by the server
+      const defaultView = galleryContainer.getAttribute('data-default-view') || 'grid';
+      const needsSlider = defaultView === 'swipe';
       const hasSlider = galleryContainer.classList.contains('slider');
       
       // Only modify classes if they need to change
       if (needsSlider && !hasSlider) {
-        // Desktop: use swipe mode (default)
         galleryContainer.classList.remove('grid-container');
         galleryContainer.classList.add('slider');
       } else if (!needsSlider && hasSlider) {
-        // Mobile: use grid mode
         galleryContainer.classList.remove('slider');
         galleryContainer.classList.add('grid-container');
       }

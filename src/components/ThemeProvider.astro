@@ -10,18 +10,23 @@ const { themeMode } = Astro.props;
     const lightModePref = window.matchMedia("(prefers-color-scheme: light)");
 
     function getUserPref() {
-        // If themeMode is explicitly light or dark, always use that
-        if (themeMode === 'light' || themeMode === 'dark') {
-            return themeMode;
-        }
+        // Priority order:
+        // 1. User's manual toggle choice (stored in localStorage)
+        // 2. Site admin setting (themeMode prop from Keystatic)
+        // 3. System/OS preference
         
-        // If user has a stored preference, use that
+        // Check if user has manually toggled theme
         const storedTheme = typeof localStorage !== "undefined" && localStorage.getItem("theme");
         if (storedTheme === 'light' || storedTheme === 'dark') {
             return storedTheme;
         }
         
-        // If themeMode is 'user', respect system preference
+        // If site admin has set a specific theme (not 'user'), use that
+        if (themeMode === 'light' || themeMode === 'dark') {
+            return themeMode;
+        }
+        
+        // Otherwise, respect system preference
         return lightModePref.matches ? "light" : "dark";
     }
 

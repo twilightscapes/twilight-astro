@@ -6,27 +6,30 @@ import type { CollectionEntry } from "astro:content";
 import Pagination from "@/components/Paginator.astro";
 import PostPreview from "@/components/blog/PostPreview.astro";
 import ViewModeSwitch from "@/components/ViewModeSwitch.jsx";
-import { getAllPosts, getUniqueTags, sortMDByDate } from "@/data/post";
+import { getAllPosts, getUniqueTags, sortMDByDate, groupPostsByYearMonth } from "@/data/post";
 import PageLayout from "@/layouts/Base.astro";
 import { getEntry } from 'astro:content';
 
 const language = await getEntry('language', 'index');
-import GoBack from "@/components/GoBack.astro";
-
 
 export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 	const allPosts = await getAllPosts();
-	const allPostsByDate = sortMDByDate(allPosts);
+	const allPostsByDate = sortMDByDate(allPosts, true);
 	const uniqueTags = getUniqueTags(allPostsByDate);
 	const siteSettings = await getEntry('siteSettings', 'main');
 	const defaultView = siteSettings?.data?.defaultView ?? 'grid';
+	const showDates = siteSettings?.data?.showDates ?? true;
 
 	return uniqueTags.flatMap((tag) => {
 		const filterPosts = allPostsByDate.filter((post) => post.data.tags.includes(tag));
 		return paginate(filterPosts, {
 			pageSize: 10,
 			params: { tag },
-			props: { defaultView }
+			props: { 
+				defaultView,
+				showDates,
+				allTagPosts: filterPosts
+			}
 		});
 	});
 };
@@ -34,10 +37,27 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 interface Props {
 	page: Page<CollectionEntry<"post">>;
 	defaultView: string;
+	showDates: boolean;
+	allTagPosts: CollectionEntry<"post">[];
 }
 
-const { page, defaultView } = Astro.props;
+const { page, defaultView, showDates, allTagPosts } = Astro.props;
 const { tag } = Astro.params;
+
+// Get PWA short name
+const pwaSettings = await getEntry('pwaSettings', 'index');
+const shortName = pwaSettings?.data?.shortName || 'Todd Lambert';
+
+// Group posts by year and month
+const groupedByYearMonth = groupPostsByYearMonth(page.data);
+const descYearKeys = Object.keys(groupedByYearMonth).sort((a, b) => +b - +a);
+
+// Month order for sorting
+const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Extract unique years and months for filters
+const years = Object.keys(groupedByYearMonth).sort((a, b) => +b - +a);
+const allMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 const meta = {
 	description: `View all posts with the tag - ${tag}`,
@@ -60,32 +80,314 @@ const paginationProps = {
 };
 ---
 
-<PageLayout meta={meta} themeMode="user">
-	<GoBack  />
-	<span class="prose prose-lg dark:prose-invert">
+<PageLayout meta={meta}>
+	<br />
+	<span class="">
+		<!-- Tag Posts Container -->
 		<div data-section-id={`tag-${tag}-page`}>
-			<div class="tag-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 0 4%;">
-				<h1 class="title flex items-center my-4" style="margin: 0; flex: 1;">
-					<span class="text-xl" style="text-transform: capitalize;">{tag}</span>
-				</h1>
-				<ViewModeSwitch 
-					sectionId={`tag-${tag}-page`} 
-					defaultView={defaultView} 
-					client:load
-				/>
+			<!-- Search and Filter Controls -->
+			<div class="search-controls" style="padding: 0 1rem; max-width: 1400px; margin: 0 auto 1rem;">
+				<div class="search-filter-box" style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 0.75rem; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+					
+					<!-- Header with Title and View Toggle -->
+					<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+						<h1 class="title text-2xl" style="margin: 0; text-transform: capitalize;">
+					<span style="color: var(--accent);">#{tag}</span> Posts
+					</h1>
+					{/* @ts-ignore - client:load is valid Astro directive */}
+					<ViewModeSwitch 
+						sectionId={`tag-${tag}-page`} 
+						defaultView={defaultView} 
+						client:load
+					/>
+				</div>					<!-- Search Bar -->
+					<div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap;">
+						<div class="search-bar-container" style="position: relative; flex: 1; min-width: 250px;">
+							<input
+								type="text"
+								id={`tag-${tag}-search-input`}
+								placeholder={`Search ${tag} posts...`}
+								style="width: 100%; padding: 1rem 3rem 1rem 1rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.4); color: var(--textColor); font-size: 1rem;"
+							/>
+							<button
+								id={`tag-${tag}-clear-search`}
+								style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); padding: 0.5rem; background: transparent; border: none; cursor: pointer; display: none; color: var(--textColor);"
+								aria-label="Clear search"
+							>
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M18 6L6 18M6 6l12 12"/>
+								</svg>
+							</button>
+						</div>
+
+						<!-- Clear All Filters Button -->
+						<button
+							id={`tag-${tag}-clear-all`}
+							style="padding: 1rem 1.5rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(255, 0, 0, 0.2); color: white; cursor: pointer; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: none;"
+							onmouseover="this.style.background='rgba(255, 0, 0, 0.4)'"
+							onmouseout="this.style.background='rgba(255, 0, 0, 0.2)'"
+						>
+							Clear Filters
+						</button>
+					</div>
+
+					<!-- Results Count -->
+					<div id={`tag-${tag}-results-count`} style="margin-top: 1rem; color: var(--textColor); opacity: 0.8; font-size: 0.95rem;">
+						Showing {page.data.length} {page.data.length === 1 ? 'post' : 'posts'}
+					</div>
+				</div>
 			</div>
 
-			<section aria-label="Blog post list">
+			<!-- Timeline View (Year/Month Spacers) -->
+			<div class="posts-timeline">
+				<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="">
+					<div class="sliderSpacer"></div>
+					{descYearKeys.map((yearKey) => {
+						const monthsInYear = groupedByYearMonth[yearKey];
+						const sortedMonthKeys = Object.keys(monthsInYear || {}).sort((a, b) => {
+							return monthOrder.indexOf(b) - monthOrder.indexOf(a);
+						});
+						
+						return (
+							<>
+								{sortedMonthKeys.map((monthKey) => (
+									<>
+										{typeof showDates !== 'undefined' && showDates && (
+											<div class="year-month-card" data-year={yearKey} data-month={monthKey} style="
+												display: flex;
+												flex-direction: column;
+												align-items: center;
+												justify-content: center;
+												background: var(--theme-card-bg, rgba(0, 0, 0, 0.3));
+												border: 2px solid var(--accent);
+												border-radius: 1rem;
+												padding: 1.5rem 2rem;
+												margin: 2rem auto;
+												min-width: 300px;
+												width: fit-content;
+												backdrop-filter: blur(10px);
+												box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+												grid-column: 1 / -1;
+											">
+												<h2 class="title" style="margin: 0; margin-bottom: 0.5rem; text-align: center; font-size: 2.5rem; color: var(--accent); font-weight: bold;">{yearKey}</h2>
+												<h3 class="title" style="margin: 0; opacity: 0.8; text-align: center; color: var(--theme-text); font-size: 1.5rem;">{monthKey}</h3>
+											</div>
+										)}
+										{monthsInYear[monthKey]?.map((p) => {
+											const postDate = new Date(p.data.publishDate);
+											const year = postDate.getFullYear().toString();
+											const month = postDate.toLocaleDateString('en-US', { month: 'long' });
+											
+											return (
+												<div 
+													class="post-item"
+													data-year={year}
+													data-month={month}
+													style="display: contents;"
+												>
+													<PostPreview post={p} />
+												</div>
+											);
+										})}
+									</>
+								))}
+							</>
+						);
+					})}
+
+					<div class="posts-pagination grid place-content-center min-w-[380px] min-h-[180px] max-h-[85%]">
+						<Pagination {...paginationProps} />
+					</div>
+				</div>
+			</div>
+
+			<!-- Flat Filtered View (Hidden by Default) -->
+			<div class="posts-flat-view" style="display: none;">
 				<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`}>
 					<div class="sliderSpacer"></div>
-					{
-						page.data.map((p) => (
-							<PostPreview post={p} withDesc />
-						))
-					}
+					{page.data.map((post) => {
+						const postDate = new Date(post.data.publishDate);
+						const year = postDate.getFullYear().toString();
+						const month = postDate.toLocaleDateString('en-US', { month: 'long' });
+						
+						return (
+							<div 
+								class="post-item"
+								data-tags={JSON.stringify(post.data.tags || [])}
+								data-post-data={JSON.stringify({
+									title: post.data.title,
+									description: post.data.description,
+									slug: post.slug
+								})}
+								data-year={year}
+								data-month={month}
+							>
+								<PostPreview post={post} />
+							</div>
+						);
+					})}
 				</div>
-				<Pagination {...paginationProps} />
-			</section>
+			</div>
+
+			<!-- No Results Message -->
+			<div id={`tag-${tag}-no-results`} style="display: none; text-align: center; padding: 4rem 2rem; color: var(--textColor);">
+				<h2 style="margin-bottom: 1rem; color: var(--accent);">No posts found</h2>
+				<p style="opacity: 0.8;">Try adjusting your search or filter criteria</p>
+			</div>
 		</div>
-</span>
+
+		<br /><br />
+	</span>
 </PageLayout>
+
+<script define:vars={{ tag }}>
+	// Search and filter functionality
+	const sectionId = `tag-${tag}-page`;
+	const searchInput = document.getElementById(`${sectionId}-search-input`);
+	const clearSearchBtn = document.getElementById(`${sectionId}-clear-search`);
+	const clearAllBtn = document.getElementById(`${sectionId}-clear-all`);
+	const yearFilter = document.getElementById(`${sectionId}-year-filter`);
+	const monthFilter = document.getElementById(`${sectionId}-month-filter`);
+	const resultsCount = document.getElementById(`${sectionId}-results-count`);
+	const noResults = document.getElementById(`${sectionId}-no-results`);
+	const timelineView = document.querySelector('.posts-timeline');
+	const flatView = document.querySelector('.posts-flat-view');
+
+	function filterPosts() {
+		const searchTerm = searchInput?.value.toLowerCase().trim() || '';
+		const selectedYear = yearFilter?.value || '';
+		const selectedMonth = monthFilter?.value || '';
+
+		// Determine which view to use based on search only
+		const hasSearch = searchTerm !== '';
+		
+		if (timelineView && flatView) {
+			if (hasSearch) {
+				// Use flat view for text search filtering
+				timelineView.style.display = 'none';
+				flatView.style.display = 'block';
+				
+				const postItems = flatView.querySelectorAll('.post-item');
+				let visibleCount = 0;
+
+				postItems.forEach(item => {
+					const postData = JSON.parse(item.getAttribute('data-post-data') || '{}');
+					const year = item.getAttribute('data-year') || '';
+					const month = item.getAttribute('data-month') || '';
+					
+					const matchesSearch = !searchTerm || 
+						postData.title?.toLowerCase().includes(searchTerm) ||
+						postData.description?.toLowerCase().includes(searchTerm) ||
+						postData.slug?.toLowerCase().includes(searchTerm);
+					
+					const matchesYear = !selectedYear || year === selectedYear;
+					const matchesMonth = !selectedMonth || month === selectedMonth;
+
+					if (matchesSearch && matchesYear && matchesMonth) {
+						item.style.display = '';
+						visibleCount++;
+					} else {
+						item.style.display = 'none';
+					}
+				});
+
+				// Update results count
+				if (resultsCount) {
+					resultsCount.textContent = `Showing ${visibleCount} ${visibleCount === 1 ? 'post' : 'posts'}`;
+				}
+
+				// Show/hide no results message
+				if (noResults) {
+					noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+				}
+			} else {
+				// Use timeline view and filter by year/month
+				timelineView.style.display = 'block';
+				flatView.style.display = 'none';
+				
+				// Filter timeline view by year/month
+				const yearMonthCards = timelineView.querySelectorAll('.year-month-card');
+				const postItems = timelineView.querySelectorAll('.post-item');
+				let visibleCount = 0;
+				
+				// Hide/show year-month cards based on filters
+				yearMonthCards.forEach(card => {
+					const cardYear = card.getAttribute('data-year') || '';
+					const cardMonth = card.getAttribute('data-month') || '';
+					
+				
+				const matchesYear = !selectedYear || cardYear === selectedYear;
+				const matchesMonth = !selectedMonth || cardMonth === selectedMonth;
+				
+				if (matchesYear && matchesMonth) {
+					card.style.display = '';
+				} else {
+					card.style.display = 'none';
+				}
+			});				// Hide/show posts based on filters
+				postItems.forEach(item => {
+					const year = item.getAttribute('data-year') || '';
+					const month = item.getAttribute('data-month') || '';
+					
+				const matchesYear = !selectedYear || year === selectedYear;
+				const matchesMonth = !selectedMonth || month === selectedMonth;
+				
+				if (matchesYear && matchesMonth) {
+					item.style.display = '';
+					visibleCount++;
+				} else {
+					item.style.display = 'none';
+				}
+			});				// Update results count
+				const totalPosts = flatView.querySelectorAll('.post-item').length;
+				if (resultsCount) {
+					if (selectedYear || selectedMonth) {
+						resultsCount.textContent = `Showing ${visibleCount} of ${totalPosts} ${totalPosts === 1 ? 'post' : 'posts'}`;
+					} else {
+						resultsCount.textContent = `Showing ${totalPosts} ${totalPosts === 1 ? 'post' : 'posts'}`;
+					}
+				}
+				
+				if (noResults) {
+					noResults.style.display = visibleCount === 0 && (selectedYear || selectedMonth) ? 'block' : 'none';
+				}
+			}
+		}
+
+		// Show/hide clear buttons
+		const hasFilters = searchTerm !== '' || selectedYear !== '' || selectedMonth !== '';
+		if (clearSearchBtn) {
+			clearSearchBtn.style.display = searchTerm ? 'block' : 'none';
+		}
+		if (clearAllBtn) {
+			clearAllBtn.style.display = hasFilters ? 'block' : 'none';
+		}
+	}
+
+	// Search input handler
+	searchInput?.addEventListener('input', filterPosts);
+
+	// Filter handlers
+	yearFilter?.addEventListener('change', filterPosts);
+	monthFilter?.addEventListener('change', filterPosts);
+
+	// Clear search button
+	clearSearchBtn?.addEventListener('click', () => {
+		if (searchInput) {
+			searchInput.value = '';
+			filterPosts();
+			searchInput.focus();
+		}
+	});
+
+	// Clear all filters button
+	clearAllBtn?.addEventListener('click', () => {
+		if (searchInput) searchInput.value = '';
+		if (yearFilter) yearFilter.value = '';
+		if (monthFilter) monthFilter.value = '';
+		filterPosts();
+	});
+
+	// Initial filter
+	filterPosts();
+</script>

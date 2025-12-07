@@ -9,13 +9,17 @@ function removeDupsAndLowerCase(array: string[]) {
 
 const postSchema = z.object({
   title: z.string(),
-  description: z.string().min(50).max(160),
+  description: z.string().min(10).max(160),
   publishDate: z.string().or(z.date()).transform((val) => new Date(val)),
   updatedDate: z.string().or(z.date()).transform((val) => new Date(val)).optional(),
   coverImage: z.object({
     src: z.string().optional(),
     alt: z.string().default(""),
   }).optional(),
+  overlayImage: z.string().optional(),
+  overlayImageAlt: z.string().optional(),
+  overlaySvg: z.string().optional(),
+  overlaySvgAlt: z.string().optional(),
   tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
   draft: z.boolean().default(false),
   order: z.object({
@@ -32,10 +36,57 @@ const postSchema = z.object({
       useCustomPlayer: z.boolean().optional(),
       mute: z.boolean().optional(),
       loop: z.boolean().optional(),
-      start: z.number().optional(),
-      end: z.number().optional(),
+      start: z.preprocess(
+        (val) => {
+          if (val === null || val === undefined || val === '' || (typeof val === 'number' && isNaN(val))) return undefined;
+          return typeof val === 'string' ? parseFloat(val) : val;
+        },
+        z.number().optional()
+      ),
+      end: z.preprocess(
+        (val) => {
+          if (val === null || val === undefined || val === '' || (typeof val === 'number' && isNaN(val))) return undefined;
+          return typeof val === 'string' ? parseFloat(val) : val;
+        },
+        z.number().optional()
+      ),
       clickToLoad: z.boolean().optional(),
+      showMuteButton: z.boolean().optional(),
       videoOnly: z.boolean().optional(),
+      svgatorSync: z.boolean().optional(),
+      svgatorId: z.string().optional(),
+      interactiveMode: z.enum(['sync', 'independent', 'controller']).optional(),
+    }).optional()
+  }).optional(),
+  secondaryVideo: z.object({
+    discriminant: z.boolean(),
+    value: z.object({
+      url: z.string().optional(),
+      title: z.string().optional(),
+      controls: z.boolean().optional(),
+      useCustomPlayer: z.boolean().optional(),
+      mute: z.boolean().optional(),
+      loop: z.boolean().optional(),
+      start: z.preprocess(
+        (val) => {
+          if (val === null || val === undefined || val === '' || (typeof val === 'number' && isNaN(val))) return undefined;
+          return typeof val === 'string' ? parseFloat(val) : val;
+        },
+        z.number().optional()
+      ),
+      end: z.preprocess(
+        (val) => {
+          if (val === null || val === undefined || val === '' || (typeof val === 'number' && isNaN(val))) return undefined;
+          return typeof val === 'string' ? parseFloat(val) : val;
+        },
+        z.number().optional()
+      ),
+      clickToLoad: z.boolean().optional(),
+      showMuteButton: z.boolean().optional(),
+      videoOnly: z.boolean().optional(),
+      svgatorSync: z.boolean().optional(),
+      svgatorId: z.string().optional(),
+      interactiveMode: z.enum(['sync', 'independent', 'controller']).optional(),
     }).optional()
   }).optional(),
 });
@@ -61,6 +112,8 @@ export const collections = {
       darkAccent2: z.string().optional(),
       lightHeader: z.string().optional(),
       darkHeader: z.string().optional(),
+      lightCardBg: z.string().optional(),
+      darkCardBg: z.string().optional(),
       lightText: z.string().optional(),
       darkText: z.string().optional(),
       customCSS: z.string().optional()
@@ -80,7 +133,7 @@ export const collections = {
       sections: z.array(z.object({
         type: z.enum([
           'contentblock', 'pitch', 'testimonials', 'faqs', 
-          'resume', 'ctas', 'youtubefeeds', 'youform', 'posts', 'photos', 'app', 'form'
+          'resume', 'ctas', 'youtubefeeds', 'youform', 'posts', 'magicsearch', 'photos', 'app', 'form'
         ]),
         customTitle: z.string().optional(),
         customDescription: z.string().optional(),
@@ -92,6 +145,8 @@ export const collections = {
         feedConfig: z.string().optional(), // Reference to YouTube feed slug
         // CTA specific
         cta: z.string().optional(), // Reference to CTA slug
+        showSearch: z.boolean().optional(),
+        searchMethod: z.enum(['client', 'pagefind', 'hybrid']).optional(),
         hideCollapseButton: z.boolean().optional(),
       })).optional().default([]),
     }),
@@ -131,32 +186,7 @@ export const collections = {
     }),
   }),
 
-  membershipTokens: defineCollection({
-    type: 'data',
-    schema: z.object({
-      code: z.string(),
-      description: z.string(),
-      expiresAt: z.union([z.string(), z.date()]).transform((val) => {
-        if (val instanceof Date) return val;
-        return new Date(val);
-      }),
-      isActive: z.boolean().default(true),
-      maxUses: z.number().default(0),
-      usedCount: z.number().default(0),
-      createdBy: z.string().optional(),
-      accessLevel: z.enum(['basic', 'premium', 'unlimited']).default('basic'),
-      features: z.array(z.string()).default([]),
-      createdAt: z.union([z.string(), z.date()]).optional().transform((val) => {
-        if (!val) return new Date();
-        if (val instanceof Date) return val;
-        return new Date(val);
-      }),
-      metadata: z.object({
-        source: z.string().optional(),
-        notes: z.string().optional(),
-      }).optional(),
-    }),
-  }),
+
 
   // Optional menuItems collection - can be empty if not needed
   menuItems: defineCollection({
@@ -169,11 +199,15 @@ export const collections = {
     }),
   }),
 
-
-
-
-
-
+  footerMenuItems: defineCollection({
+    type: 'data',
+    schema: z.object({
+      name: z.string().optional(),
+      title: z.string().optional(),
+      path: z.string().optional(),
+      order: z.number().optional(),
+    }),
+  }),
 
   socialLinks: defineCollection({
     type: 'data',
@@ -181,7 +215,7 @@ export const collections = {
       friendlyName: z.string().optional(),
       link: z.string().optional(),
       icon: z.string().optional(),
-      isWebmention: z.boolean().optional(),
+      isActive: z.boolean().optional(),
       order: z.any().transform(val => 
         (val === '.nan' || val === 'nan' || Number.isNaN(val)) ? undefined : Number(val)
       ).optional()
@@ -205,6 +239,7 @@ export const collections = {
       showDates: z.boolean().optional(),
       enableImageBlur: z.boolean().optional(),
       showTags: z.boolean().optional(),
+      showTagFilters: z.boolean().optional(),
       showSocial: z.boolean().optional(),
       MAX_POSTS: z.number().optional(),
       MAX_POSTS_PER_PAGE: z.number().optional(),
@@ -281,6 +316,18 @@ export const collections = {
       shareText: z.string().optional(),
       copyButton: z.string().optional(),
       siteDisclaimer: z.string().optional(),
+      // Magic Search labels
+      magicSearchPlaceholder: z.string().optional(),
+      magicSearchTopics: z.string().optional(),
+      magicSearchAll: z.string().optional(),
+      magicSearchShowing: z.string().optional(),
+      magicSearchOf: z.string().optional(),
+      magicSearchPosts: z.string().optional(),
+      magicSearchPost: z.string().optional(),
+      magicSearchShowMoreTopics: z.string().optional(),
+      magicSearchShowLessTopics: z.string().optional(),
+      magicSearchNoResults: z.string().optional(),
+      magicSearchNoResultsDesc: z.string().optional(),
     }),
   }),
 

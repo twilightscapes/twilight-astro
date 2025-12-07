@@ -83,11 +83,13 @@ export type StyleSettings = {
   lightAccent: string;
   lightAccent2: string;
   lightHeader: string;
+  lightCardBg?: string;
   darkBg: string;
   darkLink: string;
   darkText: string;
   darkAccent: string;
   darkAccent2: string;
   darkHeader: string;
+  darkCardBg?: string;
   borderRadius: string;
 };

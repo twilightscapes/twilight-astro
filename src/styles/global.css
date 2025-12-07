@@ -4,7 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
 	:root {
 		--theme-bg: var(--theme-bg-light);
@@ -13,6 +12,7 @@
 		--theme-accent: var(--theme-accent-light);
 		--theme-accent2: var(--theme-accent2-light);
 		--theme-header: var(--theme-header-light);
+		--theme-card-bg: var(--theme-card-bg-light);
 	}
 
 	[data-theme="dark"] {
@@ -22,6 +22,7 @@
 		--theme-accent: var(--theme-accent-dark);
 		--theme-accent2: var(--theme-accent2-dark);
 		--theme-header: var(--theme-header-dark);
+		--theme-card-bg: var(--theme-card-bg-dark);
 	}
 }
 
@@ -31,18 +32,24 @@
 
 
 /* Base styles */
+div[data-section-id*="posts-section"] .section-content.slider,
+div[data-section-id="posts-page"] .section-content.slider,
+div[data-section-id*="tag-"] .section-content.slider,
+div[data-section-id="tags-page"] .section-content.slider,
+div[data-section-id*="magic-search"] .section-content.slider,
+div[data-section-id*="youtube-feed-section"] .section-content.slider {
+	display: flex !important;
+	flex-direction: row !important;
+	gap: 5vw !important;
+	overflow-x: scroll !important;
+	overflow-y: hidden !important;
+	scroll-snap-type: none !important;
+	padding: 0 2% !important;
+	width: 100% !important;
+}
+
 html {
-  		div[data-section-id*="posts-section"] .section-content.slider,
-		div[data-section-id*="youtube-feed-section"] .section-content.slider {
-			display: flex !important;
-			flex-direction: row !important;
-			gap: 5vw !important;
-			overflow-x: scroll !important;
-			overflow-y: hidden !important;
-			scroll-snap-type: none !important;
-			padding: 0 2% !important;
-			width: 100% !important;
-		}ior: smooth;
+  scroll-behavior: smooth;
   overflow-x: hidden;
   min-height: 100dvh;
 }
@@ -50,15 +57,12 @@ html {
 body {
   margin-left: auto;
   margin-right: auto;
-  display: flex;
-  flex-direction: column;
   padding-left: 2rem;
   padding-right: 2rem;
   padding-top: 4rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-family);
-  line-height: 1.5;
   background-color: var(--theme-bg);
   color: var(--theme-text);
   margin: 0 auto;
@@ -247,9 +251,9 @@ body {
 	  }
 	  
 
-	  #main section, #main article {padding:0 2%;}
+	  /* #main section, #main article {padding:0 2%;} */
 	  
-
+section .main-content{padding:0 2rem;}
 	  
 	  header.header {height:0;}
 
@@ -264,6 +268,8 @@ body {
 
 
 /* body:has(.contactpage) #missioncontrol{display:none !important} */
+
+
 
 
 #gobacker {position: absolute !important; right:60px !important; background:var(--theme-header) !important;}
@@ -390,7 +396,6 @@ button.topper{background:var(--theme-header) !important;}
 
 	  .slider .iframe-container{ min-width: 50vw;}
 	  
-	  /* Override prose container max-width for slider content */
 	  .prose .slider {
 	    max-width: none !important;
 	  }
@@ -409,7 +414,7 @@ body:has(.videopage) .youtube-video-actions{position: relative; left: 90% !impor
 		object-fit:contain; 
 		width: 100%; 
 		border-radius: var(--border-radius);
-		min-width: 70vw;
+		/* min-width: 70vw; */
 		max-height:68vh; 
 	 }
 	 .testi .slider img{
@@ -431,7 +436,7 @@ body:has(.videopage) .youtube-video-actions{position: relative; left: 90% !impor
 
 .post-video-info {
   padding: 0.75rem;
-  background: var(--theme-bg, #fff);
+  background: var(--theme-card-bg, var(--theme-bg, #fff));
   color: var(--theme-text, #333);
   flex: 1;
   display: flex;
@@ -548,6 +553,8 @@ body:has(.videopage) .youtube-video-actions{position: relative; left: 90% !impor
 
 	  body:has(#homemap) {overflow-y:auto !important;}
 
+	  body:has(.blogpost) .legalese{display:grid !important;  border:0px solid red !important;}
+
 /* body:has(.video) #missioncontrol{display: none !important;} */
 
 body:has(.video) #footer{display: none !important;}
@@ -654,7 +661,7 @@ body:has(.video) #footer{display: none !important;}
 		}
 	
 
-
+.template-page .prose{padding:0 2% !important;}
 
 
 
@@ -674,29 +681,74 @@ body:has(.video) #footer{display: none !important;}
 
 
 
-/* Posts section slider mode styles */
-		div[data-section-id*="posts-section"] .section-content.slider,
-		div[data-section-id*="youtube-feed-section"] .section-content.slider,
-		div[data-section-id*="youtube-feed-section"] .youtube-grid.slider {
-			display: flex !important;
-			flex-direction: row !important;
-			gap: 5vw !important;
-			overflow-x: scroll !important;
-			overflow-y: hidden !important;
-			scroll-snap-type: x mandatory !important;
-			padding: 0 2% !important;
-			width: 100% !important;
-		}
-		
-		div[data-section-id*="posts-section"] .section-content.slider .post-card1,
+	/* Posts section slider mode styles */
+	div[data-section-id*="posts-section"] .section-content.slider,
+	div[data-section-id="posts-page"] .section-content.slider,
+	div[data-section-id*="magic-search"] .section-content.slider,
+	div[data-section-id*="youtube-feed-section"] .section-content.slider,
+	div[data-section-id*="youtube-feed-section"] .youtube-grid.slider {
+		display: flex !important;
+		flex-direction: row !important;
+		gap: 5vw !important;
+		overflow-x: scroll !important;
+		overflow-y: hidden !important;
+		scroll-snap-type: none !important;
+		padding: 0 2% !important;
+		width: 100% !important;
+	}		div[data-section-id*="posts-section"] .section-content.slider .post-card1,
+		div[data-section-id="posts-page"] .section-content.slider .post-card1,
 		div[data-section-id*="youtube-feed-section"] .section-content.slider .post-card1 {
 			flex: 0 0 auto !important;
-			min-width: 50vw !important;
-			max-width: 50vw !important;
+			min-width: 40vw !important;
+			max-width: 40vw !important;
 			scroll-snap-align: start !important;
 			display: block !important;
 			margin-bottom: 0 !important;
 			width: auto !important;
+		}
+		
+	/* Posts page specific sizing in swipe mode - larger cards like gallery */
+	div[data-section-id="posts-page"] .section-content.slider .post-card1 {
+		min-width: 10% !important;
+		max-width: 10% !important;
+		width: 10% !important;
+		height: auto !important;
+		min-height: unset !important;
+	}		/* Remove forced aspect ratio from post video container in swipe */
+		div[data-section-id="posts-page"] .section-content.slider .post-video-container,
+		div[data-section-id="posts-page"] .slider .post-video-container {
+			aspect-ratio: unset !important;
+			height: auto !important;
+			display: flex !important;
+			align-items: center !important;
+			justify-content: center !important;
+		}
+		
+		/* Posts page images in swipe mode - match grid view aspect behavior */
+		div[data-section-id="posts-page"] .section-content.slider .post-card1 img,
+		div[data-section-id="posts-page"] .slider .post-card1 img {
+			width: 100% !important;
+			height: auto !important;
+			max-width: 100% !important;
+			max-height: 70vh !important;
+			min-width: 0 !important;
+			object-fit: contain !important;
+			--fit: contain !important;
+			background: transparent !important;
+			display: block !important;
+			margin: 0 auto !important;
+		}
+		
+		/* Also target grid view to ensure consistency */
+		div[data-section-id="posts-page"] .section-content.grid-container .post-card1 img {
+			object-fit: contain !important;
+			--fit: contain !important;
+		}
+		
+		/* Remove background fill from post cards in swipe mode */
+		div[data-section-id="posts-page"] .section-content.slider .post-card1,
+		div[data-section-id="posts-page"] .slider .post-card1 {
+			background: transparent !important;
 		}
 
 		/* Force YouTube feed images to match posts exactly - override general .slider img rules */
@@ -732,6 +784,7 @@ body:has(.video) #footer{display: none !important;}
 		
 		/* Ensure posts and YouTube feeds grid matches */
 		div[data-section-id*="posts-section"] .section-content.grid-container,
+		div[data-section-id="posts-page"] .section-content.grid-container,
 		div[data-section-id*="youtube-feed-section"] .section-content.grid-container,
 		div[data-section-id*="youtube-feed-section"] .youtube-grid.grid-container {
 			display: grid !important;
@@ -741,21 +794,20 @@ body:has(.video) #footer{display: none !important;}
 			padding: 0 2% 0 !important;
 		}
 		
-		/* Fallback for posts and YouTube feed sections - even if slider class isn't applied correctly */
-		div[data-section-id*="posts-section"] .section-content:not(.grid-container),
-		div[data-section-id*="youtube-feed-section"] .section-content:not(.grid-container),
-		div[data-section-id*="youtube-feed-section"] .youtube-grid:not(.grid-container) {
-			display: flex !important;
-			flex-direction: row !important;
-			gap: 5vw !important;
-			overflow-x: scroll !important;
-			overflow-y: hidden !important;
-			scroll-snap-type: x mandatory !important;
-			padding: 0 2% !important;
-			width: 100% !important;
-		}
-		
-		div[data-section-id*="posts-section"] .section-content:not(.grid-container) .post-card1,
+	/* Fallback for posts and YouTube feed sections - even if slider class isn't applied correctly */
+	div[data-section-id*="posts-section"] .section-content:not(.grid-container),
+	div[data-section-id*="youtube-feed-section"] .section-content:not(.grid-container),
+	div[data-section-id="posts-page"] .section-content:not(.grid-container),
+	div[data-section-id*="youtube-feed-section"] .youtube-grid:not(.grid-container) {
+		display: flex !important;
+		flex-direction: row !important;
+		gap: 5vw !important;
+		overflow-x: scroll !important;
+		overflow-y: hidden !important;
+		scroll-snap-type: none !important;
+		padding: 0 2% !important;
+		width: 100% !important;
+	}		div[data-section-id*="posts-section"] .section-content:not(.grid-container) .post-card1,
 		div[data-section-id*="youtube-feed-section"] .section-content:not(.grid-container) .post-card1 {
 			flex: 0 0 auto !important;
 			min-width: 50vw !important;
@@ -766,7 +818,19 @@ body:has(.video) #footer{display: none !important;}
 			width: auto !important;
 		}
 		
+		/* Posts page gets different sizing */
+		div[data-section-id="posts-page"] .section-content:not(.grid-container) .post-card1 {
+			flex: 0 0 auto !important;
+			min-width: 80vw !important;
+			max-width: 80vw !important;
+			scroll-snap-align: start !important;
+			display: block !important;
+			margin-bottom: 0 !important;
+			width: auto !important;
+		}
+		
 		div[data-section-id*="posts-section"] .section-content.slider .load-more-container,
+		div[data-section-id="posts-page"] .section-content.slider .load-more-container,
 		div[data-section-id*="youtube-feed-section"] .section-content.slider .load-more-container {
 			flex: 0 0 auto !important;
 			min-width: 50vw !important;
@@ -958,7 +1022,8 @@ body:has(.video) #footer{display: none !important;}
 			}
 			
 			/* General posts section - smaller width */
-			[data-section-id*="posts-section"] .slider .post-card1 {
+			[data-section-id*="posts-section"] .slider .post-card1,
+			[data-section-id="posts-page"] .slider .post-card1 {
 				min-width: 280px;
 				max-width: 320px;
 			}
@@ -1009,3 +1074,4 @@ body:has(.video) #footer{display: none !important;}
     }
 
 .pwa-button{display:flex; justify-content: center;}
+

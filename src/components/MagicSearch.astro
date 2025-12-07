@@ -1,0 +1,528 @@
+---
+import { getAllPosts, getUniqueTagsWithCount, sortMDByDate } from "@/data/post";
+import PostPreview from "@/components/blog/PostPreview.astro";
+import ViewModeSwitch from "@/components/ViewModeSwitch.jsx";
+import { getEntry } from 'astro:content';
+
+interface Props {
+  sectionId?: string;
+  title?: string;
+  description?: string;
+  showTitle?: boolean;
+  hideCollapseButton?: boolean;
+  defaultView?: 'grid' | 'swipe';
+  showTags?: boolean;
+  showSearch?: boolean;
+  searchMethod?: 'client' | 'pagefind' | 'hybrid';
+}
+
+const { 
+  sectionId = 'magic-search',
+  title = 'Search Posts',
+  description = '',
+  showTitle = true,
+  hideCollapseButton = false,
+  defaultView: propDefaultView,
+  showTags = true,
+  showSearch = true,
+  searchMethod = 'client'
+} = Astro.props;
+
+const allPosts = await getAllPosts();
+const sortedPosts = sortMDByDate(allPosts, true);
+const tagsWithCount = getUniqueTagsWithCount(allPosts);
+
+const siteSettings = await getEntry('siteSettings', 'main');
+const defaultView = propDefaultView ?? siteSettings?.data?.defaultView ?? 'grid';
+const MAX_POSTS = siteSettings?.data?.MAX_POSTS ?? 5;
+
+// Get language strings
+const languageData = await getEntry('language', 'index');
+const pwaSettings = await getEntry('pwaSettings', 'index');
+const shortName = pwaSettings?.data?.shortName || 'Site';
+const lang = {
+  placeholder: `Search ${shortName}'s Posts`,
+  topics: languageData?.data?.magicSearchTopics || 'Topics:',
+  all: languageData?.data?.magicSearchAll || 'All',
+  showing: languageData?.data?.magicSearchShowing || 'Showing',
+  of: languageData?.data?.magicSearchOf || 'of',
+  posts: languageData?.data?.magicSearchPosts || 'posts',
+  post: languageData?.data?.magicSearchPost || 'post',
+  showMoreTopics: languageData?.data?.magicSearchShowMoreTopics || 'Show More Topics ▼',
+  showLessTopics: languageData?.data?.magicSearchShowLessTopics || 'Show Less Topics ▲',
+  noResults: languageData?.data?.magicSearchNoResults || 'No posts found',
+  noResultsDesc: languageData?.data?.magicSearchNoResultsDesc || 'Try adjusting your search or filter criteria',
+};
+---
+
+<div data-section-id={sectionId}>
+  {((showTitle && (title || description)) || !hideCollapseButton) && (
+    <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; padding: 0 3%;">
+      <div style="flex: 1;">
+        {showTitle && title && (
+          <h2 class="posties glow text-[clamp(1.4rem,1.9vw,4rem)] shadow-text theme-accent" style={`margin: 0; margin-bottom: ${description ? '1rem' : '0'};`}>
+            {title}
+          </h2>
+        )}
+        {showTitle && description && (
+          <p style="font-size: 1.2rem; color: var(--theme-text); opacity: 0.8; margin: 0;">
+            {description}
+          </p>
+        )}
+      </div>
+      <div class="section-controls" style="display: flex; align-items: center;">
+        {!hideCollapseButton && (
+          <button 
+            class="section-collapse-toggle" 
+            data-section={sectionId}
+            style="background: var(--theme-surface, #333); border: none; border-radius: 4px; color: white; padding: 6px 12px; font-size: 18px; cursor: pointer;"
+            title="Collapse/Expand Section">
+            ▼
+          </button>
+        )}
+      </div>
+    </div>
+  )}
+  
+  <!-- Search Controls -->
+  {(showSearch || showTags) && (
+    <div class="search-controls" style="padding: 0 1rem; max-width: 1400px; margin: 0 auto;">
+      <div class="search-filter-box" style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 0.75rem; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+        
+        <!-- Search Bar with Clear Filters and View All Buttons -->
+        {showSearch && (
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem; align-items: center; flex-wrap: wrap;">
+          <div class="search-bar-container" style="position: relative; flex: 1; min-width: 250px;">
+            <input
+              type="text"
+              id={`${sectionId}-search-input`}
+              placeholder={lang.placeholder}
+              style="width: 100%; padding: 1.25rem 3.5rem 1.25rem 1.25rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.4); color: var(--textColor); font-size: 1rem;"
+            />
+            <button
+              id={`${sectionId}-clear-search`}
+              style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); padding: 0.5rem; background: transparent; border: none; cursor: pointer; display: none; color: var(--textColor);"
+              aria-label="Clear search"
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Clear All Filters Button -->
+          <button
+            id={`${sectionId}-clear-all`}
+            style="padding: 1.25rem 1.5rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(255, 0, 0, 0.2); color: white; cursor: pointer; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: none;"
+            onmouseover="this.style.background='rgba(255, 0, 0, 0.4)'"
+            onmouseout="this.style.background='rgba(255, 0, 0, 0.2)'"
+          >
+            Clear Filters
+          </button>
+          
+          <a 
+            href="/posts/" 
+            style="padding: 1.25rem 1.5rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: var(--accent); color: white; text-decoration: none; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; justify-content: center;"
+            onmouseover="this.style.opacity='0.8'"
+            onmouseout="this.style.opacity='1'"
+          >
+            View All
+          </a>
+        </div>
+      )}
+      
+      <!-- Tag Filter Pills -->
+      {showTags && (
+        <div class="tag-filter-container" style="margin-bottom: 0;">
+          <div id={`${sectionId}-tag-pills-wrapper`} class="tag-pills-wrapper" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; max-height: 2.5rem; overflow: hidden; transition: max-height 0.3s ease;">
+            <span style="color: var(--textColor); font-weight: 600; padding-right: 0.2rem;">{lang.topics}</span>
+            <button
+              class="tag-pill active"
+              data-tag="all"
+              data-section={sectionId}
+              style="padding: 0.5rem 1rem; border-radius: 9999px; border: 2px solid var(--accent); background: var(--accent); color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;"
+            >
+              {lang.all} ({allPosts.length})
+            </button>
+            {tagsWithCount.map(([tag, count]) => (
+              <button
+                class="tag-pill"
+                data-tag={tag}
+                data-section={sectionId}
+                style="padding: 0.5rem 1rem; border-radius: 9999px; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.5); color: white; cursor: pointer; transition: all 0.2s;"
+              >
+                {tag} ({count})
+              </button>
+            ))}
+          </div>
+          {tagsWithCount.length > 7 && (
+            <button
+              id={`${sectionId}-toggle-tags`}
+              style="margin-top: 0.75rem; padding: 0.25rem 0.75rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--textColor); cursor: pointer; font-size: 0.875rem;"
+            >
+              {lang.showMoreTopics}
+            </button>
+          )}
+        </div>
+      )}
+      
+    </div>
+  </div>
+  )}
+  
+  <!-- Results Count and View Toggle - Outside the dark box -->
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; max-width: 1400px; margin: 0 auto;">
+    <div id={`${sectionId}-results-count`} style="color: var(--textColor); font-size: 0.875rem; opacity: 0.7; visibility: hidden;">
+      {lang.showing} {Math.min(MAX_POSTS, allPosts.length)} {lang.of} {allPosts.length} {lang.posts}
+    </div>
+    {/* @ts-ignore - client:load is valid Astro directive */}
+    <ViewModeSwitch 
+      sectionId={sectionId}
+      defaultView={defaultView}
+      client:load
+    />
+  </div>
+  
+  <!-- Results Container - Using exact same structure as posts page -->
+  <div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`}>
+    <div class="sliderSpacer"></div>
+    {sortedPosts.map((post, index) => (
+      <div 
+        class="post-item" 
+        data-section={sectionId}
+        data-tags={JSON.stringify(post.data.tags)} 
+        data-post-data={JSON.stringify({
+          title: post.data.title,
+          description: post.data.description,
+          slug: post.slug
+        })}
+        style={index >= MAX_POSTS ? 'display: none;' : ''}
+      >
+        <PostPreview post={post} />
+      </div>
+    ))}
+  </div>
+
+  <!-- No Results Message -->
+  <div id={`${sectionId}-no-results`} style="display: none; text-align: center; padding: 4rem 2rem; color: var(--textColor);">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 1rem;">
+      <circle cx="11" cy="11" r="8"/>
+      <path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">{lang.noResults}</h3>
+    <p>{lang.noResultsDesc}</p>
+  </div>
+</div>
+
+{(searchMethod === 'pagefind' || searchMethod === 'hybrid') && import.meta.env.PROD && (
+  <script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <script is:inline>
+    // Load Pagefind CSS only in production
+    if (typeof window !== 'undefined') {
+      const link = document.createElement('link');
+      link.href = '/pagefind/pagefind-ui.css';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+  </script>
+)}
+
+<style>
+  .tag-pill:hover {
+    background: var(--accent) !important;
+    color: white !important;
+  }
+  
+  .tag-pill.active {
+    background: var(--accent) !important;
+    color: white !important;
+  }
+  
+  [id$="-search-input"]:focus {
+    outline: none;
+    border-color: var(--link);
+  }
+  
+  [id$="-clear-search"].visible {
+    display: block !important;
+  }
+  
+  .post-item {
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  
+  .post-item.hidden {
+    display: none;
+  }
+</style>
+
+<script define:vars={{ MAX_POSTS, sectionId, lang, searchMethod, isProd: import.meta.env.PROD }}>
+  // Get all elements using the dynamic sectionId
+  const searchInput = document.getElementById(`${sectionId}-search-input`);
+  const clearButton = document.getElementById(`${sectionId}-clear-search`);
+  const clearAllButton = document.getElementById(`${sectionId}-clear-all`);
+  const resultsCount = document.getElementById(`${sectionId}-results-count`);
+  const resultsContainer = document.querySelector(`[data-section-id="${sectionId}"] .section-content`);
+  const noResults = document.getElementById(`${sectionId}-no-results`);
+  const tagPills = document.querySelectorAll(`.tag-pill[data-section="${sectionId}"]`);
+  const postItems = document.querySelectorAll(`.post-item[data-section="${sectionId}"]`);
+  const toggleTagsButton = document.getElementById(`${sectionId}-toggle-tags`);
+  const tagPillsWrapper = document.getElementById(`${sectionId}-tag-pills-wrapper`);
+  
+  let activeTag = 'all';
+  let searchQuery = '';
+  let showAllPosts = false;
+  let tagsExpanded = false;
+  let pagefind = null;
+  let pagefindResults = new Set();
+  
+  // Initialize Pagefind if needed
+  async function initPagefind() {
+    if (searchMethod === 'client') return;
+    if (!isProd) return; // Skip in development
+    
+    try {
+      const pagefindModule = await import('/pagefind/pagefind.js');
+      pagefind = pagefindModule;
+    } catch (e) {
+      // Pagefind not available in dev mode, will work on built site
+    }
+  }
+  
+  // Search using Pagefind
+  async function searchWithPagefind(query) {
+    if (!query || !pagefind) {
+      pagefindResults.clear();
+      return;
+    }
+    
+    try {
+      const search = await pagefind.search(query);
+      pagefindResults.clear();
+      
+      for (const result of search.results) {
+        const data = await result.data();
+        // Extract slug from URL - handle both /posts/slug/ and /posts/slug formats
+        const url = data.url;
+        
+        // Try multiple patterns to extract slug
+        const patterns = [
+          /\/posts\/([^\/]+)\/?$/,  // /posts/slug/ or /posts/slug at end
+          /\/posts\/([^\/]+)/,       // /posts/slug/anything
+          /([^\/]+)\/?$/             // just the last segment
+        ];
+        
+        for (const pattern of patterns) {
+          const matches = url.match(pattern);
+          if (matches && matches[1]) {
+            pagefindResults.add(matches[1]);
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      // Pagefind search failed
+    }
+  }
+  
+  // Update results based on filters
+  async function updateResults() {
+    let visibleCount = 0;
+    let matchingPosts = 0;
+    
+    // If using pagefind or hybrid, perform pagefind search
+    if (searchQuery && (searchMethod === 'pagefind' || searchMethod === 'hybrid')) {
+      await searchWithPagefind(searchQuery);
+    }
+    
+    postItems.forEach((item, index) => {
+      const tags = JSON.parse(item.dataset.tags || '[]');
+      const postData = JSON.parse(item.dataset.postData || '{}');
+      
+      // Check tag filter
+      const matchesTag = activeTag === 'all' || tags.includes(activeTag);
+      
+      // Check search query based on method
+      let matchesSearch = !searchQuery;
+      
+      if (searchQuery) {
+        const clientMatch = 
+          postData.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          postData.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (searchMethod === 'client') {
+          matchesSearch = clientMatch;
+        } else if (searchMethod === 'pagefind') {
+          const slugToMatch = postData.slug.replace(/\/$/, ''); // Remove trailing slash
+          matchesSearch = Array.from(pagefindResults).some(resultSlug => {
+            const cleanResultSlug = resultSlug.replace(/\/$/, '');
+            return cleanResultSlug === slugToMatch || cleanResultSlug.endsWith('/' + slugToMatch);
+          });
+        } else if (searchMethod === 'hybrid') {
+          // Hybrid: match if either client-side OR pagefind finds it
+          const slugToMatch = postData.slug.replace(/\/$/, '');
+          const pagefindMatch = Array.from(pagefindResults).some(resultSlug => {
+            const cleanResultSlug = resultSlug.replace(/\/$/, '');
+            return cleanResultSlug === slugToMatch || cleanResultSlug.endsWith('/' + slugToMatch);
+          });
+          matchesSearch = clientMatch || pagefindMatch;
+        }
+      }
+      
+      const matchesFilters = matchesTag && matchesSearch;
+      
+      if (matchesFilters) {
+        matchingPosts++;
+        // Show post if it's within limit or if showing all
+        if (showAllPosts || matchingPosts <= MAX_POSTS) {
+          item.classList.remove('hidden');
+          item.style.display = '';
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+          item.style.display = 'none';
+        }
+      } else {
+        item.classList.add('hidden');
+        item.style.display = 'none';
+      }
+    });
+    
+    // Update results count
+    if (searchQuery || activeTag !== 'all') {
+      resultsCount.textContent = `${lang.showing} ${visibleCount} ${visibleCount !== 1 ? lang.posts : lang.post}`;
+    } else {
+      const totalPosts = postItems.length;
+      resultsCount.textContent = `${lang.showing} ${visibleCount} ${lang.of} ${totalPosts} ${lang.posts}`;
+    }
+    
+    // Show/hide no results message
+    if (visibleCount === 0) {
+      resultsContainer.style.display = 'none';
+      noResults.style.display = 'block';
+    } else {
+      resultsContainer.style.display = '';
+      noResults.style.display = 'none';
+    }
+  }
+  
+  // Handle search input
+  if (searchInput) {
+    searchInput.addEventListener('input', async (e) => {
+      searchQuery = e.target.value.trim();
+      
+      // Show/hide clear button and clear all button
+      if (searchQuery) {
+        if (clearButton) clearButton.classList.add('visible');
+        showAllPosts = true; // Show all matching results when searching
+      } else {
+        if (clearButton) clearButton.classList.remove('visible');
+        showAllPosts = false; // Reset to limited view when search is cleared
+      }
+      
+      // Show clear all button if any filters are active
+      if (clearAllButton && (searchQuery || activeTag !== 'all')) {
+        clearAllButton.style.display = 'block';
+      } else if (clearAllButton) {
+        clearAllButton.style.display = 'none';
+      }
+      
+      await updateResults();
+    });
+  }
+  
+  // Handle clear button
+  if (clearButton) {
+    clearButton.addEventListener('click', async () => {
+      if (searchInput) searchInput.value = '';
+      searchQuery = '';
+      showAllPosts = false;
+      clearButton.classList.remove('visible');
+      
+      // Update clear all button visibility
+      if (clearAllButton) {
+        if (activeTag !== 'all') {
+          clearAllButton.style.display = 'block';
+        } else {
+          clearAllButton.style.display = 'none';
+        }
+      }
+      
+      await updateResults();
+    });
+  }
+  
+  // Handle clear all filters button
+  if (clearAllButton) {
+    clearAllButton.addEventListener('click', async () => {
+      // Reset search
+      if (searchInput) searchInput.value = '';
+      searchQuery = '';
+      if (clearButton) clearButton.classList.remove('visible');
+      
+      // Reset tag filter
+      activeTag = 'all';
+      tagPills.forEach((p) => p.classList.remove('active'));
+      const allPill = document.querySelector(`.tag-pill[data-section="${sectionId}"][data-tag="all"]`);
+      if (allPill) allPill.classList.add('active');
+      
+      // Reset view
+      showAllPosts = false;
+      
+      // Hide clear all button
+      clearAllButton.style.display = 'none';
+      
+      await updateResults();
+    });
+  }
+  
+  // Handle tag pills
+  tagPills.forEach((pill) => {
+    pill.addEventListener('click', async (e) => {
+      const button = e.target;
+      activeTag = button.dataset.tag || 'all';
+      
+      // Update active state
+      tagPills.forEach((p) => p.classList.remove('active'));
+      button.classList.add('active');
+      
+      // Show all posts when filtering by tag
+      if (activeTag !== 'all') {
+        showAllPosts = true;
+      } else if (!searchQuery) {
+        showAllPosts = false;
+      }
+      
+      // Show/hide clear all button
+      if (clearAllButton) {
+        if (searchQuery || activeTag !== 'all') {
+          clearAllButton.style.display = 'block';
+        } else {
+          clearAllButton.style.display = 'none';
+        }
+      }
+      
+      await updateResults();
+    });
+  });
+  
+  // Handle toggle tags button
+  if (toggleTagsButton && tagPillsWrapper) {
+    toggleTagsButton.addEventListener('click', () => {
+      tagsExpanded = !tagsExpanded;
+      if (tagsExpanded) {
+        tagPillsWrapper.style.maxHeight = 'none';
+        toggleTagsButton.textContent = lang.showLessTopics;
+      } else {
+        tagPillsWrapper.style.maxHeight = '2.5rem';
+        toggleTagsButton.textContent = lang.showMoreTopics;
+      }
+    });
+  }
+  
+  // Initialize on page load
+  if (searchMethod !== 'client') {
+  initPagefind().then(() => {
+    });
+  }
+</script>

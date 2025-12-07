@@ -1,0 +1,74 @@
+---
+/**
+ * Ticker Overlay Component
+ * Creates an animated scrolling text ticker SVG that can overlay videos
+ * Text content comes from the post or props
+ */
+
+interface Props {
+  text?: string;
+  speed?: number; // Animation duration in seconds
+  fontSize?: number;
+  textColor?: string;
+  backgroundColor?: string;
+  position?: 'top' | 'bottom' | 'middle';
+}
+
+const {
+  text = 'BREAKING NEWS',
+  speed = 15,
+  fontSize = 32,
+  textColor = '#ffffff',
+  backgroundColor = 'rgba(255, 0, 0, 0.9)',
+  position = 'bottom'
+} = Astro.props;
+
+// Calculate position based on prop
+const yPosition = position === 'top' ? '10%' : 
+                  position === 'middle' ? '50%' : 
+                  '90%';
+---
+
+<svg 
+  class="ticker-overlay" 
+  viewBox="0 0 1920 1080" 
+  xmlns="http://www.w3.org/2000/svg"
+  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"
+>
+  <!-- Background bar for ticker -->
+  <rect 
+    x="0" 
+    y={position === 'top' ? '80' : position === 'middle' ? '500' : '920'}
+    width="1920" 
+    height={fontSize + 20}
+    fill={backgroundColor}
+    opacity="0.95"
+  />
+  
+  <!-- Scrolling text -->
+  <text
+    x="1920"
+    y={position === 'top' ? '110' : position === 'middle' ? '535' : '955'}
+    fill={textColor}
+    font-size={fontSize}
+    font-family="Arial, sans-serif"
+    font-weight="bold"
+    text-anchor="start"
+  >
+    {text}
+    <animate
+      attributeName="x"
+      from="1920"
+      to="-1000"
+      dur={`${speed}s`}
+      repeatCount="indefinite"
+    />
+  </text>
+</svg>
+
+<style>
+.ticker-overlay {
+  z-index: 65;
+  pointer-events: none;
+}
+</style>

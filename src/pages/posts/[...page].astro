@@ -5,14 +5,15 @@ import type { CollectionEntry } from "astro:content";
 import { getEntry } from 'astro:content';
 import Pagination from "@/components/Paginator.astro";
 import PostPreview from "@/components/blog/PostPreview.astro";
-import ViewModeSwitch from "@/components/ViewModeSwitch.jsx";
-import { getAllPosts, getUniqueTags, groupPostsByYear, sortMDByDate } from "@/data/post";
+import PostsPageSearch from "@/components/PostsPageSearch.astro";
+import { getAllPosts, getUniqueTags, groupPostsByYearMonth, sortMDByDate } from "@/data/post";
 import PageLayout from "@/layouts/Base.astro";
 
 interface SiteSettings {
   MAX_POSTS_PER_PAGE: number;
   defaultView: 'grid' | 'swipe';
   showTags: boolean;
+  showTagFilters: boolean;
   showDates: boolean;
 }
 
@@ -24,11 +25,12 @@ export const getStaticPaths = (async ({ paginate }) => {
     MAX_POSTS_PER_PAGE: siteSettings?.data?.MAX_POSTS_PER_PAGE ?? 10,
     defaultView: siteSettings?.data?.defaultView ?? 'grid',
     showTags: siteSettings?.data?.showTags ?? true,
+    showTagFilters: siteSettings?.data?.showTagFilters ?? true,
     showDates: siteSettings?.data?.showDates ?? true
   };
 
   const allPosts = await getAllPosts();
-  const allPostsByDate = sortMDByDate(allPosts);
+  const allPostsByDate = sortMDByDate(allPosts, true);
   const uniqueTags = getUniqueTags(allPosts);
   
   return paginate(allPostsByDate, { 
@@ -37,6 +39,7 @@ export const getStaticPaths = (async ({ paginate }) => {
       uniqueTags, 
       defaultView: settings.defaultView,
       showTags: settings.showTags,
+      showTagFilters: settings.showTagFilters,
       showDates: settings.showDates
     } 
   });
@@ -50,10 +53,11 @@ interface Props {
   uniqueTags: string[];
   defaultView: string;
   showTags: boolean;
+  showTagFilters: boolean;
   showDates: boolean;
 }
 
-const { page, uniqueTags, defaultView, showTags, showDates } = Astro.props;
+const { page, uniqueTags, defaultView, showTags, showTagFilters, showDates } = Astro.props;
 
 const meta = {
 	description: "Collection of posts",
@@ -75,91 +79,126 @@ const paginationProps = {
 	}),
 };
 
-const groupedByYear = groupPostsByYear(page.data);
-const descYearKeys = Object.keys(groupedByYear).sort((a, b) => +b - +a);
+const groupedByYearMonth = groupPostsByYearMonth(page.data);
+const descYearKeys = Object.keys(groupedByYearMonth).sort((a, b) => +b - +a);
+
+// Month order for sorting
+const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 ---
 
-<PageLayout meta={meta} themeMode="user">
+<PageLayout meta={meta}>
 	<br />
 	<span class="">
-		<div data-section-id="posts-page">
-			<div class="posts-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 0 1rem;">
-				<h1 class="title text-2xl" style="margin: 0; flex: 1;">Posts</h1>
-				<ViewModeSwitch 
-					sectionId="posts-page" 
-					defaultView={defaultView} 
-					client:load
-				/>
-			</div>
-			
-			<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="">
-				<div class="sliderSpacer"></div>
-				{descYearKeys.map((yearKey) => (
-					<>
-						{typeof showDates !== 'undefined' && showDates && (
-							<div class="grid place-content-center">
-								<h2 class="title text-lg">{yearKey}</h2>
-							</div>
-						)}
-						{groupedByYear[yearKey]?.map((p) => (
-							<PostPreview post={p} />
-						))}
-					</>
-				))}
+		<!-- Search Component with Filters -->
+		<PostsPageSearch 
+			sectionId="posts-page"
+			defaultView={defaultView as 'grid' | 'swipe'}
+			showTags={showTagFilters}
+			searchMethod="hybrid"
+			allPosts={page.data}
+			groupedByYearMonth={groupedByYearMonth}
+			uniqueTags={uniqueTags}
+		/>
 
-				<div class="grid place-content-center min-w-[380px] min-h-[180px] max-h-[85%] ">
-					<Pagination {...paginationProps} />
+		<!-- Posts Container -->
+		<div data-section-id="posts-page">
+			<!-- Timeline View (Year/Month Spacers) -->
+			<div class="posts-timeline">
+				<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`} style="">
+					<div class="sliderSpacer"></div>
+					{descYearKeys.map((yearKey) => {
+						const monthsInYear = groupedByYearMonth[yearKey];
+						const sortedMonthKeys = Object.keys(monthsInYear || {}).sort((a, b) => {
+							return monthOrder.indexOf(b) - monthOrder.indexOf(a);
+						});
+						
+						return (
+							<>
+								{sortedMonthKeys.map((monthKey) => (
+									<>
+										{typeof showDates !== 'undefined' && showDates && (
+											<div 
+												class="year-month-card" 
+												data-year={yearKey}
+												data-month={monthKey}
+												style="
+													display: flex;
+													flex-direction: column;
+													align-items: center;
+													justify-content: center;
+													background: var(--theme-card-bg, rgba(0, 0, 0, 0.3));
+													border: 2px solid var(--accent);
+													border-radius: 1rem;
+													padding: 1.5rem 2rem;
+													margin: 2rem auto;
+													min-width: 300px;
+													width: fit-content;
+													backdrop-filter: blur(10px);
+													box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+													grid-column: 1 / -1;
+												">
+												<h2 class="title" style="margin: 0; margin-bottom: 0.5rem; text-align: center; font-size: 2.5rem; color: var(--accent); font-weight: bold;">{yearKey}</h2>
+												<h3 class="title" style="margin: 0; opacity: 0.8; text-align: center; color: var(--theme-text); font-size: 1.5rem;">{monthKey}</h3>
+											</div>
+										)}
+										{monthsInYear[monthKey]?.map((p) => {
+											const postDate = new Date(p.data.publishDate);
+											const year = postDate.getFullYear().toString();
+											const month = postDate.toLocaleDateString('en-US', { month: 'long' });
+											
+											return (
+												<div 
+													class="post-item"
+													data-year={year}
+													data-month={month}
+													style="display: contents;"
+												>
+													<PostPreview post={p} />
+												</div>
+											);
+										})}
+									</>
+								))}
+							</>
+						);
+					})}
+
+					<div class="posts-pagination grid place-content-center min-w-[380px] min-h-[180px] max-h-[85%]">
+						<Pagination {...paginationProps} />
+					</div>
+				</div>
+			</div>
+
+			<!-- Flat Filtered View (Hidden by Default) -->
+			<div class="posts-flat-view" style="display: none;">
+				<div class={`contentpanel section-content ${defaultView === 'swipe' ? 'slider' : 'grid-container'}`}>
+					<div class="sliderSpacer"></div>
+					{page.data.map((post) => {
+						const postDate = new Date(post.data.publishDate);
+						const year = postDate.getFullYear().toString();
+						const month = postDate.toLocaleDateString('en-US', { month: 'long' });
+						
+						return (
+							<div 
+								class="post-item"
+								data-tags={JSON.stringify(post.data.tags || [])}
+								data-post-data={JSON.stringify({
+									title: post.data.title,
+									description: post.data.description,
+									slug: post.slug
+								})}
+								data-year={year}
+								data-month={month}
+							>
+								<PostPreview post={post} />
+							</div>
+						);
+					})}
 				</div>
 			</div>
 		</div>
-		{typeof showTags !== 'undefined' && showTags && (
-<div class="">
-		{!!uniqueTags.length && (
-			<aside class="p-4 flex gap-4 items-center" style="max-width: 100%;">
-				<h2 class="title mb-4 flex items-center text-lg">
-					<svg
-						aria-hidden="true"
-						class="h-6 w-6"
-						fill="none"
-						stroke="currentColor"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="1.5"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path d="M0 0h24v24H0z" fill="none" stroke="none" />
-						<path d="M7.859 6h-2.834a2.025 2.025 0 0 0 -2.025 2.025v2.834c0 .537 .213 1.052 .593 1.432l6.116 6.116a2.025 2.025 0 0 0 2.864 0l2.834 -2.834a2.025 2.025 0 0 0 0 -2.864l-6.117 -6.116a2.025 2.025 0 0 0 -1.431 -.593z" />
-						<path d="M17.573 18.407l2.834 -2.834a2.025 2.025 0 0 0 0 -2.864l-7.117 -7.116" />
-						<path d="M6 9h-.01" />
-					</svg>
-					{language?.data?.tags ?? "Tags"}
-				</h2>
-				<ul class="flex flex-wrap gap-2 " style="">
-					{uniqueTags.map((tag) => (
-						<li>
-							<a
-								aria-label={`View all posts with the tag: ${tag}`}
-								class="flex items-center justify-center rounded-lg p-1"
-								href={`/tags/${tag}/`}
-							>
-								{tag}
-							</a>
-						</li>
-					))}
-				</ul>
-				<span class="mt-4 block sm:text-start" style="width:170px; text-align: right; display:flex; justify-content: end;">
-					<a aria-label="View all blog categories" class="sm:hover:text-accent" href="/tags/">
-						{language?.data?.viewall} →
-					</a>
-				</span>
-			</aside>
-		)}
-	</div>
 
-)}
-<br /><br />
-</div>
-</span>
+		<br /><br />
+	</span>
 </PageLayout>

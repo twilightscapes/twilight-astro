@@ -58,6 +58,11 @@ function ViewModeSwitch({ sectionId, defaultView = 'grid', onViewChange = null }
                 contentContainer.classList.add('grid-container');
                 removeScrollFunctionality(contentContainer);
               }
+              
+              // Dispatch event so gallery knows to filter images
+              window.dispatchEvent(new CustomEvent('viewModeChanged', {
+                detail: { sectionId, viewMode: storedValue }
+              }));
             }
           }
         }, 50);
@@ -128,27 +133,36 @@ function ViewModeSwitch({ sectionId, defaultView = 'grid', onViewChange = null }
       const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`);
       if (sectionElement) {
         // console.log('🔄 ViewModeSwitch: Found section element', sectionElement);
-        // Prioritize .section-content over .youtube-grid (for consistency)
-        let contentContainer = sectionElement.querySelector('.section-content');
-        if (!contentContainer) {
-          contentContainer = sectionElement.querySelector('.youtube-grid');
-        }
-        if (contentContainer) {
-          // console.log('🔄 ViewModeSwitch: Found content container', contentContainer, 'classes:', contentContainer.className);
-          if (viewMode === 'swipe') {
-            contentContainer.classList.remove('grid-container');
-            contentContainer.classList.add('slider');
-            // console.log('🔄 ViewModeSwitch: Switched to swipe mode');
-            
-            // Add scroll functionality to all sliders with a small delay to ensure DOM updates
-            setTimeout(() => addScrollFunctionality(contentContainer), 10);
-          } else {
-            contentContainer.classList.remove('slider');
-            contentContainer.classList.add('grid-container');
-            
-            // Remove scroll functionality when switching to grid mode
-            removeScrollFunctionality(contentContainer);
+        // Get ALL .section-content elements (for pages with multiple views like posts page)
+        let contentContainers = sectionElement.querySelectorAll('.section-content');
+        
+        if (contentContainers.length === 0) {
+          // Fallback to youtube-grid if no section-content found
+          const youtubeGrid = sectionElement.querySelector('.youtube-grid');
+          if (youtubeGrid) {
+            contentContainers = [youtubeGrid];
           }
+        }
+        
+        if (contentContainers.length > 0) {
+          // console.log('🔄 ViewModeSwitch: Found', contentContainers.length, 'content containers');
+          contentContainers.forEach((contentContainer) => {
+            // console.log('🔄 ViewModeSwitch: Updating container', contentContainer, 'classes:', contentContainer.className);
+            if (viewMode === 'swipe') {
+              contentContainer.classList.remove('grid-container');
+              contentContainer.classList.add('slider');
+              // console.log('🔄 ViewModeSwitch: Switched to swipe mode');
+              
+              // Add scroll functionality to all sliders with a small delay to ensure DOM updates
+              setTimeout(() => addScrollFunctionality(contentContainer), 10);
+            } else {
+              contentContainer.classList.remove('slider');
+              contentContainer.classList.add('grid-container');
+              
+              // Remove scroll functionality when switching to grid mode
+              removeScrollFunctionality(contentContainer);
+            }
+          });
         } else {
           // console.warn('🔄 ViewModeSwitch: No content container found (.section-content or .youtube-grid)');
         }
@@ -194,7 +208,7 @@ function ViewModeSwitch({ sectionId, defaultView = 'grid', onViewChange = null }
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
           e.preventDefault();
           e.stopPropagation();
-          slider.scrollLeft += e.deltaY * 1.4; // Moderate scrolling speed
+          slider.scrollLeft += e.deltaY * 3; // Fast scrolling speed
         }
       }
     };
@@ -356,7 +370,7 @@ if (typeof window !== 'undefined') {
           if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
             e.preventDefault();
             e.stopPropagation();
-            slider.scrollLeft += e.deltaY * 1.4;
+            slider.scrollLeft += e.deltaY * 3;
           }
         }
       };

@@ -4,9 +4,8 @@ import { getEntry } from 'astro:content';
 import MemberFavorites from "@/components/MemberFavorites.astro";
 import { getDefaultImage } from "../utils/getDefaultImage";
 
-// Note: Removed prerender to allow dynamic OG images based on URL parameters
-// The base /video page can still be accessed for PWA compatibility
-// export const prerender = true;
+// Disable prerendering for this page to allow dynamic OG images based on URL parameters
+export const prerender = false;
 
 // Get site settings for video time limit
 const siteSettings = await getEntry('siteSettings', 'main');
@@ -26,8 +25,8 @@ const videoIdParam = Astro.url.searchParams.get('videoId'); // Check for videoId
 const hideControlsMenu = Astro.url.searchParams.get('hideControlsMenu') === 'true';
 
 let videoId: string | null = null;
-let videoTitle = "Privacy First Video Player";  // Always use generic title for privacy
-let videoDescription = "Watch videos from YouTube, Vimeo, Twitch, Facebook, Dailymotion, and TikTok with no tracking or profiling";
+let videoTitle = "Todd's Video Privacy Player";  // Always use generic title for privacy
+let videoDescription = "Watch with no ads or tracking";
 let videoThumbnail = defaultImage; // Use dynamic default image
 
 // Use the same extractVideoId function from YouTubeFeed.astro
@@ -131,7 +130,7 @@ if (videoParam || videoIdParam) {
     
     // Set appropriate thumbnail based on platform
     if (detected.platform === 'youtube') {
-      videoThumbnail = `https://img.youtube.com/vi/${detected.id}/hqdefault.jpg`;
+      videoThumbnail = `https://img.youtube.com/vi/${detected.id}/maxresdefault.jpg`;
     } else if (detected.platform === 'vimeo') {
       // Vimeo thumbnails require API call, use default for now
       videoThumbnail = defaultImage;
@@ -146,8 +145,8 @@ if (videoParam || videoIdParam) {
     
     if (videoId) {
       // Keep generic title for privacy - don't expose video ID
-      videoDescription = `Watch this video with no tracking or profiling`;
-      videoThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      videoDescription = `Watch this video with no ads or profiling`;
+      videoThumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     }
   }
 }
@@ -155,7 +154,7 @@ if (videoParam || videoIdParam) {
 <PageLayout 
   title={videoTitle} 
   description={videoDescription} 
-  themeMode="user"
+  themeMode={undefined}
   ogImage={videoThumbnail}
 >
 <style>

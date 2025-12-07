@@ -53,6 +53,10 @@ const {
   featuredImage,
   imageAlt,
   imagePosition = 'top',
+  overlayImage,
+  overlayImageAlt,
+  overlaySvg,
+  overlaySvgAlt,
   cta,
   ctaPosition = 'after-content',
   ctaAlignment = 'left',
@@ -62,6 +66,8 @@ const {
   tagline,
   subheading1
 } = contentBlock.data;
+
+const hasOverlay = overlayImage || overlaySvg;
 
 
 
@@ -79,11 +85,7 @@ let actualSecondaryContent = '';
 let renderedContent: any = null;
 
 if (slug === 'video-header') {
-  actualContent = `<p>Todd Lambert is a photographer and web developer based in the United States. He has been active in the industry for several years and has gained a reputation for his creative and technically proficient work. Lambert's photography work often focuses on landscapes and nature, and he has been published in a variety of magazines and websites.</p>
-
-<p>In addition to his photography work, Lambert is also an experienced web developer. He has created websites for a wide range of clients, including businesses, nonprofits, and individuals. Lambert's web development work is known for its clean design, intuitive navigation, and user-friendly interface.</p>
-
-<p>Overall, Todd Lambert is a talented photographer and web developer who has made a name for himself in both fields. His work demonstrates a strong commitment to quality and a passion for creativity and innovation.</p>`;
+  actualContent = ``;
 } else {
   if (content && typeof content === 'string') {
 
@@ -137,9 +139,9 @@ if (cta) {
 // Generate CSS classes
 const widthClasses = {
   narrow: 'max-w-2xl mx-auto',
-  normal: 'max-w-7xl mx-auto',  // Increased from 6xl to 7xl for even better video display
-  wide: 'max-w-7xl mx-auto',   // Increased from 6xl to 7xl
-  full: 'w-full'
+  // normal: 'max-w-7xl mx-auto',  
+  // wide: 'max-w-7xl mx-auto',   
+  // full: 'w-full'
 };
 
 const spacingClasses = {
@@ -229,20 +231,37 @@ function getCTAButtonClasses(style = 'primary') {
   <div class={`content-wrapper ${layoutClasses[layout]}`}>
     {/* Video Handling - Top/Left positions */}
     {youtube?.discriminant && youtube.value && (videoPosition === 'top' || videoPosition === 'left') && (
-      <div class={`video-embed ${videoPosition === 'left' ? 'lg:col-span-1' : 'col-span-full'} mb-6`}>
-        <YouTubeEmbed 
-          url={youtube.value.url}
-          title={youtube.value.title}
-          controls={youtube.value.controls}
-          useCustomPlayer={youtube.value.useCustomPlayer}
-          mute={youtube.value.mute}
-          autoplay={youtube.value.mute}
-          loop={youtube.value.loop}
-          start={youtube.value.start}
-          end={youtube.value.end}
-          clickToLoad={youtube.value.clickToLoad}
-          data-preserve-settings="true"
-        />
+      <div class={`video-embed ${videoPosition === 'left' ? 'lg:col-span-1' : 'col-span-full'} mb-6 relative`}>
+        <div style={hasOverlay ? "pointer-events: none;" : ""}>
+          <YouTubeEmbed 
+            url={youtube.value.url}
+            title={youtube.value.title}
+            controls={youtube.value.controls}
+            useCustomPlayer={youtube.value.useCustomPlayer}
+            mute={youtube.value.mute}
+            autoplay={youtube.value.mute}
+            loop={youtube.value.loop}
+            start={youtube.value.start}
+            end={youtube.value.end}
+            clickToLoad={youtube.value.clickToLoad}
+            data-preserve-settings="true"
+          />
+        </div>
+        {overlayImage && (
+          <img 
+            src={overlayImage}
+            alt={overlayImageAlt || 'Video overlay'}
+            class="video-overlay-image"
+          />
+        )}
+        {overlaySvg && (
+          <object 
+            data={overlaySvg}
+            type="image/svg+xml"
+            aria-label={overlaySvgAlt || 'Video SVG overlay'}
+            class="video-overlay-svg"
+          ></object>
+        )}
       </div>
     )}
     
@@ -331,20 +350,37 @@ function getCTAButtonClasses(style = 'primary') {
 
     {/* Video Handling - Bottom/Right positions */}
     {youtube?.discriminant && youtube.value && (videoPosition === 'bottom' || videoPosition === 'right') && (
-      <div class={`video-embed ${videoPosition === 'right' ? 'lg:col-span-1' : 'col-span-full'} mt-6`}>
-        <YouTubeEmbed 
-          url={youtube.value.url}
-          title={youtube.value.title}
-          controls={youtube.value.controls}
-          useCustomPlayer={youtube.value.useCustomPlayer}
-          mute={youtube.value.mute}
-          autoplay={youtube.value.mute}
-          loop={youtube.value.loop}
-          start={youtube.value.start}
-          end={youtube.value.end}
-          clickToLoad={youtube.value.clickToLoad}
-          data-preserve-settings="true"
-        />
+      <div class={`video-embed ${videoPosition === 'right' ? 'lg:col-span-1' : 'col-span-full'} mt-6 relative`}>
+        <div style={hasOverlay ? "pointer-events: none;" : ""}>
+          <YouTubeEmbed 
+            url={youtube.value.url}
+            title={youtube.value.title}
+            controls={youtube.value.controls}
+            useCustomPlayer={youtube.value.useCustomPlayer}
+            mute={youtube.value.mute}
+            autoplay={youtube.value.mute}
+            loop={youtube.value.loop}
+            start={youtube.value.start}
+            end={youtube.value.end}
+            clickToLoad={youtube.value.clickToLoad}
+            data-preserve-settings="true"
+          />
+        </div>
+        {overlayImage && (
+          <img 
+            src={overlayImage}
+            alt={overlayImageAlt || 'Video overlay'}
+            class="video-overlay-image"
+          />
+        )}
+        {overlaySvg && (
+          <object 
+            data={overlaySvg}
+            type="image/svg+xml"
+            aria-label={overlaySvgAlt || 'Video SVG overlay'}
+            class="video-overlay-svg"
+          ></object>
+        )}
       </div>
     )}
     
@@ -413,8 +449,11 @@ function getCTAButtonClasses(style = 'primary') {
   }
   
   .prose img {
-    @apply rounded-lg mb-4 max-w-full h-auto max-h-96 object-contain mx-auto;
+    @apply rounded-lg mb-4 max-w-full h-auto max-h-96 object-contain;
     max-width: min(100%, 600px); /* Never wider than 600px or container width */
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
   }
   
   /* Smaller images on mobile */
@@ -427,16 +466,22 @@ function getCTAButtonClasses(style = 'primary') {
   
   /* Content block specific image sizing */
   .content-section img {
-    @apply max-w-full h-auto rounded-lg mb-4 mx-auto;
+    @apply max-w-full h-auto rounded-lg mb-4;
     max-width: min(100%, 500px);
     max-height: 300px;
     object-fit: contain;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
   }
   
   /* Even smaller in secondary content column */
   .secondary-content img {
     max-width: min(100%, 400px);
     max-height: 250px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
   }
   
   /* Video embed styling */
@@ -446,6 +491,35 @@ function getCTAButtonClasses(style = 'primary') {
   
   .video-embed:last-child {
     @apply mb-0;
+  }
+  
+  /* Video overlay image styling */
+  .video-overlay-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  /* Video overlay SVG styling - higher z-index to layer above PNG */
+  .video-overlay-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* pointer-events enabled for clickable SVG elements */
+    z-index: 11;
+  }
+  
+  /* Ensure video container is positioned for overlay */
+  .video-embed.relative {
+    position: relative;
   }
   
   /* Responsive adjustments */

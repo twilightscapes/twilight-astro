@@ -1,18 +1,27 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import BlogHero from "@/components/blog/Hero.astro";
+import { Image } from "astro:assets";
+import FormattedDate from "@/components/FormattedDate.astro";
+import YouTubeEmbed from '@/components/YouTubeEmbed.astro';
+import Share from "@/components/Share.astro";
+import SocialList from "@/components/SocialList.astro";
 import TOC from "@/components/blog/TOC.astro";
 import BaseLayout from "./Base.astro";
+import { getEntry } from 'astro:content';
+
+const siteSettings = await getEntry('siteSettings', 'main');
+const { showTags, showDates, showShare, showSocial } = siteSettings?.data || {};
 
 
 interface Props {
-    post: CollectionEntry<"post"> & { data: { youtube?: string } };
+    post: CollectionEntry<"post">;
 }
 
 const { post } = Astro.props;
+const { data } = post;
 const {
-    data: { description, coverImage, publishDate, title, updatedDate, youtube }
-} = post;
+    description, coverImage, publishDate, title, updatedDate, youtube, secondaryVideo, overlayImage, overlayImageAlt, overlaySvg, overlaySvgAlt, tags, draft
+} = data;
 
 // Helper function to extract YouTube video ID
 function getYouTubeId(url: string) {
@@ -50,39 +59,149 @@ const { headings = [] } = (post.rendered as { headings?: any[] } | undefined) ??
   title={title} 
   description={description} 
   articleDate={articleDate} 
-  themeMode="user"
   ogImage={socialImage}
 >
   <div class="gap-x-10 lg:flex lg:items-start blogpost" >
-        
-        
 <article class="" data-pagefind-body style="position:relative; padding-bottom: 10vh;">
-                
-    <div id="blog-hero" style="width:100vw; z-index: 0;"><BlogHero content={post} /></div>
-                {/* Render dynamic elements */}
     
-                
-    <div class="panelblur" style={{ padding: "0 4%", width:'90%', margin:'0 auto', maxWidth:'1400px', display:'flex', position:'relative' }}>
-        
-                    <!-- <img src={svgImage} /> -->
-    
-                    <!-- {
-                        additionalImage && (
-                            <Fragment>
-                                <img src={getImagePath(additionalImage)} alt="Additional Image" />
-                            </Fragment>
-                        )
-                    } -->
-                                    <div class="prose prose-lg dark:prose-invert max-w-none">
-                                        <slot />
-                                        
-                                
-                                    </div>
-                                    {!!headings.length && <TOC headings={headings} />}
+    <!-- Video or cover image at the very top -->
+    <div id="blog-hero" style="width:100vw; z-index: 0;">
+        {
+          (youtube && youtube.discriminant && youtube.value && youtube.value.url) ? (
+            <div class="video-container-with-overlay" style="position: relative;">
+              {/* Secondary video - hidden behind main video, synchronized playback */}
+              {secondaryVideo && secondaryVideo.discriminant && secondaryVideo.value && secondaryVideo.value.url && (
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;">
+                  <YouTubeEmbed 
+                    id="secondary-player"
+                    title={secondaryVideo.value.title}
+                    url={secondaryVideo.value.url}
+                    controls={secondaryVideo.value.controls}
+                    mute={secondaryVideo.value.mute}
+                    autoplay={false}
+                    loop={secondaryVideo.value.loop}
+                    start={secondaryVideo.value.start}
+                    end={secondaryVideo.value.end}
+                    clickToLoad={false}
+                    showMuteButton={secondaryVideo.value.showMuteButton}
+                    useCustomPlayer={secondaryVideo.value.useCustomPlayer}
+                  />
                 </div>
-            </article>
-        
+              )}
+              {/* Primary video - on top */}
+              <div style="position: relative; z-index: 1;">
+                <YouTubeEmbed 
+                  id="primary-player"
+                  title={youtube.value.title || "Video"}
+                  url={youtube.value.url}
+                  controls={youtube.value.controls}
+                  mute={youtube.value.mute}
+                  autoplay={youtube.value.mute ? true : false}
+                  loop={youtube.value.loop}
+                  start={youtube.value.start}
+                  end={youtube.value.end}
+                  clickToLoad={youtube.value.clickToLoad}
+                  showMuteButton={youtube.value.showMuteButton}
+                  useCustomPlayer={youtube.value.useCustomPlayer}
+                  overlayImage={overlayImage}
+                  overlayImageAlt={overlayImageAlt}
+                  overlaySvg={overlaySvg}
+                  overlaySvgAlt={overlaySvgAlt}
+                  svgatorSync={youtube.value.svgatorSync}
+                  svgatorId={youtube.value.svgatorId}
+                  interactiveMode={youtube.value.interactiveMode}
+                />
+              </div>
+            </div>
+          ) : coverImage && coverImage.src ? (
+            <div class=" mb-6">
+              <Image
+                alt={coverImage.alt || ""}
+                class="object-cover"
+                fetchpriority="high"
+                loading="eager"
+                src={coverImage.src}
+                width={800}
+                height={450}
+                style="margin:0 auto;"
+              />
+            </div>
+          ) : null
+        }
     </div>
+    
+    <!-- Share options below video -->
+    {showShare && (
+        <div style="padding: 0 4%; width: 90%; margin: 0 auto; maxWidth: 1400px;">
+            <Share />
+        </div>
+    )}
+    
+    <!-- Post content -->
+    <div class="panelblur" style={{ padding: "0 4%", width:'90%', margin:'0 auto', maxWidth:'1400px', display:'flex', position:'relative' }}>
+        <div class="prose prose-lg dark:prose-invert max-w-none">
+            {draft && <span class="text-base text-red-500">(Draft)</span>}
+            <slot />
+        </div>
+        {!!headings.length && <TOC headings={headings} />}
+    </div>
+    
+    <!-- Social links, dates, and tags at the bottom -->
+    <div class="prose prose-lg dark:prose-invert" style={{ padding: "4%", width:'90%', margin:'0 auto', maxWidth:'1400px' }}>
+        {showSocial && <SocialList />}
+        
+        {typeof showDates !== 'undefined' && showDates && (
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <p class="font-semibold">
+                    <FormattedDate date={publishDate} />
+                </p>
+                {updatedDate && (
+                    <span class="rounded-lg bg-quote/10 p-1 text-quote">
+                        Last Updated:{" "}
+                        <FormattedDate date={updatedDate} />
+                    </span>
+                )}
+            </div>
+        )}
+        
+        {typeof showTags !== 'undefined' && showTags && tags && tags.length > 0 && (
+            <div class="mt-3">
+              <svg
+                aria-hidden="true"
+                class="inline-block h-6 w-6"
+                fill="none"
+                focusable="false"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M0 0h24v24H0z" fill="none" stroke="none" />
+                <path d="M7.859 6h-2.834a2.025 2.025 0 0 0 -2.025 2.025v2.834c0 .537 .213 1.052 .593 1.432l6.116 6.116a2.025 2.025 0 0 0 2.864 0l2.834 -2.834a2.025 2.025 0 0 0 0 -2.864l-6.117 -6.116a2.025 2.025 0 0 0 -1.431 -.593z" />
+                <path d="M17.573 18.407l2.834 -2.834a2.025 2.025 0 0 0 0 -2.864l-7.117 -7.116" />
+                <path d="M6 9h-.01" />
+              </svg>
+              {tags.map((tag: string, i: number) => (
+                <>
+                  <a
+                    aria-label={`View more posts with the tag ${tag}`}
+                    class="pirate-link inline-block before:content-['#']"
+                    data-pagefind-filter="tag"
+                    href={`/tags/${tag}/`}
+                  >
+                    {tag}
+                  </a>
+                  {i < tags.length - 1 && ", "}
+                </>
+              ))}
+            </div>
+        )}
+    </div>
+    
+</article>
+  </div>
 </BaseLayout>
 
 

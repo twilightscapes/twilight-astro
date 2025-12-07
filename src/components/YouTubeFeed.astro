@@ -135,6 +135,7 @@ if (maxVideos > MAX_DOM_LIMIT) {
   .youtube-video-card {
     position: relative;
     /* width controlled by global CSS */
+    background: var(--theme-card-bg, var(--theme-bg, #fff));
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -143,6 +144,19 @@ if (maxVideos > MAX_DOM_LIMIT) {
     display: flex;
     flex-direction: column;
     border: 3px solid transparent;
+  }
+  
+  .post-video-card {
+    position: relative;
+    background: var(--theme-card-bg, var(--theme-bg, #fff));
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer !important;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
   }
   
   .youtube-grid .youtube-video-card.playing,
@@ -426,7 +440,7 @@ if (maxVideos > MAX_DOM_LIMIT) {
   
   .youtube-video-info {
     padding: 0.75rem; /* Reduced padding */
-    background: var(--theme-bg, #fff);
+    background: var(--theme-card-bg, var(--theme-bg, #fff));
     color: var(--theme-text, #333);
   }
   

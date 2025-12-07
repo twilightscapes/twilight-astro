@@ -46,11 +46,16 @@ const {
 let showFooter = false;
 let enableImageBlur = true;
 let siteDisclaimer = '';
+let siteThemeMode = themeMode; // Use prop as default
 
 try {
   const siteSettings = await getEntry('siteSettings', 'main');
   if (siteSettings) {
     ({ showFooter = false, enableImageBlur = true } = siteSettings.data);
+    // Override themeMode with site settings if not explicitly passed as prop
+    if (themeMode === 'user' && siteSettings.data.themeMode) {
+      siteThemeMode = siteSettings.data.themeMode;
+    }
   } else {
     console.warn('Site settings not found, using defaults');
   }
@@ -84,7 +89,7 @@ const pageOgImage = ogImage || meta?.ogImage;
 		<meta charset="utf-8" />
 
         
-        <ThemeProvider themeMode={themeMode} />
+        <ThemeProvider themeMode={siteThemeMode} />
         <BaseHead 
             title={pageTitle} 
             description={pageDescription} 
@@ -109,7 +114,7 @@ const pageOgImage = ogImage || meta?.ogImage;
         </main>
 
         {siteDisclaimer && (
-            <div class="" style="display:grid; place-content: center; padding:0 4%;">{siteDisclaimer}</div>
+            <div class="legalese" style="display:none; place-content: center; padding:0 4%;">{siteDisclaimer}</div>
                 )}
 
         { showFooter && (
@@ -271,7 +276,7 @@ const pageOgImage = ogImage || meta?.ogImage;
 
 
     <script type="module">
-      import { MembershipUtils, FavoritesManager } from '/membershipUtils.js';
+      // import { MembershipUtils, FavoritesManager } from '/membershipUtils.js';
       
       globalThis.MembershipUtils = MembershipUtils;
       globalThis.FavoritesManager = FavoritesManager;

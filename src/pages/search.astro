@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/Base.astro";
+import MagicSearch from "@/components/MagicSearch.astro";
+
+const meta = {
+  title: "Search Posts",
+  description: "Search and filter posts by tags or keywords"
+};
+---
+
+<BaseLayout title={meta.title} description={meta.description}>
+  <MagicSearch />
+</BaseLayout>

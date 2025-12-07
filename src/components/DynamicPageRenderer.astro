@@ -13,6 +13,7 @@ import YouTubeFeed from "@/components/YouTubeFeed.astro";
 import ViewModeSwitch from "@/components/ViewModeSwitch.jsx";
 import PhotoSection from "@/components/PhotoGallery.astro";
 import ContactForm from "@/components/ContactForm.astro";
+import MagicSearch from "@/components/MagicSearch.astro";
 import { renderMarkdown } from "../utils/utils";
 
 // Simple markdown-to-HTML converter for inline content - now using enhanced marked plugin
@@ -37,12 +38,12 @@ const { sections, pageContent } = Astro.props;
 
 // Get necessary data for section rendering
 const siteSettings = await getEntry('siteSettings', 'main');
-const { defaultView, MAX_POSTS } = siteSettings?.data ?? { defaultView: 'list', MAX_POSTS: 5 };
+const { defaultView, MAX_POSTS, showTagFilters: siteShowTagFilters } = siteSettings?.data ?? { defaultView: 'list', MAX_POSTS: 5, showTagFilters: true };
 const resumeSettings = await getEntry('resumeSettings', 'index');
 
 // Get posts for posts sections
 const allPosts = await getAllPosts();
-const sortedPosts = sortMDByDate(allPosts);
+const sortedPosts = sortMDByDate(allPosts, true);
 
 // Get testimonials for testimonials sections
 const allTestimonials = await getCollection('testimonials');
@@ -112,6 +113,9 @@ function getSectionWidthClass(width?: string) {
     const customTitle = section.customTitle || section.title;
     const customDescription = section.customDescription || section.description;
     const showTitle = section.showTitle ?? true;
+    const showTags = section.showTags ?? true;
+    const showSearch = section.showSearch ?? true;
+    const searchMethod = section.searchMethod ?? 'client';
     
     return (
       <div class={getSectionWidthClass(section.sectionWidth)} style="margin-bottom: 0rem;">
@@ -279,15 +283,48 @@ function getSectionWidthClass(width?: string) {
                     </div>
                   )}
                   <div style="padding:0 3%" class="section-content grid-container">
-                    {sortedPosts.slice(0, MAX_POSTS).map((post) => (
+                    {sortedPosts.slice(0, MAX_POSTS || 5).map((post) => (
                       <PostPreview post={post} withDesc />
                     ))}
+                    {sortedPosts.length > (MAX_POSTS || 5) && (
+                      <div class="load-more-container font" style="grid-column: 1 / -1; text-align: center; padding: 0; width:80vw; max-width:500px; margin:0 auto; color:white;">
+                        <a 
+                          class="button" 
+                          onmouseover="this.style.background='#333'" 
+                          onmouseout="this.style.background='#222'" 
+                          href="/posts" 
+                          style="display:grid; place-self:center; margin:0 auto 2rem auto; border: 2px solid #000; padding: 12px 24px; background:#222;">
+                          Show More Posts
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
-          //         <div class="load-more-container font" style="grid-column: 1 / -1; text-align: center; padding: 0; width:80vw; max-width:500px; margin:0 auto; color:white;">
-          // <a class="button" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#222'" href="./watch" style="display:grid; place-self:center; margin:0 auto 2rem auto; border: 2px solid #000;
-          //       padding: 12px 24px;  background:#222;">Watch Videos: By Category</a>
-          // </div>
+              );
+
+            case 'magicsearch':
+              const magicSearchTitle = customTitle || "Search Posts";
+              const magicSearchDescription = customDescription || "";
+              const magicSearchShowTitle = showTitle;
+              const magicSearchView = defaultView === 'list' ? 'grid' : defaultView;
+              // Use site-level showTagFilters setting
+              const magicSearchShowTags = siteShowTagFilters ?? true;
+              const magicSearchShowSearch = showSearch ?? true;
+              
+              return (
+                <div data-section-id={`magic-search-${index}`}>
+                  <MagicSearch 
+                    sectionId={`magic-search-${index}`}
+                    title={magicSearchTitle}
+                    description={magicSearchDescription}
+                    showTitle={magicSearchShowTitle}
+                    hideCollapseButton={hideCollapseButton}
+                    defaultView={magicSearchView}
+                    showTags={magicSearchShowTags}
+                    showSearch={magicSearchShowSearch}
+                    searchMethod={searchMethod}
+                  />
+                </div>
               );
 
             case 'testimonials':

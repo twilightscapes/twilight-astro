@@ -10,12 +10,14 @@ const defaultStyleSettings: StyleSettings = {
   lightAccent: '#000000',
   lightAccent2: '#000000',
   lightHeader: '#000000',
+  lightCardBg: '#f5f5f5',
   darkBg: '#000000',
   darkLink: '#ffffff',
   darkText: '#ffffff',
   darkAccent: '#ffffff',
   darkAccent2: '#ffffff',
   darkHeader: '#ffffff',
+  darkCardBg: '#1a1a1a',
   borderRadius: '0px'
 };
 
@@ -61,6 +63,7 @@ try {
     root.style.setProperty('--theme-accent-light', styleSettings.lightAccent);
     root.style.setProperty('--theme-accent2-light', styleSettings.lightAccent2);
     root.style.setProperty('--theme-header-light', styleSettings.lightHeader);
+    root.style.setProperty('--theme-card-bg-light', styleSettings.lightCardBg || styleSettings.lightHeader);
 
     root.style.setProperty('--theme-bg-dark', styleSettings.darkBg);
     root.style.setProperty('--theme-link-dark', styleSettings.darkLink);
@@ -68,6 +71,7 @@ try {
     root.style.setProperty('--theme-accent-dark', styleSettings.darkAccent);
     root.style.setProperty('--theme-accent2-dark', styleSettings.darkAccent2);
     root.style.setProperty('--theme-header-dark', styleSettings.darkHeader);
+    root.style.setProperty('--theme-card-bg-dark', styleSettings.darkCardBg || styleSettings.darkHeader);
 
     root.style.setProperty('--border-radius', styleSettings.borderRadius);
 

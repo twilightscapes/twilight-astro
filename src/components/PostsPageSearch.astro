@@ -1,0 +1,521 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import ViewModeSwitch from './ViewModeSwitch.jsx';
+
+interface Props {
+  sectionId?: string;
+  defaultView?: 'grid' | 'swipe';
+  showTags?: boolean;
+  searchMethod?: 'client' | 'pagefind' | 'hybrid';
+  allPosts: any[];
+  groupedByYearMonth: any;
+  uniqueTags: string[];
+}
+
+const {
+  sectionId = 'posts-page-search',
+  defaultView = 'grid',
+  showTags = true,
+  searchMethod = 'hybrid',
+  allPosts = [],
+  groupedByYearMonth = {},
+  uniqueTags = []
+} = Astro.props;
+
+// Get PWA short name
+const pwaSettings = await getEntry('pwaSettings', 'index');
+const shortName = pwaSettings?.data?.shortName || 'Todd Lambert';
+
+// Get language strings
+const languageData = await getEntry('language', 'index');
+const lang = {
+  placeholder: `Search ${shortName}'s Posts`,
+  topics: languageData?.data?.magicSearchTopics || 'Topics:',
+  all: languageData?.data?.magicSearchAll || 'All',
+  showing: languageData?.data?.magicSearchShowing || 'Showing',
+  of: languageData?.data?.magicSearchOf || 'of',
+  posts: languageData?.data?.magicSearchPosts || 'posts',
+  post: languageData?.data?.magicSearchPost || 'post',
+  noResults: languageData?.data?.magicSearchNoResults || 'No posts found',
+  noResultsDesc: languageData?.data?.magicSearchNoResultsDesc || 'Try adjusting your search or filter criteria',
+};
+
+// Extract unique years and months from grouped data
+const years = Object.keys(groupedByYearMonth).sort((a, b) => +b - +a);
+const allMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Get counts for tags
+const tagsWithCount: [string, number][] = uniqueTags.map(tag => [
+  tag,
+  allPosts.filter(post => post.data.tags?.includes(tag)).length
+]);
+---
+
+<div class="posts-page-search">
+  <!-- Search Controls -->
+  <div class="search-controls" style="padding: 0 1rem; max-width: 1400px; margin: 0 auto 1rem;">
+    <div class="search-filter-box" style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 0.75rem; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+      
+      <!-- Header with Title -->
+      <!-- <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 class="title text-2xl" style="margin: 0;">Posts</h1>
+      </div> -->
+
+      <!-- Search Bar -->
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap;">
+        <div class="search-bar-container" style="position: relative; flex: 1; min-width: 250px;">
+          <input
+            type="text"
+            id={`${sectionId}-search-input`}
+            placeholder={lang.placeholder}
+            style="width: 100%; padding: 1rem 3rem 1rem 1rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.4); color: var(--textColor); font-size: 1rem;"
+          />
+          <button
+            id={`${sectionId}-clear-search`}
+            style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); padding: 0.5rem; background: transparent; border: none; cursor: pointer; display: none; color: var(--textColor);"
+            aria-label="Clear search"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Clear All Filters Button -->
+        <button
+          id={`${sectionId}-clear-all`}
+          style="padding: 1rem 1.5rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(255, 0, 0, 0.2); color: white; cursor: pointer; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: none;"
+          onmouseover="this.style.background='rgba(255, 0, 0, 0.4)'"
+          onmouseout="this.style.background='rgba(255, 0, 0, 0.2)'"
+        >
+          Clear Filters
+        </button>
+
+        <!-- Year Filter -->
+        <select 
+          id={`${sectionId}-year-filter`}
+          style="padding: 1rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.4); color: var(--textColor); cursor: pointer; font-size: 1rem;"
+        >
+          <option value="">All Years</option>
+          {years.map(year => (
+            <option value={year}>{year}</option>
+          ))}
+        </select>
+
+        <!-- Month Filter -->
+        <select 
+          id={`${sectionId}-month-filter`}
+          style="padding: 1rem; border-radius: 0.5rem; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.4); color: var(--textColor); cursor: pointer; font-size: 1rem;"
+        >
+          <option value="">All Months</option>
+          {allMonths.map(month => (
+            <option value={month}>{month}</option>
+          ))}
+        </select>
+
+        <!-- View Mode Toggle -->
+        {/* @ts-ignore */}
+        <ViewModeSwitch 
+          sectionId={sectionId}
+          defaultView={defaultView}
+          client:load
+        />
+      </div>
+
+      <!-- Tag Filter Pills -->
+      {showTags && uniqueTags.length > 0 && (
+        <div class="tag-filter-container">
+          <div class="tag-pills-wrapper" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+            <span style="color: var(--textColor); font-weight: 600; padding-right: 0.5rem;">{lang.topics}</span>
+            <button
+              class="tag-pill active"
+              data-tag="all"
+              data-section={sectionId}
+              style="padding: 0.5rem 1rem; border-radius: 9999px; border: 2px solid var(--accent); background: var(--accent); color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;"
+            >
+              {lang.all} ({allPosts.length})
+            </button>
+            {tagsWithCount.map(([tag, count]) => (
+              <button
+                class="tag-pill"
+                data-tag={tag}
+                data-section={sectionId}
+                style="padding: 0.5rem 1rem; border-radius: 9999px; border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.5); color: white; cursor: pointer; transition: all 0.2s;"
+              >
+                {tag} ({count})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Results Count -->
+      <div id={`${sectionId}-results-count`} style="margin-top: 1rem; color: var(--textColor); font-size: 0.875rem; opacity: 0.7; display: none;">
+        {lang.showing} <span id={`${sectionId}-visible-count`}>0</span> {lang.of} <span id={`${sectionId}-total-count`}>{allPosts.length}</span> {lang.posts}
+      </div>
+    </div>
+  </div>
+</div>
+
+{(searchMethod === 'pagefind' || searchMethod === 'hybrid') && import.meta.env.PROD && (
+  <script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <script is:inline>
+    // Load Pagefind CSS only in production
+    if (typeof window !== 'undefined') {
+      const link = document.createElement('link');
+      link.href = '/pagefind/pagefind-ui.css';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+  </script>
+)}
+
+<script define:vars={{ sectionId, searchMethod, isProd: import.meta.env.PROD }}>
+  let pagefind = null;
+  const pagefindResults = new Set();
+  
+  // Initialize pagefind for full content search
+  async function initPagefind() {
+    if (searchMethod === 'client') return;
+    if (!isProd) return; // Skip in development
+    
+    try {
+      const pagefindModule = await import('/pagefind/pagefind.js');
+      pagefind = pagefindModule;
+    } catch (e) {
+      // Pagefind not available in dev mode, will work on built site
+    }
+  }
+
+  // Search using Pagefind
+  async function searchWithPagefind(query) {
+    if (!query || !pagefind) {
+      pagefindResults.clear();
+      return;
+    }
+    
+    try {
+      const search = await pagefind.search(query);
+      pagefindResults.clear();
+      
+      for (const result of search.results) {
+        const data = await result.data();
+        const url = data.url;
+        
+        // Try multiple patterns to extract slug
+        const patterns = [
+          /\/posts\/([^\/]+)\/?$/,
+          /\/posts\/([^\/]+)/,
+          /([^\/]+)\/?$/
+        ];
+        
+        for (const pattern of patterns) {
+          const matches = url.match(pattern);
+          if (matches && matches[1]) {
+            pagefindResults.add(matches[1]);
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      // Pagefind search failed
+    }
+  }
+
+  // Initialize on page load
+  initPagefind().then(() => {
+    setupFilters();
+  });
+
+  // Define shared variables at module scope so they're accessible to all functions
+  let searchQuery = '';
+  let activeTag = 'all';
+  let activeYear = '';
+  let activeMonth = '';
+
+  function setupFilters() {
+    const searchInput = document.getElementById(`${sectionId}-search-input`);
+    const clearButton = document.getElementById(`${sectionId}-clear-search`);
+    const clearAllButton = document.getElementById(`${sectionId}-clear-all`);
+    const yearFilter = document.getElementById(`${sectionId}-year-filter`);
+    const monthFilter = document.getElementById(`${sectionId}-month-filter`);
+    
+    // Initialize filter values from current select state (in case browser remembers)
+    if (yearFilter) {
+      activeYear = yearFilter.value;
+    }
+    if (monthFilter) {
+      activeMonth = monthFilter.value;
+    }
+
+    // Search input handler
+    if (searchInput) {
+      searchInput.addEventListener('input', async (e) => {
+        searchQuery = e.target.value.trim();
+        clearButton.style.display = searchQuery ? 'block' : 'none';
+        
+        if (searchQuery && (searchMethod === 'pagefind' || searchMethod === 'hybrid')) {
+          await searchWithPagefind(searchQuery);
+        }
+        
+        updateView();
+      });
+    }
+
+    // Clear search button handler
+    if (clearButton) {
+      clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        clearButton.style.display = 'none';
+        pagefindResults.clear();
+        updateView();
+      });
+    }
+
+    // Clear all filters button handler
+    if (clearAllButton) {
+      clearAllButton.addEventListener('click', () => {
+        // Reset search
+        if (searchInput) {
+          searchInput.value = '';
+          searchQuery = '';
+          clearButton.style.display = 'none';
+        }
+        
+        // Reset dropdowns
+        if (yearFilter) yearFilter.value = '';
+        if (monthFilter) monthFilter.value = '';
+        activeYear = '';
+        activeMonth = '';
+        
+        // Reset tags
+        activeTag = 'all';
+        const tagPills = document.querySelectorAll(`[data-section="${sectionId}"].tag-pill`);
+        tagPills.forEach(p => {
+          p.classList.remove('active');
+          p.style.background = 'rgba(0, 0, 0, 0.5)';
+          if (p.dataset.tag === 'all') {
+            p.classList.add('active');
+            p.style.background = 'var(--accent)';
+          }
+        });
+        
+        // Clear pagefind results
+        pagefindResults.clear();
+        
+        // Update view
+        updateView();
+      });
+    }
+
+    // Year filter handler
+    if (yearFilter) {
+      yearFilter.addEventListener('change', (e) => {
+        activeYear = e.target.value;
+        updateView();
+      });
+    }
+
+    // Month filter handler
+    if (monthFilter) {
+      monthFilter.addEventListener('change', (e) => {
+        activeMonth = e.target.value;
+        updateView();
+      });
+    }
+
+    // Tag filter handlers
+    const tagPills = document.querySelectorAll(`[data-section="${sectionId}"].tag-pill`);
+    tagPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        activeTag = pill.dataset.tag;
+        
+        tagPills.forEach(p => {
+          p.classList.remove('active');
+          p.style.background = 'rgba(0, 0, 0, 0.5)';
+        });
+        
+        pill.classList.add('active');
+        pill.style.background = 'var(--accent)';
+        
+        updateView();
+      });
+    });
+
+    // Run initial filter if there are pre-selected values
+    if (activeYear || activeMonth) {
+      console.log('Running initial filter with pre-selected values');
+      updateView();
+    }
+
+    async function updateView() {
+      // Query DOM elements each time (ensures they exist)
+      const timelineView = document.querySelector('.posts-timeline');
+      const flatView = document.querySelector('.posts-flat-view');
+      const paginationElement = document.querySelector('.posts-pagination');
+      const resultsCount = document.getElementById(`${sectionId}-results-count`);
+      const visibleCountSpan = document.getElementById(`${sectionId}-visible-count`);
+      const clearAllButton = document.getElementById(`${sectionId}-clear-all`);
+      
+      const hasFilters = searchQuery || activeTag !== 'all' || activeYear || activeMonth;
+      const hasSearchOrTag = searchQuery || activeTag !== 'all';
+      
+      // Show/hide clear all button
+      if (clearAllButton) {
+        clearAllButton.style.display = hasFilters ? 'block' : 'none';
+      }
+      
+      // Show/hide timeline vs flat view - only use flat view for search/tag filters
+      if (hasSearchOrTag) {
+        if (timelineView) timelineView.style.display = 'none';
+        if (flatView) flatView.style.display = 'block';
+        if (paginationElement) paginationElement.style.display = 'none';
+        if (resultsCount) resultsCount.style.display = 'block';
+        
+        filterFlatView(flatView, resultsCount, visibleCountSpan);
+      } else {
+        if (timelineView) timelineView.style.display = 'block';
+        if (flatView) flatView.style.display = 'none';
+        if (paginationElement) {
+          // Hide pagination when filtering by year/month
+          paginationElement.style.display = (activeYear || activeMonth) ? 'none' : 'block';
+        }
+        
+        // Filter timeline view by year/month only
+        if (timelineView) {
+          filterTimelineView(timelineView, resultsCount, visibleCountSpan);
+        }
+      }
+    }
+    
+    function filterTimelineView(timelineView, resultsCount, visibleCountSpan) {
+      if (!timelineView) return;
+      
+      const yearMonthCards = timelineView.querySelectorAll('.year-month-card');
+      const postItems = timelineView.querySelectorAll('.post-item');
+      let visibleCount = 0;
+      
+      // Hide/show year-month cards based on filters
+      yearMonthCards?.forEach(card => {
+        const cardYear = card.getAttribute('data-year') || '';
+        const cardMonth = card.getAttribute('data-month') || '';
+        
+        const matchesYear = !activeYear || cardYear === activeYear;
+        const matchesMonth = !activeMonth || cardMonth === activeMonth;
+        
+        if (matchesYear && matchesMonth) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      // Hide/show posts based on filters
+      postItems?.forEach(item => {
+        const year = item.getAttribute('data-year') || '';
+        const month = item.getAttribute('data-month') || '';
+        
+        const matchesYear = !activeYear || year === activeYear;
+        const matchesMonth = !activeMonth || month === activeMonth;
+        
+        if (matchesYear && matchesMonth) {
+          item.style.display = 'contents';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Update results count
+      if (activeYear || activeMonth) {
+        const totalPosts = timelineView.querySelectorAll('.post-item').length || 0;
+        if (resultsCount) {
+          resultsCount.style.display = 'block';
+          if (visibleCountSpan) {
+            visibleCountSpan.textContent = visibleCount.toString();
+          }
+        }
+      } else {
+        if (resultsCount) {
+          resultsCount.style.display = 'none';
+        }
+      }
+    }
+
+    async function filterFlatView(flatView, resultsCount, visibleCountSpan) {
+      const postItems = flatView?.querySelectorAll('.post-item');
+      let visibleCount = 0;
+
+      postItems?.forEach(item => {
+        const tags = JSON.parse(item.dataset.tags || '[]');
+        const postData = JSON.parse(item.dataset.postData || '{}');
+        const postYear = item.dataset.year || '';
+        const postMonth = item.dataset.month || '';
+        
+        // Check tag filter
+        const matchesTag = activeTag === 'all' || tags.includes(activeTag);
+        
+        // Check year filter
+        const matchesYear = !activeYear || postYear === activeYear;
+        
+        // Check month filter
+        const matchesMonth = !activeMonth || postMonth === activeMonth;
+        
+        // Check search query based on method
+        let matchesSearch = !searchQuery;
+        
+        if (searchQuery) {
+          const clientMatch = 
+            postData.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            postData.description?.toLowerCase().includes(searchQuery.toLowerCase());
+          
+          if (searchMethod === 'client') {
+            matchesSearch = clientMatch;
+          } else if (searchMethod === 'pagefind') {
+            const slugToMatch = postData.slug.replace(/\/$/, '');
+            matchesSearch = Array.from(pagefindResults).some(resultSlug => {
+              const cleanResultSlug = resultSlug.replace(/\/$/, '');
+              return cleanResultSlug === slugToMatch || cleanResultSlug.endsWith('/' + slugToMatch);
+            });
+          } else if (searchMethod === 'hybrid') {
+            const slugToMatch = postData.slug.replace(/\/$/, '');
+            const pagefindMatch = Array.from(pagefindResults).some(resultSlug => {
+              const cleanResultSlug = resultSlug.replace(/\/$/, '');
+              return cleanResultSlug === slugToMatch || cleanResultSlug.endsWith('/' + slugToMatch);
+            });
+            matchesSearch = clientMatch || pagefindMatch;
+          }
+        }
+        
+        // Show/hide based on all filters
+        if (matchesTag && matchesYear && matchesMonth && matchesSearch) {
+          item.style.display = '';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      if (visibleCountSpan) {
+        visibleCountSpan.textContent = visibleCount;
+      }
+    }
+  }
+</script>
+
+<style>
+  .tag-pill {
+    transition: all 0.2s ease;
+  }
+  
+  .tag-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  select option {
+    background: #000;
+    color: white;
+  }
+</style>
