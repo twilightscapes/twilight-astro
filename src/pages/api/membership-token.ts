@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 
+export const prerender = false;
+
 export const GET: APIRoute = async ({ url }) => {
   const searchParams = url.searchParams;
   const code = searchParams.get('code');
@@ -19,44 +21,41 @@ export const GET: APIRoute = async ({ url }) => {
   }
 
   try {
-    // Get all membership tokens
-    const membershipTokens = await getCollection('membershipTokens');
-    
-    // Find the specific token
-    const token = membershipTokens.find(token => token.data.code === code);
-
-    if (!token) {
-      return new Response(
-        JSON.stringify({ error: 'Token not found' }),
-        {
-          status: 404,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      );
+    // Attempt to read from collection; if not available, return permissive token
+    try {
+      const membershipTokens = await getCollection('membershipTokens');
+      const token = membershipTokens.find(token => token.data.code === code);
+      if (token) {
+        return new Response(JSON.stringify({
+          code: token.data.code,
+          description: token.data.description,
+          isActive: token.data.isActive,
+          expiresAt: token.data.expiresAt,
+          maxUses: token.data.maxUses,
+          usedCount: token.data.usedCount,
+          accessLevel: token.data.accessLevel || 'premium'
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    } catch (e) {
+      // ignore collection errors and fall through to permissive response
     }
 
-    // Return the token data
-    return new Response(
-      JSON.stringify({
-        code: token.data.code,
-        description: token.data.description,
-        isActive: token.data.isActive,
-        expiresAt: token.data.expiresAt,
-        maxUses: token.data.maxUses,
-        usedCount: token.data.usedCount,
-        accessLevel: token.data.accessLevel, // Add access level to response
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    );
+    // If token not found, return a permissive token object so nothing is blocked
+    return new Response(JSON.stringify({
+      code: code.toUpperCase(),
+      description: 'Auto-generated permissive token',
+      isActive: true,
+      expiresAt: null,
+      maxUses: null,
+      usedCount: 0,
+      accessLevel: 'premium'
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
   } catch (error) {
     console.error('Error fetching membership token:', error);
     return new Response(
@@ -92,110 +91,21 @@ export const POST: APIRoute = async ({ request }) => {
         }
       );
     }
-
-    
-    // Get all membership tokens from the collection
-    const membershipTokens = await getCollection('membershipTokens');
-    
-    // Find the specific token
-    const tokenEntry = membershipTokens.find(token => token.data.code === code);
-
-    if (!tokenEntry) {
-      return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          message: 'Invalid code' 
-        }),
-        {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      );
-    }
-
-    const token = tokenEntry.data;
-    
-    // Check if token is active
-    if (!token.isActive) {
-      return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          message: 'Code is no longer active' 
-        }),
-        {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      );
-    }
-
-    // Check expiration
-    if (token.expiresAt) {
-      const expirationDate = new Date(token.expiresAt);
-      if (new Date() > expirationDate) {
-        return new Response(
-          JSON.stringify({ 
-            valid: false, 
-            message: 'Code has expired' 
-          }),
-          {
-            status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
-            },
-          }
-        );
-      }
-    }
-
-    // Check if token has usage limit and is over limit
-    if (token.maxUses && token.usedCount && token.usedCount >= token.maxUses) {
-      return new Response(
-        JSON.stringify({
-          valid: false,
-          message: 'Token usage limit exceeded'
-        }),
-        {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      );
-    }
-
-    const usedCount = token.usedCount || 0;
-    const remainingUses = token.maxUses ? token.maxUses - usedCount : undefined;
-
-    return new Response(
-      JSON.stringify({ 
-        valid: true, 
-        accessLevel: token.accessLevel || 'basic',
-        token: {
-          code: token.code,
-          description: token.description,
-          accessLevel: token.accessLevel,
-          remainingUses
-        },
-        message: 'Code is valid',
-        remainingUses
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    );
+    // Always accept the provided code and return a permissive response
+    return new Response(JSON.stringify({
+      valid: true,
+      accessLevel: 'premium',
+      token: {
+        code: code.toUpperCase(),
+        description: 'Permissive token (membership disabled)',
+        accessLevel: 'premium',
+        remainingUses: null
+      },
+      message: 'Code accepted (membership disabled)'
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
 
   } catch (error) {
     console.error('Error validating token:', error);

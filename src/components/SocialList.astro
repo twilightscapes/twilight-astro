@@ -3,7 +3,10 @@ import { getEntry, getCollection } from 'astro:content';
 import { Icon } from "astro-icon/components";
 
 const siteSettings = await getEntry('siteSettings', 'main');
-const showCheck = siteSettings?.data?.showCheck;
+const languageData = await getEntry('language', 'index');
+const langData = languageData?.data as any;
+const socialMessage = langData?.socialMessage || "I'm Social";
+
 
 interface SocialLink {
   id: string;
@@ -37,8 +40,9 @@ const socialLinks = (await getCollection('socialLinks'))
   }
 </style> -->
 
-
-  <ul class="flex flex-wrap items-center gap-2 pwa-persistent-nav " style="max-width:none; justify-content:center; ">
+<div style="width:100%; text-align:center;" >{socialMessage}</div>
+  <ul class="flex flex-wrap items-center gap-2 pwa-persistent-nav " style="max-width:none; justify-content:center; margin:0 !important; padding:0 !important; ">
+    
     {socialLinks.map((link) => (
       <li 
         class="flex" 

@@ -28,9 +28,6 @@
 
 
 
-.member-favorite-buttons{display:none !important;}
-
-
 /* Base styles */
 div[data-section-id*="posts-section"] .section-content.slider,
 div[data-section-id="posts-page"] .section-content.slider,
@@ -838,60 +835,25 @@ body:has(.video) #footer{display: none !important;}
 			scroll-snap-align: start !important;
 		}
 		
-		/* Testimonials section fixes */
+		/* Testimonials section fixes - matches posts section behavior */
 		[data-section-id*="testimonials-section"] .section-content.slider {
 			display: flex !important;
 			flex-direction: row !important;
 			gap: 5vw !important;
-			overflow-x: auto !important;
+			overflow-x: scroll !important;
 			overflow-y: hidden !important;
-			scroll-snap-type: x mandatory !important;
-			padding: 0 2% !important;
-			width: 100% !important;
-		}
-		
-		[data-section-id*="testimonials-section"] .slider {
-			display: flex !important;
-			flex-direction: row !important;
-			gap: 5vw !important;
-			overflow-x: auto !important;
-			overflow-y: hidden !important;
-			scroll-snap-type: x mandatory !important;
+			scroll-snap-type: none !important;
+			scroll-behavior: auto !important;
 			padding: 0 2% !important;
 			width: 100% !important;
 		}
 		
 		[data-section-id*="testimonials-section"] .section-content.slider .post-card12,
-		[data-section-id*="testimonials-section"] .section-content.slider .quotecard,
-		[data-section-id*="testimonials-section"] .slider .post-card12,
-		[data-section-id*="testimonials-section"] .slider .quotecard {
+		[data-section-id*="testimonials-section"] .section-content.slider .quotecard {
 			flex: 0 0 auto !important;
 			min-width: 50vw !important;
 			max-width: 50vw !important;
-			scroll-snap-align: start !important;
-			display: block !important;
-			margin-bottom: 0 !important;
-			width: auto !important;
-		}
-		
-		/* Fallback for testimonials section */
-		[data-section-id*="testimonials-section"] .section-content:not(.grid-container) {
-			display: flex !important;
-			flex-direction: row !important;
-			gap: 5vw !important;
-			overflow-x: auto !important;
-			overflow-y: hidden !important;
-			scroll-snap-type: x mandatory !important;
-			padding: 0 2% !important;
-			width: 100% !important;
-		}
-		
-		[data-section-id*="testimonials-section"] .section-content:not(.grid-container) .post-card12,
-		[data-section-id*="testimonials-section"] .section-content:not(.grid-container) .quotecard {
-			flex: 0 0 auto !important;
-			min-width: 50vw !important;
-			max-width: 50vw !important;
-			scroll-snap-align: start !important;
+			scroll-snap-align: none !important;
 			display: block !important;
 			margin-bottom: 0 !important;
 			width: auto !important;

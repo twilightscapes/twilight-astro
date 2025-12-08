@@ -4,7 +4,8 @@ import { getEntry } from 'astro:content';
 import MemberFavorites from "@/components/MemberFavorites.astro";
 import { getDefaultImage } from "../utils/getDefaultImage";
 
-// Disable prerendering for this page to allow dynamic OG images based on URL parameters
+// Disable prerender to allow dynamic OG images based on URL parameters
+// This page uses SSR in hybrid mode to fetch video metadata
 export const prerender = false;
 
 // Get site settings for video time limit
@@ -25,8 +26,8 @@ const videoIdParam = Astro.url.searchParams.get('videoId'); // Check for videoId
 const hideControlsMenu = Astro.url.searchParams.get('hideControlsMenu') === 'true';
 
 let videoId: string | null = null;
-let videoTitle = "Todd's Video Privacy Player";  // Always use generic title for privacy
-let videoDescription = "Watch with no ads or tracking";
+let videoTitle = "Privacy First Video Player";  // Always use generic title for privacy
+let videoDescription = "Watch videos from YouTube, Vimeo, Twitch, Facebook, Dailymotion, and TikTok with no tracking or profiling";
 let videoThumbnail = defaultImage; // Use dynamic default image
 
 // Use the same extractVideoId function from YouTubeFeed.astro
@@ -125,18 +126,39 @@ if (videoParam || videoIdParam) {
   
   if (detected.platform && detected.id) {
     videoId = detected.id;
-    // Keep generic title for privacy - don't expose video ID
-    videoDescription = `Watch this ${detected.platform} video with no tracking or profiling`;
     
-    // Set appropriate thumbnail based on platform
+    // For YouTube videos, fetch real metadata from API during SSR
     if (detected.platform === 'youtube') {
-      videoThumbnail = `https://img.youtube.com/vi/${detected.id}/maxresdefault.jpg`;
-    } else if (detected.platform === 'vimeo') {
-      // Vimeo thumbnails require API call, use default for now
-      videoThumbnail = defaultImage;
+      try {
+        const metadataUrl = new URL('/api/video-metadata', Astro.url.origin);
+        metadataUrl.searchParams.set('videoId', detected.id);
+        
+        const response = await fetch(metadataUrl.toString());
+        if (response.ok) {
+          const metadata = await response.json();
+          videoTitle = metadata.title || videoTitle;
+          videoDescription = metadata.description || videoDescription;
+          videoThumbnail = metadata.thumbnail || videoThumbnail;
+        } else {
+          // Fallback to default thumbnail if API fails
+          videoThumbnail = `https://img.youtube.com/vi/${detected.id}/maxresdefault.jpg`;
+        }
+      } catch (error) {
+        console.error('Failed to fetch video metadata:', error);
+        // Fallback to default thumbnail
+        videoThumbnail = `https://img.youtube.com/vi/${detected.id}/maxresdefault.jpg`;
+      }
     } else {
-      // Other platforms use default thumbnail
-      videoThumbnail = defaultImage;
+      // For non-YouTube platforms, use generic metadata
+      videoDescription = `Watch this ${detected.platform} video with no tracking or profiling`;
+      
+      if (detected.platform === 'vimeo') {
+        // Vimeo thumbnails require API call, use default for now
+        videoThumbnail = defaultImage;
+      } else {
+        // Other platforms use default thumbnail
+        videoThumbnail = defaultImage;
+      }
     }
     
   } else {
@@ -144,18 +166,39 @@ if (videoParam || videoIdParam) {
     videoId = extractVideoId(sourceParam) || sourceParam;
     
     if (videoId) {
-      // Keep generic title for privacy - don't expose video ID
-      videoDescription = `Watch this video with no ads or profiling`;
-      videoThumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      // Try to fetch metadata for YouTube
+      try {
+        const metadataUrl = new URL('/api/video-metadata', Astro.url.origin);
+        metadataUrl.searchParams.set('videoId', videoId);
+        
+        const response = await fetch(metadataUrl.toString());
+        if (response.ok) {
+          const metadata = await response.json();
+          videoTitle = metadata.title || videoTitle;
+          videoDescription = metadata.description || videoDescription;
+          videoThumbnail = metadata.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        } else {
+          videoThumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        }
+      } catch (error) {
+        console.error('Failed to fetch video metadata:', error);
+        videoThumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      }
     }
   }
 }
+
+// Use our API endpoint to generate a composite image with play button overlay
+const ogImageWithPlayButton = videoId && videoThumbnail !== defaultImage
+  ? `${Astro.url.origin}/api/og-video-image?thumbnail=${encodeURIComponent(videoThumbnail)}`
+  : videoThumbnail;
+
 ---
 <PageLayout 
   title={videoTitle} 
   description={videoDescription} 
-  themeMode={undefined}
-  ogImage={videoThumbnail}
+  themeMode="user"
+  ogImage={ogImageWithPlayButton}
 >
 <style>
 html{overflow-x: hidden !important;}
@@ -708,7 +751,7 @@ async function checkToolbarAccess() {
   });
   
   // Apply restrictions based on access level
-  if (accessLevel === 'premium') {
+  if (accessLevel === 'basic') {
     // Basic: Only paste URL, copy link, and clear
     const restrictedElements = [
       { el: startInput, description: 'Set custom start times to create video clips (Unlimited+ feature)' },
@@ -740,7 +783,7 @@ async function checkToolbarAccess() {
     }
     
     
-  } else if (accessLevel === 'basic') {
+  } else if (accessLevel === 'premium') {
     // Premium: Full access to everything (keep descriptive tooltips)
   }
 }
@@ -845,9 +888,25 @@ function showUpgradeMessage() {
       <p style="margin-bottom: 30px; font-size: 1.1em; color: #4CAF50;">
         🎬 Get unlimited video access for just <strong>$9.99</strong> (one-time payment)
       </p>
-
+<a href="/membership">
+      <button id="upgrade-btn1" style="
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.2em;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        🔓 Upgrade Now - $9.99
+      </button></a>
       <br />
-
+      <p style="font-size: 0.8em; opacity: 0.7; margin-top: 20px;">
+        ✓ Lifetime access • ✓ No monthly fees • ✓ Instant activation
+      </p>
     </div>
   `;
   upgradeMessage.style.display = 'flex';
@@ -2981,13 +3040,13 @@ console.info('🛡️ Privacy-focused YouTube embed: API disabled, tracking mini
 
 
 
-<!-- <div id="premium-favorites-container">
+<div id="premium-favorites-container">
   <MemberFavorites 
     maxVideos={20}
     showTitles={true}
     sectionTitle="Your Favorites"
   />
-</div> -->
+</div>
 <a name="member" id="member" ></a>
 <br /><br /><br />
 

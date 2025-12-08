@@ -179,7 +179,7 @@ function ViewModeSwitch({ sectionId, defaultView = 'grid', onViewChange = null }
     const isHorizontalSlider = slider.classList.contains('slider') && 
                               computedStyle.display === 'flex' && 
                               computedStyle.flexDirection === 'row' &&
-                              computedStyle.overflowX === 'scroll';
+                              (computedStyle.overflowX === 'scroll' || computedStyle.overflowX === 'auto');
     
     if (!isHorizontalSlider) {
       // If not in slider mode, remove any existing handlers
@@ -208,7 +208,7 @@ function ViewModeSwitch({ sectionId, defaultView = 'grid', onViewChange = null }
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
           e.preventDefault();
           e.stopPropagation();
-          slider.scrollLeft += e.deltaY * 3; // Fast scrolling speed
+          slider.scrollLeft += e.deltaY * 1.5; // Smooth scrolling speed
         }
       }
     };

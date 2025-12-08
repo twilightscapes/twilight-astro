@@ -106,10 +106,6 @@ export default config({
                 validation: { isRequired: false }
               }),
               controls: fields.checkbox({ label: 'Use YouTube Player Controls' }),
-              useCustomPlayer: fields.checkbox({ 
-                label: 'Use Custom Player Controls', 
-                defaultValue: true 
-              }),
               mute: fields.checkbox({ label: 'Mute Video' }),
               loop: fields.checkbox({ label: 'Loop Video' }),
               start: fields.number({ 
@@ -131,7 +127,6 @@ export default config({
                 description: 'Display the mute button (which also acts as play/pause control)',
                 defaultValue: false 
               }),
-              videoOnly: fields.checkbox({ label: 'Video Only', defaultValue: false }),
               svgatorSync: fields.checkbox({
                 label: 'Sync with SVGator Animation',
                 description: 'Enable synchronization with overlay SVG animation',
@@ -170,10 +165,6 @@ export default config({
                 validation: { isRequired: false }
               }),
               controls: fields.checkbox({ label: 'Use YouTube Player Controls' }),
-              useCustomPlayer: fields.checkbox({ 
-                label: 'Use Custom Player Controls', 
-                defaultValue: true 
-              }),
               mute: fields.checkbox({ label: 'Mute Video', defaultValue: true }),
               loop: fields.checkbox({ label: 'Loop Video' }),
               start: fields.number({ 
@@ -195,7 +186,6 @@ export default config({
                 description: 'Display the mute button (which also acts as play/pause control)',
                 defaultValue: false 
               }),
-              videoOnly: fields.checkbox({ label: 'Video Only', defaultValue: false }),
               svgatorSync: fields.checkbox({ 
                 label: 'Sync with SVGator Animation',
                 description: 'Sync this video with an SVGator SVG animation',
@@ -271,32 +261,6 @@ export default config({
               ],
               defaultValue: 'contentblock'
             }),
-            customTitle: fields.text({
-              label: 'Section Title Override (Optional)',
-              description: 'Override the component\'s default title. Most sections have their own title settings - only use this if you need a different title.',
-              validation: { isRequired: false }
-            }),
-            customDescription: fields.text({
-              label: 'Section Description (Optional)',
-              description: 'Add descriptive text that appears below the section title.',
-              validation: { isRequired: false }
-            }),
-            showTitle: fields.checkbox({
-              label: 'Show Title',
-              description: 'Display the section title and description',
-              defaultValue: true
-            }),
-            sectionWidth: fields.select({
-              label: 'Section Width',
-              description: 'Control the width of this section',
-              options: [
-                { label: 'Narrow (Blog-style)', value: 'narrow' },
-                { label: 'Normal', value: 'normal' },
-                { label: 'Wide', value: 'wide' },
-                { label: 'Full Width', value: 'full' }
-              ],
-              defaultValue: 'normal'
-            }),
             contentBlockSlug: fields.relationship({
               label: 'Select Content Block',
               description: 'Choose which content block to display (appears only when "Content Block" is selected above)',
@@ -315,26 +279,38 @@ export default config({
               collection: 'CTAs',
               validation: { isRequired: false }
             }),
-            showSearch: fields.checkbox({
-              label: 'Show Search Bar',
-              description: 'Show/hide the search bar in Magic Search sections',
-              defaultValue: true
-            }),
-            searchMethod: fields.select({
-              label: 'Search Method',
-              description: 'Choose search method for Magic Search: Client-side (fast, title/description only) or Pagefind (full content, requires build)',
-              options: [
-                { label: 'Client-side (Fast)', value: 'client' },
-                { label: 'Pagefind (Full Content)', value: 'pagefind' },
-                { label: 'Hybrid (Both)', value: 'hybrid' }
-              ],
-              defaultValue: 'client'
-            }),
             hideCollapseButton: fields.checkbox({
               label: 'Hide Collapse Button',
               description: 'Hide the collapse/expand button for this section. When unchecked, users can collapse this section and the state persists.',
-              defaultValue: false
-            })
+              defaultValue: true
+            }),
+            showTitle: fields.checkbox({
+              label: 'Show Title',
+              description: 'Display the section title and description',
+              defaultValue: true
+            }),
+            customTitle: fields.text({
+              label: 'Section Title Override (Optional)',
+              description: 'Override the component\'s default title. Most sections have their own title settings - only use this if you need a different title.',
+              validation: { isRequired: false }
+            }),
+            customDescription: fields.text({
+              label: 'Section Description (Optional)',
+              description: 'Add descriptive text that appears below the section title.',
+              validation: { isRequired: false }
+            }),
+            // sectionWidth: fields.select({
+            //   label: 'Section Width',
+            //   description: 'Control the width of this section',
+            //   options: [
+            //     { label: 'Narrow (Blog-style)', value: 'narrow' },
+            //     { label: 'Normal', value: 'normal' },
+            //     { label: 'Wide', value: 'wide' },
+            //     { label: 'Full Width', value: 'full' }
+            //   ],
+            //   defaultValue: 'normal'
+            // }),
+            
           }),
           {
             label: 'Page Sections',
@@ -742,10 +718,6 @@ export default config({
                 validation: { isRequired: false }
               }),
               controls: fields.checkbox({ label: 'Use YouTube Player Controls' }),
-              useCustomPlayer: fields.checkbox({ 
-                label: 'Use Custom Player Controls', 
-                defaultValue: true 
-              }),
               mute: fields.checkbox({ label: 'Mute Video' }),
               loop: fields.checkbox({ label: 'Loop Video' }),
               start: fields.number({ 
@@ -762,7 +734,6 @@ export default config({
                 description: 'Show thumbnail with play button instead of loading video immediately.',
                 defaultValue: true 
               }),
-              videoOnly: fields.checkbox({ label: 'Video Only', defaultValue: false }),
             }),
             false: fields.empty(),
           }
@@ -971,8 +942,8 @@ export default config({
         showLogo: fields.checkbox({ label: 'Show Logo', description: 'Hide/Show the logo in the header', defaultValue: true }),
         showHome: fields.checkbox({ label: 'Show Home Link', description: 'Hide/Show the Home Link', defaultValue: true }),
         showTheme: fields.checkbox({ label: 'Show Theme', description: 'Hide/Show the theme selector', defaultValue: true }),
-        showSwitch: fields.checkbox({ label: 'Show Switch', description: 'Hide/Show the layout selector', defaultValue: true }),
-        showSearch: fields.checkbox({ label: 'Show Search', description: 'Hide/Show the search in the header', defaultValue: true }),
+        // showSwitch: fields.checkbox({ label: 'Show Switch', description: 'Hide/Show the layout selector', defaultValue: true }),
+        // showSearch: fields.checkbox({ label: 'Show Search', description: 'Hide/Show the search in the header', defaultValue: true }),
         showFooter: fields.checkbox({ label: 'Show Footer', description: 'Hide/Show the Footer', defaultValue: true }),
         showTitles: fields.checkbox({ label: 'Show Post Titles', description: 'Hide/Show the post titles', defaultValue: false }),
         showDates: fields.checkbox({ label: 'Show Dates', description: 'Hide/Show the post dates', defaultValue: true }),
@@ -984,13 +955,28 @@ export default config({
         showTags: fields.checkbox({ label: 'Show Post Tags', description: 'Show/hide tags displayed on individual posts', defaultValue: false }),
         showTagFilters: fields.checkbox({ label: 'Show Tag Filter Pills', description: 'Show/hide tag filter pills in search components on posts and tags pages', defaultValue: true }),
         showShare: fields.checkbox({ label: 'Show Share section on posts', description: 'Hide/Show the share this copy button on posts', defaultValue: false }),
-        divider3: fields.empty(),
-        videoTimeLimitMinutes: fields.number({ 
-          label: 'Video Time Limit (Minutes)', 
-          description: 'Set to -1 to disable timer, 0 for immediate paywall, or 1-30 minutes for timed limit',
-          defaultValue: -1,
-          validation: { min: -1, max: 30 }
+        showSearch: fields.checkbox({
+          label: 'Show Search Bar',
+          description: 'Show/hide the search bar in Magic Search sections',
+          defaultValue: true
         }),
+        searchMethod: fields.select({
+          label: 'Search Method',
+          description: 'Choose search method for Magic Search: Client-side (fast, title/description only) or Pagefind (full content, requires build)',
+          options: [
+            { label: 'Client-side (Fast)', value: 'client' },
+            { label: 'Pagefind (Full Content)', value: 'pagefind' },
+            { label: 'Hybrid (Both)', value: 'hybrid' }
+          ],
+          defaultValue: 'hybrid'
+        }),
+        divider3: fields.empty(),
+        // videoTimeLimitMinutes: fields.number({ 
+        //   label: 'Video Time Limit (Minutes)', 
+        //   description: 'Set to -1 to disable timer, 0 for immediate paywall, or 1-30 minutes for timed limit',
+        //   defaultValue: -1,
+        //   validation: { min: -1, max: 30 }
+        // }),
       },
     }),
     pwaSettings: singleton({
@@ -1008,63 +994,6 @@ export default config({
         
         name: fields.text({ label: 'App Name' }),
         shortName: fields.text({ label: 'Short Name' }),
-
-        location: fields.text({ label: 'Location Map', description: 'Copy the src url from the google maps location share embed section'  }),
-        showMap: fields.checkbox({
-          label: 'Show Map in Contact Forms',
-          description: 'Display the location map alongside contact forms',
-          defaultValue: true
-        }),
-
-        divider_contact: fields.empty(),
-        
-        // Contact Form Field Configuration
-        showName: fields.checkbox({
-          label: 'Show Name Field',
-          description: 'Display name field in contact forms',
-          defaultValue: true
-        }),
-        showPhone: fields.checkbox({
-          label: 'Show Phone Field',
-          description: 'Display phone field in contact forms',
-          defaultValue: true
-        }),
-        showMessage: fields.checkbox({
-          label: 'Show Message Field',
-          description: 'Display message textarea in contact forms',
-          defaultValue: true
-        }),
-        showUpload: fields.checkbox({
-          label: 'Show Upload Field',
-          description: 'Display file upload field in contact forms',
-          defaultValue: true
-        }),
-        showExtraField: fields.checkbox({
-          label: 'Show Extra Field',
-          description: 'Display an additional custom text field',
-          defaultValue: false
-        }),
-        extraFieldLabel: fields.text({
-          label: 'Extra Field Label',
-          description: 'Label for the extra text field',
-          defaultValue: 'Extra Field'
-        }),
-        showExtraField2: fields.checkbox({
-          label: 'Show Extra Field 2',
-          description: 'Display a second additional custom text field',
-          defaultValue: false
-        }),
-        extraFieldLabel2: fields.text({
-          label: 'Extra Field Label 2',
-          description: 'Label for the second extra text field',
-          defaultValue: 'Extra Field 2'
-        }),
-        formContent: fields.text({
-          label: 'Form Introduction Text',
-          description: 'Text to display above the contact form',
-          multiline: true,
-          defaultValue: 'For all inquiries, please complete the form below:'
-        }),
 
         divider: fields.empty(),
 
@@ -1122,6 +1051,117 @@ export default config({
             isRequired: true
           }
         })
+      }
+    }),
+    formSettings: singleton({
+      label: 'Form Settings',
+      path: 'src/content/formSettings/',
+      schema: {
+        location: fields.text({ 
+          label: 'Location Map', 
+          description: 'Copy the src url from the google maps location share embed section'
+        }),
+        showMap: fields.checkbox({
+          label: 'Show Map in Contact Forms',
+          description: 'Display the location map alongside contact forms',
+          defaultValue: true
+        }),
+
+        divider_contact: fields.empty(),
+        
+        // Contact Form Field Configuration
+        showName: fields.checkbox({
+          label: 'Show Name Field',
+          description: 'Display name field in contact forms',
+          defaultValue: true
+        }),
+        showPhone: fields.checkbox({
+          label: 'Show Phone Field',
+          description: 'Display phone field in contact forms',
+          defaultValue: true
+        }),
+        showMessage: fields.checkbox({
+          label: 'Show Message Field',
+          description: 'Display message textarea in contact forms',
+          defaultValue: true
+        }),
+        showUpload: fields.checkbox({
+          label: 'Show Upload Field',
+          description: 'Display file upload field in contact forms',
+          defaultValue: true
+        }),
+        showExtraField: fields.checkbox({
+          label: 'Show Extra Field',
+          description: 'Display an additional custom text field',
+          defaultValue: false
+        }),
+        extraFieldLabel: fields.text({
+          label: 'Extra Field Label',
+          description: 'Label for the extra text field',
+          defaultValue: 'Extra Field'
+        }),
+        showExtraField2: fields.checkbox({
+          label: 'Show Extra Field 2',
+          description: 'Display a second additional custom text field',
+          defaultValue: false
+        }),
+        extraFieldLabel2: fields.text({
+          label: 'Extra Field Label 2',
+          description: 'Label for the second extra text field',
+          defaultValue: 'Extra Field 2'
+        }),
+        formContent: fields.text({
+          label: 'Form Introduction Text',
+          description: 'Text to display above the contact form',
+          multiline: true,
+          defaultValue: 'For all inquiries, please complete the form below:'
+        }),
+
+        divider_map: fields.empty(),
+
+        // Map Contact Information
+        mapTitle: fields.text({
+          label: 'Map Section Title',
+          description: 'Title to display above map contact information',
+          validation: { isRequired: false }
+        }),
+        mapDescription: fields.text({
+          label: 'Map Section Description',
+          description: 'Description text to display with map',
+          multiline: true,
+          validation: { isRequired: false }
+        }),
+        businessName: fields.text({
+          label: 'Business Name',
+          description: 'Company/Business name to display below map',
+          validation: { isRequired: false }
+        }),
+        addressLine1: fields.text({
+          label: 'Address Line 1',
+          description: 'Street address',
+          validation: { isRequired: false }
+        }),
+        addressLine2: fields.text({
+          label: 'Address Line 2',
+          description: 'City, State, ZIP',
+          validation: { isRequired: false }
+        }),
+        mapPhone: fields.text({
+          label: 'Phone Number',
+          description: 'Phone number (will be clickable)',
+          validation: { isRequired: false }
+        }),
+        mapFax: fields.text({
+          label: 'Fax Number',
+          description: 'Fax number to display',
+          validation: { isRequired: false }
+        }),
+        mapAdditionalText: fields.text({
+          label: 'Additional Text',
+          description: 'Any additional text to display below contact information',
+          multiline: true,
+          validation: { isRequired: false }
+        }),
       }
     }),
     photoSettings: singleton({
@@ -1332,19 +1372,9 @@ export default config({
         shareText: fields.text({ label: 'Share This' }),
         copyButton: fields.text({ label: 'Copy' }),
         siteDisclaimer: fields.text({ label: 'Site Disclaimer', multiline: true }),
+        socialMessage: fields.text({ label: 'Social Links Message', defaultValue: "I'm Social" }),
         
-        // Magic Search Component Labels
-        magicSearchPlaceholder: fields.text({ label: 'Magic Search Placeholder', defaultValue: 'Search posts by title or description...' }),
-        magicSearchTopics: fields.text({ label: 'Magic Search Topics Label', defaultValue: 'Topics:' }),
-        magicSearchAll: fields.text({ label: 'Magic Search All Label', defaultValue: 'All' }),
-        magicSearchShowing: fields.text({ label: 'Magic Search Showing Text', defaultValue: 'Showing' }),
-        magicSearchOf: fields.text({ label: 'Magic Search Of Text', defaultValue: 'of' }),
-        magicSearchPosts: fields.text({ label: 'Magic Search Posts Text', defaultValue: 'posts' }),
-        magicSearchPost: fields.text({ label: 'Magic Search Post Text (singular)', defaultValue: 'post' }),
-        magicSearchShowMoreTopics: fields.text({ label: 'Magic Search Show More Topics', defaultValue: 'Show More Topics ▼' }),
-        magicSearchShowLessTopics: fields.text({ label: 'Magic Search Show Less Topics', defaultValue: 'Show Less Topics ▲' }),
-        magicSearchNoResults: fields.text({ label: 'Magic Search No Results Title', defaultValue: 'No posts found' }),
-        magicSearchNoResultsDesc: fields.text({ label: 'Magic Search No Results Description', defaultValue: 'Try adjusting your search or filter criteria' }),
+        
         
         // temp: fields.text({ label: 'temp', multiline: true }),
       },
@@ -1467,6 +1497,7 @@ ui: {
     'Settings': [
       'siteSettings',
       'pwaSettings',
+      'formSettings',
       'menuItems',
       'footerMenuItems',
       'socialCard',

@@ -38,7 +38,7 @@ const { sections, pageContent } = Astro.props;
 
 // Get necessary data for section rendering
 const siteSettings = await getEntry('siteSettings', 'main');
-const { defaultView, MAX_POSTS, showTagFilters: siteShowTagFilters } = siteSettings?.data ?? { defaultView: 'list', MAX_POSTS: 5, showTagFilters: true };
+const { defaultView, MAX_POSTS, showTagFilters: siteShowTagFilters, showSearch: siteShowSearch, searchMethod: siteSearchMethod } = siteSettings?.data ?? { defaultView: 'list', MAX_POSTS: 5, showTagFilters: true, showSearch: true, searchMethod: 'client' };
 const resumeSettings = await getEntry('resumeSettings', 'index');
 
 // Get posts for posts sections
@@ -114,8 +114,6 @@ function getSectionWidthClass(width?: string) {
     const customDescription = section.customDescription || section.description;
     const showTitle = section.showTitle ?? true;
     const showTags = section.showTags ?? true;
-    const showSearch = section.showSearch ?? true;
-    const searchMethod = section.searchMethod ?? 'client';
     
     return (
       <div class={getSectionWidthClass(section.sectionWidth)} style="margin-bottom: 0rem;">
@@ -309,7 +307,7 @@ function getSectionWidthClass(width?: string) {
               const magicSearchView = defaultView === 'list' ? 'grid' : defaultView;
               // Use site-level showTagFilters setting
               const magicSearchShowTags = siteShowTagFilters ?? true;
-              const magicSearchShowSearch = showSearch ?? true;
+              const magicSearchShowSearch = siteShowSearch ?? true;
               
               return (
                 <div data-section-id={`magic-search-${index}`}>
@@ -322,7 +320,7 @@ function getSectionWidthClass(width?: string) {
                     defaultView={magicSearchView}
                     showTags={magicSearchShowTags}
                     showSearch={magicSearchShowSearch}
-                    searchMethod={searchMethod}
+                    searchMethod={siteSearchMethod}
                   />
                 </div>
               );
@@ -367,9 +365,9 @@ function getSectionWidthClass(width?: string) {
                       </div>
                     </div>
                   )}
-                  <div class="section-content" style="padding:0;">
+                  <div class="section-content grid-container" style="padding:0 3%;">
                     <div class="sliderSpacer" style={{ height: "", paddingTop: "", display: "" }} />
-                    <Testimonials testimonials={sortedTestimonials} />
+                    <Testimonials sectionId={`testimonials-section-${index}`} testimonials={sortedTestimonials} />
                   </div>
                 </div>
               );

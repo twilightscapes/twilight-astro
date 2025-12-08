@@ -1,5 +1,5 @@
 logoImage: /images/logo/logoImage.svg
-defaultView: swipe
+defaultView: grid
 themeMode: dark
 MAX_POSTS: 3
 MAX_POSTS_PER_PAGE: 20
@@ -7,13 +7,13 @@ showHeader: false
 showLogo: true
 showHome: false
 showTheme: false
-showSwitch: false
-showSearch: false
 showFooter: false
 showTitles: true
 showDates: true
 enableImageBlur: true
 showSocial: true
 showTags: true
+showTagFilters: true
 showShare: true
-videoTimeLimitMinutes: -1
+showSearch: false
+searchMethod: hybrid

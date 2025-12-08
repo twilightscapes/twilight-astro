@@ -11,19 +11,19 @@ interface Props {
 
 const { showTitle = true, customTitle, customDescription, formName = 'contact' } = Astro.props;
 
-const pwaSettings = await getEntry('pwaSettings', 'index');
+const formSettings = await getEntry('formSettings', 'index');
 
-// Contact form field settings from PWA settings
-const showName = pwaSettings?.data?.showName ?? true;
-const showPhone = pwaSettings?.data?.showPhone ?? true;
-const showUpload = pwaSettings?.data?.showUpload ?? true;
-const showMessage = pwaSettings?.data?.showMessage ?? true;
-const showExtraField = pwaSettings?.data?.showExtraField ?? false;
-const extraFieldLabel = pwaSettings?.data?.extraFieldLabel ?? 'Extra Field';
-const showMap = pwaSettings?.data?.showMap ?? true;
-const showExtraField2 = pwaSettings?.data?.showExtraField2 ?? false;
-const extraFieldLabel2 = pwaSettings?.data?.extraFieldLabel2 ?? 'Extra Field 2';
-const content = (pwaSettings?.data?.formContent ?? '').replace(/\n/g, '<br>');
+// Contact form field settings from form settings
+const showName = formSettings?.data?.showName ?? true;
+const showPhone = formSettings?.data?.showPhone ?? true;
+const showUpload = formSettings?.data?.showUpload ?? true;
+const showMessage = formSettings?.data?.showMessage ?? true;
+const showExtraField = formSettings?.data?.showExtraField ?? false;
+const extraFieldLabel = formSettings?.data?.extraFieldLabel ?? 'Extra Field';
+const showMap = formSettings?.data?.showMap ?? true;
+const showExtraField2 = formSettings?.data?.showExtraField2 ?? false;
+const extraFieldLabel2 = formSettings?.data?.extraFieldLabel2 ?? 'Extra Field 2';
+const content = (formSettings?.data?.formContent ?? '').replace(/\n/g, '<br>');
 
 // Use custom title/description if provided, otherwise use defaults
 const displayTitle = customTitle || 'Contact';

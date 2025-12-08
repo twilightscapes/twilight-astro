@@ -3,11 +3,28 @@ import { getEntry } from 'astro:content';
 // import VideoPortal from '@/components/YouForm.astro';
 // Add error handling and default values
 let locationUrl = '';
+let mapTitle = '';
+let mapDescription = '';
+let businessName = '';
+let addressLine1 = '';
+let addressLine2 = '';
+let mapPhone = '';
+let mapFax = '';
+let mapAdditionalText = '';
+
 try {
-  const pwaSettings = await getEntry('pwaSettings', 'index');
-  locationUrl = pwaSettings?.data?.location || '';
+  const formSettings = await getEntry('formSettings', 'index');
+  locationUrl = formSettings?.data?.location || '';
+  mapTitle = formSettings?.data?.mapTitle || '';
+  mapDescription = formSettings?.data?.mapDescription || '';
+  businessName = formSettings?.data?.businessName || '';
+  addressLine1 = formSettings?.data?.addressLine1 || '';
+  addressLine2 = formSettings?.data?.addressLine2 || '';
+  mapPhone = formSettings?.data?.mapPhone || '';
+  mapFax = formSettings?.data?.mapFax || '';
+  mapAdditionalText = formSettings?.data?.mapAdditionalText || '';
 } catch (error) {
-  console.warn('PWA settings not found, using defaults');
+  console.warn('Form settings not found, using defaults');
 }
 
 // const siteSettings = await getEntry('siteSettings', 'main');
@@ -21,6 +38,7 @@ try {
 
   <div id="tour" class="virtualtour">
     {locationUrl && (
+      <>
       <iframe 
         title="location map" 
         class="virtualtour" 
@@ -36,15 +54,23 @@ try {
         loading="lazy" 
         referrerpolicy="no-referrer-when-downgrade"
       />
-<br />
-<div style={{width:'90%', margin:'0 auto', textAlign:'center',}}>
-
-
-<h2><strong>Serving the entire Mississippi Gulf Coast</strong><br />
-
-<br />
-Call Us: <a class="call-button btn" href="tel:(601) 385-1781">(601) 385-1781</a></h2>
-</div>
+      <br />
+      <div style="width:90%; margin:0 auto; text-align:center;">
+        {mapTitle && <h2><strong>{mapTitle}</strong></h2>}
+        {mapDescription && <p>{mapDescription}</p>}
+        
+        {businessName && <p style="margin-bottom: 0.25rem;"><strong>{businessName}</strong></p>}
+        {addressLine1 && <p style="margin-bottom: 0.25rem;">{addressLine1}</p>}
+        {addressLine2 && <p style="margin-bottom: 0.5rem;">{addressLine2}</p>}
+        {mapPhone && (
+          <p style="margin-bottom: 0.25rem;">
+            Phone: <a class="call-button" href={`tel:${mapPhone.replace(/[^0-9]/g, '')}`}>{mapPhone}</a>
+          </p>
+        )}
+        {mapFax && <p style="margin-bottom: 0.5rem;">Fax: {mapFax}</p>}
+        {mapAdditionalText && <p>{mapAdditionalText}</p>}
+      </div>
+      </>
     )}
   </div>
 

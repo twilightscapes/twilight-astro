@@ -1911,7 +1911,8 @@ async function loadYouTubeVideos() {
                   <a href="/video?videoId=${encodeURIComponent(videoId)}" class="pirate-link" style="text-decoration: none; color: inherit; height: 100%; display: flex; flex-direction: column;">
                     <div class="post-video-container video-container" 
                          data-video-id="${videoId}"
-                         data-use-custom-player="${useCustomPlayer}">
+                         data-use-custom-player="${useCustomPlayer}"
+                         style="position: relative;">
                       <img
                         src="${item.thumbnail}"
                         alt="${item.title.replace(/"/g, '&quot;')}"
@@ -1923,6 +1924,16 @@ async function loadYouTubeVideos() {
                       />
                       
                       <div class="post-play-button play-button" aria-label="Play video">&#x25B6;</div>
+
+                      <div class="member-favorite-buttons" 
+                           data-video-id="${videoId}"
+                           data-video-title="${item.title.replace(/"/g, '&quot;')}"
+                           data-video-thumbnail="${item.thumbnail}"
+                           data-channel-title="${item.channelTitle || ''}"
+                           data-channel-id="${item.channelId || ''}"
+                           data-video-url="https://www.youtube.com/watch?v=${videoId}"
+                           style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                      </div>
 
                       <div class="youtube-embed" style="display: none;">
                         <iframe
@@ -1960,14 +1971,6 @@ async function loadYouTubeVideos() {
                                data-channel-handle="${item.channelTitle || ''}"
                                data-channel-url="https://www.youtube.com/channel/${item.channelId || ''}"
                                data-channel-title="${item.channelTitle || ''}">
-                          </div>
-                          <div class="member-favorite-buttons" 
-                               data-video-id="${videoId}"
-                               data-video-title="${item.title.replace(/"/g, '&quot;')}"
-                               data-video-thumbnail="${item.thumbnail}"
-                               data-channel-title="${item.channelTitle || ''}"
-                               data-channel-id="${item.channelId || ''}"
-                               data-video-url="https://www.youtube.com/watch?v=${videoId}">
                           </div>
                         </div>
                       </div>
@@ -3286,8 +3289,12 @@ function createPremiumButtons() {
   // Initialize the premium button functionality
   initializePremiumButtons(sectionContainer);
   
-  // Initialize member favorite buttons
-  initializeMemberFavoriteButtons(sectionContainer);
+  // Initialize member favorite buttons with a slight delay to ensure DOM is ready
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      initializeMemberFavoriteButtons(sectionContainer);
+    }, 100);
+  });
 }
 
 // Initialize premium button functionality
@@ -3359,14 +3366,25 @@ function showPremiumNotice(container) {
 
 // Initialize member favorite buttons (new system)
 async function initializeMemberFavoriteButtons(container) {
+  // Wait for membership utilities to be ready
+  if (!window.membershipUtilsReady) {
+    await new Promise(resolve => {
+      if (window.membershipUtilsReady) {
+        resolve();
+      } else {
+        window.addEventListener('membershipUtilsLoaded', resolve, { once: true });
+        // Timeout fallback
+        setTimeout(resolve, 1000);
+      }
+    });
+  }
+  
   // Import the membership utilities
   try {
     const { MembershipUtils } = await import('/membershipUtils.js');
     
     // Check membership status and show buttons only for Premium members
     const membershipStatus = await MembershipUtils.checkMembershipStatus();
-    
-
     
     if (!membershipStatus.isValid) {
       // Show premium notice for non-members
@@ -3376,7 +3394,6 @@ async function initializeMemberFavoriteButtons(container) {
     
     // Check if user is Premium (favorites are Premium-only, NOT for Unlimited)
     const accessLevel = membershipStatus.accessLevel || membershipStatus.token?.accessLevel || membershipStatus.tier;
-
     
     if (accessLevel !== 'premium') {
       // Show premium notice for unlimited and other non-premium users
@@ -3384,13 +3401,19 @@ async function initializeMemberFavoriteButtons(container) {
       return;
     }
     
-    
-
     // Show all member favorite containers for Premium users only
     const memberContainers = container.querySelectorAll('.member-favorite-container');
     
     memberContainers.forEach(memberContainer => {
+      // Show the buttons (parent already has positioning from HTML)
+      const parentPlaceholder = memberContainer.closest('.member-favorite-buttons');
+      if (parentPlaceholder) {
+        parentPlaceholder.style.display = 'block';
+      }
+      
       memberContainer.style.display = 'flex';
+      memberContainer.style.visibility = 'visible';
+      memberContainer.style.opacity = '1';
       
       const placeholder = memberContainer.closest('.member-favorite-buttons');
       const videoId = placeholder.dataset.videoId;
@@ -3444,18 +3467,18 @@ async function initializeMemberFavoriteButtons(container) {
           
 
           
-          const { FavoritesManager } = await import('/membershipUtils.js');
-          const isBookmarked = FavoritesManager.isChannelBookmarked(channelId);
+          const { MembershipUtils } = await import('/membershipUtils.js');
+          const isBookmarked = MembershipUtils.isChannelBookmarked(channelId);
           
           if (isBookmarked) {
-            FavoritesManager.removeChannel(channelId);
+            MembershipUtils.removeChannel(channelId);
           } else {
             const channel = {
               channelId: channelId,
               channelName: channelTitle || 'Unknown Channel',
               addedAt: Date.now()
             };
-            FavoritesManager.addChannel(channel);
+            MembershipUtils.addChannel(channel);
           }
           
           // Update the current button state
@@ -3479,14 +3502,14 @@ async function initializeMemberFavoriteButtons(container) {
           // Use the resolveAndBookmarkChannel function to get channel info
           const channel = await resolveAndBookmarkChannel(null, null, videoUrl);
           
-          const { FavoritesManager } = await import('/membershipUtils.js');
-          const isBookmarked = FavoritesManager.isChannelBookmarked(channel.channelId);
+          const { MembershipUtils } = await import('/membershipUtils.js');
+          const isBookmarked = MembershipUtils.isChannelBookmarked(channel.channelId);
           
           if (isBookmarked) {
-            FavoritesManager.removeChannel(channel.channelId);
+            MembershipUtils.removeChannel(channel.channelId);
 
           } else {
-            FavoritesManager.addChannel(channel);
+            MembershipUtils.addChannel(channel);
 
           }
           
@@ -3506,6 +3529,13 @@ async function initializeMemberFavoriteButtons(container) {
     });
   } catch (error) {
     console.error('❌ YouTubeFeed: Error checking membership for favorites:', error);
+    console.error('Error stack:', error.stack);
+    // Show buttons anyway since we want everyone to have access
+    const memberContainers = container.querySelectorAll('.member-favorite-container');
+    console.log('🔧 Fallback: Showing buttons anyway, found containers:', memberContainers.length);
+    memberContainers.forEach(memberContainer => {
+      memberContainer.style.display = 'flex';
+    });
   }
 }
 

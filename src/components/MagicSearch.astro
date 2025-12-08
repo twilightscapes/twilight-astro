@@ -40,18 +40,19 @@ const MAX_POSTS = siteSettings?.data?.MAX_POSTS ?? 5;
 const languageData = await getEntry('language', 'index');
 const pwaSettings = await getEntry('pwaSettings', 'index');
 const shortName = pwaSettings?.data?.shortName || 'Site';
+const langData = languageData?.data as any;
 const lang = {
   placeholder: `Search ${shortName}'s Posts`,
-  topics: languageData?.data?.magicSearchTopics || 'Topics:',
-  all: languageData?.data?.magicSearchAll || 'All',
-  showing: languageData?.data?.magicSearchShowing || 'Showing',
-  of: languageData?.data?.magicSearchOf || 'of',
-  posts: languageData?.data?.magicSearchPosts || 'posts',
-  post: languageData?.data?.magicSearchPost || 'post',
-  showMoreTopics: languageData?.data?.magicSearchShowMoreTopics || 'Show More Topics ▼',
-  showLessTopics: languageData?.data?.magicSearchShowLessTopics || 'Show Less Topics ▲',
-  noResults: languageData?.data?.magicSearchNoResults || 'No posts found',
-  noResultsDesc: languageData?.data?.magicSearchNoResultsDesc || 'Try adjusting your search or filter criteria',
+  topics: langData?.magicSearchTopics || 'Topics:',
+  all: langData?.magicSearchAll || 'All',
+  showing: langData?.magicSearchShowing || 'Showing',
+  of: langData?.magicSearchOf || 'of',
+  posts: langData?.magicSearchPosts || 'posts',
+  post: langData?.magicSearchPost || 'post',
+  showMoreTopics: langData?.magicSearchShowMoreTopics || 'Show More Topics ▼',
+  showLessTopics: langData?.magicSearchShowLessTopics || 'Show Less Topics ▲',
+  noResults: langData?.magicSearchNoResults || 'No posts found',
+  noResultsDesc: langData?.magicSearchNoResultsDesc || 'Try adjusting your search or filter criteria',
 };
 ---
 

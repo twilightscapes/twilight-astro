@@ -9,7 +9,6 @@ import GoBack from "@/components/GoBack.astro";
 let showHeader = true;
 let showLogo = true;
 let showTheme = true;
-let showSearch = true;
 let showSwitch = true;
 let showHome = true;
 let logoImage = '';
@@ -47,7 +46,6 @@ try {
       showHeader = true, 
       showLogo = true, 
       showTheme = true, 
-      showSearch = true, 
       showSwitch = true, 
       showHome = true, 
       logoImage = '', 
@@ -217,7 +215,7 @@ const url = new URL(Astro.request.url);
 
   {showTheme && <ThemeToggle style="margin-left:1vw;" />}
 
-  {showSearch && <Search />}
+  <!-- {showSearch && <Search />} -->
 
   
 

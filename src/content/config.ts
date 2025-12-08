@@ -10,8 +10,24 @@ function removeDupsAndLowerCase(array: string[]) {
 const postSchema = z.object({
   title: z.string(),
   description: z.string().min(10).max(160),
-  publishDate: z.string().or(z.date()).transform((val) => new Date(val)),
-  updatedDate: z.string().or(z.date()).transform((val) => new Date(val)).optional(),
+  publishDate: z.string().or(z.date()).transform((val) => {
+    if (val instanceof Date) return val;
+    // For date-only strings (YYYY-MM-DD), treat as local date not UTC
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      const [year, month, day] = val.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    return new Date(val);
+  }),
+  updatedDate: z.string().or(z.date()).transform((val) => {
+    if (val instanceof Date) return val;
+    // For date-only strings (YYYY-MM-DD), treat as local date not UTC
+    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      const [year, month, day] = val.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    return new Date(val);
+  }).optional(),
   coverImage: z.object({
     src: z.string().optional(),
     alt: z.string().default(""),
@@ -231,7 +247,7 @@ export const collections = {
       showHome: z.boolean().optional(),
       showTheme: z.boolean().optional(),
       showSwitch: z.boolean().optional(),
-      showSearch: z.boolean().optional(),
+      // showSearch: z.boolean().optional(),
       showFooter: z.boolean().optional(),
       defaultView: z.enum(['grid', 'swipe']).optional(),
       themeMode: z.enum(['light', 'dark', 'user']).optional(),
@@ -244,6 +260,8 @@ export const collections = {
       MAX_POSTS: z.number().optional(),
       MAX_POSTS_PER_PAGE: z.number().optional(),
       showShare: z.boolean().optional(),
+      showSearch: z.boolean().optional(),
+      searchMethod: z.enum(['client', 'pagefind', 'hybrid']).optional(),
       videoTimeLimitMinutes: z.number().min(-1).max(30).optional(),
     }),
   }),
@@ -264,6 +282,12 @@ export const collections = {
       display: z.enum(['standalone', 'fullscreen', 'minimal-ui', 'browser']).optional(),
       icon192: z.string().optional(),
       icon512: z.string().optional(),
+    }),
+  }),
+
+  formSettings: defineCollection({
+    type: 'data',
+    schema: z.object({
       location: z.string().optional(),
       showMap: z.boolean().optional(),
       // Contact form configuration
@@ -276,6 +300,15 @@ export const collections = {
       showExtraField2: z.boolean().optional(),
       extraFieldLabel2: z.string().optional(),
       formContent: z.string().optional(),
+      // Map contact information
+      mapTitle: z.string().optional(),
+      mapDescription: z.string().optional(),
+      businessName: z.string().optional(),
+      addressLine1: z.string().optional(),
+      addressLine2: z.string().optional(),
+      mapPhone: z.string().optional(),
+      mapFax: z.string().optional(),
+      mapAdditionalText: z.string().optional(),
     }),
   }),
 
@@ -307,7 +340,7 @@ export const collections = {
       viewmore: z.string().optional(),
       allimages: z.string().optional(),
       close: z.string().optional(),
-      search: z.string().optional(),
+      // search: z.string().optional(),
       mute: z.string().optional(),
       volume: z.string().optional(),
       progress: z.string().optional(),
@@ -316,18 +349,8 @@ export const collections = {
       shareText: z.string().optional(),
       copyButton: z.string().optional(),
       siteDisclaimer: z.string().optional(),
-      // Magic Search labels
-      magicSearchPlaceholder: z.string().optional(),
-      magicSearchTopics: z.string().optional(),
-      magicSearchAll: z.string().optional(),
-      magicSearchShowing: z.string().optional(),
-      magicSearchOf: z.string().optional(),
-      magicSearchPosts: z.string().optional(),
-      magicSearchPost: z.string().optional(),
-      magicSearchShowMoreTopics: z.string().optional(),
-      magicSearchShowLessTopics: z.string().optional(),
-      magicSearchNoResults: z.string().optional(),
-      magicSearchNoResultsDesc: z.string().optional(),
+      socialMessage: z.string().optional(),
+
     }),
   }),
 

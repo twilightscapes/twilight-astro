@@ -46,16 +46,11 @@ const {
 let showFooter = false;
 let enableImageBlur = true;
 let siteDisclaimer = '';
-let siteThemeMode = themeMode; // Use prop as default
 
 try {
   const siteSettings = await getEntry('siteSettings', 'main');
   if (siteSettings) {
     ({ showFooter = false, enableImageBlur = true } = siteSettings.data);
-    // Override themeMode with site settings if not explicitly passed as prop
-    if (themeMode === 'user' && siteSettings.data.themeMode) {
-      siteThemeMode = siteSettings.data.themeMode;
-    }
   } else {
     console.warn('Site settings not found, using defaults');
   }
@@ -84,12 +79,12 @@ const pageOgImage = ogImage || meta?.ogImage;
 
 ---
 
-<html lang="en">
+<html lang="en" data-theme="light">
 	<head>
 		<meta charset="utf-8" />
 
         
-        <ThemeProvider themeMode={siteThemeMode} />
+        <ThemeProvider themeMode={siteConfig.themeMode} />
         <BaseHead 
             title={pageTitle} 
             description={pageDescription} 
@@ -100,6 +95,16 @@ const pageOgImage = ogImage || meta?.ogImage;
     </head>
     
     <body>
+        <script type="module">
+            import { MembershipUtils } from '/membershipUtils.js';
+            window.MembershipUtils = MembershipUtils;
+            window.checkUnifiedMembershipStatus = MembershipUtils.checkUnifiedMembershipStatus.bind(MembershipUtils);
+            globalThis.MembershipUtils = MembershipUtils;
+            globalThis.checkUnifiedMembershipStatus = MembershipUtils.checkUnifiedMembershipStatus.bind(MembershipUtils);
+            // Signal that membership utilities are ready
+            window.membershipUtilsReady = true;
+            window.dispatchEvent(new Event('membershipUtilsLoaded'));
+        </script>
         <SkipLink />
         <div id="nav-container"></div>
         <Header></Header>
@@ -114,7 +119,7 @@ const pageOgImage = ogImage || meta?.ogImage;
         </main>
 
         {siteDisclaimer && (
-            <div class="legalese" style="display:none; place-content: center; padding:0 4%;">{siteDisclaimer}</div>
+            <div class="" style="display:grid; place-content: center; padding:0 4%;">{siteDisclaimer}</div>
                 )}
 
         { showFooter && (
@@ -130,11 +135,6 @@ const pageOgImage = ogImage || meta?.ogImage;
 
             const images = document.querySelectorAll('img');
             images.forEach(img => {
-                // Skip gallery images with data-src attribute - they handle their own blur
-                if (img.hasAttribute('data-src')) {
-                    return;
-                }
-                
                 // Apply initial blur
                 img.style.filter = 'blur(20px)';
                 img.style.transition = 'filter 0.5s ease-in-out';
@@ -171,10 +171,10 @@ const pageOgImage = ogImage || meta?.ogImage;
         });
     </script>
 
-    <script>
+    <script is:inline>
     // Global VideoPreferences class - Available to all components
     class VideoPreferencesManager {
-      private static STORAGE_KEY = 'video-preferences';
+      static STORAGE_KEY = 'video-preferences';
       
       static getPreferences() {
         if (typeof window === 'undefined') {
@@ -194,7 +194,7 @@ const pageOgImage = ogImage || meta?.ogImage;
         return { muted: false, videoMode: 'popup' };
       }
       
-      static setMuted(muted: boolean) {
+      static setMuted(muted) {
         if (typeof window === 'undefined') return;
         
         try {
@@ -214,9 +214,9 @@ const pageOgImage = ogImage || meta?.ogImage;
         }
       }
       
-      static updateAllVideoMuteStates(muted: boolean) {
+      static updateAllVideoMuteStates(muted) {
         document.querySelectorAll('iframe[src*="youtube-nocookie.com/embed/"]:not([data-preserve-settings]), iframe[src*="youtube.com/embed/"]:not([data-preserve-settings])').forEach((element) => {
-          const iframe = element as HTMLIFrameElement;
+          const iframe = element;
           const currentSrc = iframe.src;
           const url = new URL(currentSrc);
           
@@ -233,13 +233,13 @@ const pageOgImage = ogImage || meta?.ogImage;
         
         // Update all mute toggle buttons
         document.querySelectorAll('.mute-toggle-btn').forEach((element) => {
-          const btn = element as HTMLButtonElement;
+          const btn = element;
           btn.textContent = muted ? '🔇' : '🔊';
           btn.setAttribute('aria-label', muted ? 'Unmute videos' : 'Mute videos');
         });
       }
       
-      static setVideoMode(mode: 'popup' | 'page') {
+      static setVideoMode(mode) {
         if (typeof window === 'undefined') return;
         
         try {
@@ -271,42 +271,21 @@ const pageOgImage = ogImage || meta?.ogImage;
     }
     
   
-    (window as any).VideoPreferences = VideoPreferencesManager;
+    window.VideoPreferences = VideoPreferencesManager;
     </script>
 
-
-    <script type="module">
-      // import { MembershipUtils, FavoritesManager } from '/membershipUtils.js';
-      
-      globalThis.MembershipUtils = MembershipUtils;
-      globalThis.FavoritesManager = FavoritesManager;
-      globalThis.checkUnifiedMembershipStatus = async function() {
-        return await MembershipUtils.checkMembershipStatus();
-      };
-      
-    </script>
-
-
-    <script type="module">
+    <script is:inline>
       async function checkMembershipStatus() {
-        if (typeof globalThis.MembershipUtils !== 'undefined') {
-          return await globalThis.MembershipUtils.checkMembershipStatus();
-        }
-
-        return { isValid: false, message: 'Membership utilities not yet loaded' };
+        // Always return valid membership (free for all)
+        return { isValid: true, tier: 'free', email: 'guest@local', source: 'open-access', message: 'Free access for all' };
       }
 
       function initializeMembershipIcon() {
         const membershipIcon = document.getElementById('membership-icon');
         if (!membershipIcon) return;
 
-        checkMembershipStatus().then(status => {
-          if (status.isValid) {
-            membershipIcon.style.display = 'flex';
-          } else {
-            membershipIcon.style.display = 'none';
-          }
-        });
+        // Always show as valid member
+        membershipIcon.style.display = 'flex';
       }
 
       if (document.readyState === 'loading') {
@@ -317,13 +296,6 @@ const pageOgImage = ogImage || meta?.ogImage;
 
       // Re-initialize after each page navigation
       document.addEventListener('astro:after-swap', initializeMembershipIcon);
-
-      // Listen for membership status changes
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'membershipCode' || e.key === 'membershipStatus') {
-          initializeMembershipIcon();
-        }
-      });
     </script>
 
 
