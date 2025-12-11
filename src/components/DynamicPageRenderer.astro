@@ -72,7 +72,7 @@ const sectionData = await Promise.all(
       }
     } else if ((section.type === 'content' || section.type === 'contentblock') && section.contentBlockSlug) {
       try {
-        return { type: 'content', data: await getEntry('pitches', section.contentBlockSlug) };
+        return { type: 'content', data: await getEntry('contentBlocks', section.contentBlockSlug) };
       } catch (error) {
         console.log(`Content block not found: ${section.contentBlockSlug}`);
         return { type: 'content', data: null };
@@ -246,7 +246,7 @@ function getSectionWidthClass(width?: string) {
               const postsShowTitle = showTitle;
               
               return (
-                <div data-section-id={`posts-section-${index}`}>
+                <div style="margin-bottom:10vh;" data-section-id={`posts-section-${index}`}>
                   {((postsShowTitle && (postsTitle || postsDescription)) || !hideCollapseButton) && (
                     <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 0 3%;">
                       <div style="flex: 1;">
@@ -292,7 +292,7 @@ function getSectionWidthClass(width?: string) {
                           onmouseout="this.style.background='#222'" 
                           href="/posts" 
                           style="display:grid; place-self:center; margin:0 auto 2rem auto; border: 2px solid #000; padding: 12px 24px; background:#222;">
-                          Show More Posts
+                          View All Posts
                         </a>
                       </div>
                     )}

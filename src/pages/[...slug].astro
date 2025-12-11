@@ -1,6 +1,6 @@
 ---
 export const prerender = true;
-import { type CollectionEntry, getCollection } from "astro:content";
+import { type CollectionEntry, getCollection, render } from "astro:content";
 import PageLayout from "@/layouts/Base.astro";
 import DynamicPageRenderer from "@/components/DynamicPageRenderer.astro";
 import MarkdownRenderer from "@/components/MarkdownRenderer.astro";
@@ -18,17 +18,15 @@ export async function getStaticPaths() {
 			console.warn("Posts collection not available:", e);
 		}
 
-		const allEntries = [...pages, ...posts];
+	const allEntries = [...pages, ...posts];
 
-		return allEntries.map((entry) => {
-			const cleanSlug =
-				entry.slug ||
-				entry.id
-					.split("/")
-					.pop()
-					?.replace(/\.(md|mdx|mdoc)$/, "");
-
-			return {
+	return allEntries.map((entry) => {
+		const cleanSlug =
+			entry.data.slug ||
+			entry.id
+				.split("/")
+				.pop()
+				?.replace(/\.(md|mdx|mdoc)$/, "");			return {
 				params: { slug: cleanSlug },
 				props: { entry },
 			};
@@ -49,7 +47,7 @@ if (!entry) return Astro.redirect("/404");
 let Content;
 let renderedContent = '';
 try {
-	({ Content } = await entry.render());
+	({ Content } = await render(entry));
 	// For template system, we need to render the content to HTML
 	// The body contains raw markdown, but we need processed HTML
 	if (entry.body && entry.body.trim()) {

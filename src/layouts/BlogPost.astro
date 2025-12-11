@@ -55,6 +55,75 @@ const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString();
 const { headings = [] } = (post.rendered as { headings?: any[] } | undefined) ?? {};
 ---
 
+<style is:global>
+/* Rotation notice overlay - only show in portrait mode on mobile */
+#rotation-notice {
+  display: none;
+  position: relative;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+  margin: 0;
+}
+
+#rotation-notice a {
+  color: white;
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 58rem) and (orientation: portrait) {
+  #rotation-notice {
+    display: block;
+  }
+}
+
+/* Landscape orientation on mobile devices - full screen video/hero */
+@media (max-width: 58rem) and (orientation: landscape) {
+  #blog-hero {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  #blog-hero .video-container-with-overlay,
+  #blog-hero > div {
+    height: 100vh !important;
+    width: 100vw !important;
+  }
+  
+  /* Hide header and rotation notice in landscape */
+  header,
+  #rotation-notice {
+    display: none !important;
+  }
+}
+
+/* Portrait orientation - normal layout */
+@media (max-width: 58rem) and (orientation: portrait) {
+  #blog-hero {
+    width: 100vw !important;
+    height: auto !important;
+  }
+}
+</style>
+
 <BaseLayout 
   title={title} 
   description={description} 
@@ -128,6 +197,11 @@ const { headings = [] } = (post.rendered as { headings?: any[] } | undefined) ??
             </div>
           ) : null
         }
+    </div>
+    
+    <!-- Rotation notice for mobile portrait mode -->
+    <div id="rotation-notice">
+      📱 Rotate your device and <a href={Astro.url.href} target="_blank" rel="noopener">open in new window</a> for best experience
     </div>
     
     <!-- Share options below video -->

@@ -1,0 +1,9 @@
+content: Contact page content here
+showName: true
+showPhone: true
+showMessage: true
+showUpload: true
+showExtraField: true
+extraFieldLabel: Extra Field
+showExtraField2: false
+showMap: true

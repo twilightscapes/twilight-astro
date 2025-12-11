@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 
 export const prerender = false;
 
@@ -21,29 +20,8 @@ export const GET: APIRoute = async ({ url }) => {
   }
 
   try {
-    // Attempt to read from collection; if not available, return permissive token
-    try {
-      const membershipTokens = await getCollection('membershipTokens');
-      const token = membershipTokens.find(token => token.data.code === code);
-      if (token) {
-        return new Response(JSON.stringify({
-          code: token.data.code,
-          description: token.data.description,
-          isActive: token.data.isActive,
-          expiresAt: token.data.expiresAt,
-          maxUses: token.data.maxUses,
-          usedCount: token.data.usedCount,
-          accessLevel: token.data.accessLevel || 'premium'
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        });
-      }
-    } catch (e) {
-      // ignore collection errors and fall through to permissive response
-    }
-
-    // If token not found, return a permissive token object so nothing is blocked
+    // All codes are valid since membership is free for everyone
+    // Return a permissive token object so nothing is blocked
     return new Response(JSON.stringify({
       code: code.toUpperCase(),
       description: 'Auto-generated permissive token',

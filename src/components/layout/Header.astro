@@ -106,7 +106,7 @@ const url = new URL(Astro.request.url);
 
   #bottom-menu-btn {
     pointer-events: auto;
-    margin-bottom: 10px;
+    /* margin-bottom: 10px; */
     color: #fff;
   }
 
@@ -115,13 +115,13 @@ const url = new URL(Astro.request.url);
     stroke: #fff;
   }#menu-popup {
   position: fixed;
-  bottom: 70px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--theme-header);
   color: #fff;
   border-radius: 8px;
-  padding: 1rem;
+  padding: .5rem;
   z-index: 100;
   display: none;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -142,7 +142,7 @@ const url = new URL(Astro.request.url);
 }
 
 #menu-popup a {
-  padding: 0.75rem 1rem;
+  padding: 1rem 1rem;
   display: block;
   text-align: center;
   border-radius: 4px;
@@ -219,28 +219,7 @@ const url = new URL(Astro.request.url);
 
   
 
-  
-
-
-
-
-
-<GoBack />
-
-<button
-aria-label="Back to Top"
-class="backup z-90 bottom-0 fixed end-2 flex h-10 w-10 translate-y-24 items-center justify-center rounded-md ring-zinc-400 hover:ring-2 opacity-0 transition-all duration-300 hover:border-zinc-400 data-[show=true]:translate-y-0 data-[show=true]:opacity-85 sm:end-2 sm:h-10 sm:w-10 topper"
-data-show="false"
-id="to-top-btn"
-style="flex-direction: column;"
->
-<svg  class="w-8 h-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M14 20h-4v-9l-3.5 3.5l-2.42-2.42L12 4.16l7.92 7.92l-2.42 2.42L14 11z"/></svg>
-<span class="--theme-header" style="font-size:10px; font-weight: bold;">{topText}</span>
-</button>
-
-</div>
-
-<!-- Bottom centered menu button -->
+  <!-- Bottom centered menu button -->
 {sortedMenuLinks.length > 0 && (
   <div id="bottom-menu-container">
     <button
@@ -268,6 +247,27 @@ style="flex-direction: column;"
     </ul>
   </div>
 )}
+
+
+
+
+
+<GoBack />
+
+<button
+aria-label="Back to Top"
+class="backup z-90 bottom-0 fixed end-2 flex h-10 w-10 translate-y-24 items-center justify-center rounded-md ring-zinc-400 hover:ring-2 opacity-0 transition-all duration-300 hover:border-zinc-400 data-[show=true]:translate-y-0 data-[show=true]:opacity-85 sm:end-2 sm:h-10 sm:w-10 topper"
+data-show="false"
+id="to-top-btn"
+style="flex-direction: column;"
+>
+<svg  class="w-8 h-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M14 20h-4v-9l-3.5 3.5l-2.42-2.42L12 4.16l7.92 7.92l-2.42 2.42L14 11z"/></svg>
+<span class="--theme-header" style="font-size:10px; font-weight: bold;">{topText}</span>
+</button>
+
+</div>
+
+
 
 {backgroundImage && (
   <img class="backimage w-2.5 h-2.5" src={backgroundImage} alt="Default Background" width="10" height="10" />

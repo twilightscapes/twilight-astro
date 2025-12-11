@@ -261,7 +261,7 @@ const {
     padding: 2rem;
     background: rgba(0, 0, 0, 0.7);
     border-radius: 12px;
-    color: white;
+
     border-left: 4px solid #fbbf24;
   }
 
@@ -274,7 +274,7 @@ const {
     position: relative;
     overflow: hidden;
     margin:1vh auto 0 auto;
-    color:white;
+    padding: 0;
     max-width: 600px;
   }
 
@@ -298,7 +298,6 @@ const {
   .hero-title {
     font-size: clamp(2.3rem, 4.5vw, 4rem);
     font-weight: 900;
-    margin-bottom: 1rem;
     background: linear-gradient(45deg, #ef4444, #f97316, #eab308);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -352,6 +351,361 @@ const {
     box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
   }
 
+
+
+
+
+
+
+.features-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: #fff;
+    background:#333;
+    border-radius: 14px;
+  }
+
+  .hero-section {
+    text-align: center;
+    padding: 1rem 0;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 20px;
+    margin-bottom: 4rem;
+    max-width: 90%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(239, 68, 68, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-title {
+    font-size: clamp(1.2rem, 4.5vw, 4rem);
+    font-weight: 900;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #ef4444, #f97316, #eab308);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-tagline {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #60a5fa;
+    margin-bottom: 3rem;
+  }
+
+  .section {
+    margin: 0 0;
+    padding: 3rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section-subtitle {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #fbbf24;
+    margin-bottom: 1.5rem;
+  }
+
+  .privacy-section {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  .custom-portal-section {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+
+  .sovereignty-section {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .feature-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .feature-card h3 {
+    color: #60a5fa;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .evil-list {
+    background: rgba(239, 68, 68, 0.1);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #ef4444;
+    margin: 1.5rem 0;
+  }
+
+  .evil-list h4 {
+    color: #fca5a5;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+
+  .comparison-section {
+    margin: 4rem 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 0 .5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    margin: 2rem 0;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .comparison-table th {
+    background: rgba(255, 255, 255, 0.1);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .comparison-table td:first-child {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .checkmark {
+    color: #4ade80;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .crossmark {
+    color: #f87171;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .cta-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border-radius: 20px;
+    margin: 4rem 0;
+    border: 2px solid rgba(139, 92, 246, 0.3);
+  }
+
+   .cta-section h2{text-align: center !important; justify-content: center;}
+
+  .cta-button {
+    display: inline-block;
+    padding: .5rem;
+    background: linear-gradient(45deg, #ef4444, #f97316);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    margin: 1rem auto;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+  }
+
+  .resistance-quote {
+    font-style: italic;
+    font-size: 1.1rem;
+    text-align: center;
+    margin: 3rem 0;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border-left: 4px solid #fbbf24;
+  }
+
+  ul, ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+  }
+
+  li {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+  }
+
+  p {
+    line-height: 1.7;
+    margin: 1rem 0;
+  }
+
+  .big-brother-callout {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    text-align: center;
+  }
+
+  .big-brother-callout h3 {
+    color: #fca5a5;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .features-container {
+      padding: 1rem;
+    }
+
+    .hero-title {
+          font-size: clamp(1rem, 1.5vw, 2rem);
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      padding: 0 1rem;
+    }
+
+    .section {
+      padding: 2rem 1rem;
+    }
+
+    .section-title {
+          font-size: clamp(1rem, 1.5vw, 2rem);
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+  }
+
+    .cta-button {
+    display: inline-block;
+    padding: .5rem 1rem;
+    background: linear-gradient(45deg, #ef4444, #f97316);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: clamp(1rem, 1.5vw, 2rem);
+    font-weight: 700;
+    transition: all 0.3s ease;
+    margin: 0 auto 1rem auto;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+  }
+
+  .plan-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .plan-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .plan-card:hover::before {
+    left: 100%;
+  }
+
+  .plan-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(187, 0, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Bluesky hashtag code window */
+  .hashtag-code {
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+    cursor: pointer;
+    user-select: all;
+    border: 1px solid rgba(255,255,255,0.06);
+    font-size: 1rem;
+    display: inline-block;
+  }
+
+  .hashtag-code:focus {
+    outline: 2px solid rgba(96,165,250,0.6);
+  }
 </style>
 
   <section class="hero-section">
@@ -401,6 +755,174 @@ const {
 </div>
   </section>
   <br />
+
+
+
+
+
+
+
+
+  <!-- Custom Portal Section -->
+  <section class="section custom-portal-section">
+    <h2 class="section-title"> Other ways to use Video Privacy</h2>
+    <!-- <p class="section-subtitle">Escape algorithmic manipulation and content censorship. Build your own curated experience:</p> -->
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <h3>📺 Browser Plugin</h3>
+        <p>Install the Chrome or Firefox browser plugin and just click the button on any video page.</p>
+        <p><strong>Download:</strong></p>
+        <a class="cta-button" href="https://chromewebstore.google.com/detail/lnnhagplnlkjmjhhedckjeklhbfkjbib?utm_source=item-share-cb">Chrome Plugin</a>
+
+        &nbsp;&nbsp;&nbsp;<a class="cta-button" href="https://addons.mozilla.org/en-US/firefox/addon/video-privacy/">Firefox Plugin</a>
+
+
+      </div>
+      
+      <div class="feature-card">
+        <h3>Install the Web App </h3>
+        <!-- <p>To install, simply Save to your Home Screen to install our Web App.</p> -->
+
+        <div style={{textAlign:'left', display:'flex', alignContent:'center'}}>
+  1) Press the 'Share' button 
+</div>
+   
+    
+ <div style={{textAlign:'left', display:'flex', alignContent:'center',}}>
+2) Press 'Add to Home Screen'
+ </div>
+
+  <div style={{textAlign:'left', display:'flex', alignContent:'center',}}>
+3) Find the icon on your homepage
+ </div>
+
+
+ <img src="/images/logo/icon192.webp" style="margin:20px auto 0 auto; border-radius: 8px;" />
+</div>
+
+      <div class="feature-card">
+        <h3>On Bluesky </h3>
+        <div style="padding:4vh 2vw; background:#fff; border-radius: 8px;"><img src="/images/logo/bsky-logo.webp" style="margin:0 auto 0 auto; " /></div>
+        <p>Post this #hashtag on any Bluesky post containing a YouTube video to have an ad-free version provided.</p>
+        <div style="margin-top:1rem; display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <pre id="bluesky-hashtag" class="hashtag-code" role="button" tabindex="0" aria-label="Copy hashtag to clipboard">#VideoPrivacy</pre>
+          <button id="copy-hashtag-btn" class="btn" style="padding:.5rem 0.75rem; border-radius:8px;">Copy</button>
+          <span id="bluesky-copy-feedback" style="opacity:0; transition:opacity .2s; color:#60a5fa; font-weight:600;">Copied!</span>
+        </div>
+
+         
+
+  <script>
+    (function(){
+      const text = '#VideoPrivacy';
+      const hashtagEl = document.getElementById('bluesky-hashtag');
+      const btn = document.getElementById('copy-hashtag-btn');
+      const feedback = document.getElementById('bluesky-copy-feedback');
+
+      function showFeedback() {
+        if (!feedback) return;
+        feedback.style.opacity = '1';
+        setTimeout(() => { feedback.style.opacity = '0'; }, 1400);
+      }
+
+      async function doCopy() {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const input = document.createElement('input');
+            input.value = text;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            input.remove();
+          }
+          showFeedback();
+        } catch (e) {
+          // silent fallback
+          showFeedback();
+        }
+      }
+
+      if (hashtagEl) {
+        hashtagEl.addEventListener('click', doCopy);
+        hashtagEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            doCopy();
+          }
+        });
+      }
+
+      if (btn) {
+        btn.addEventListener('click', doCopy);
+      }
+    })();
+  </script>
+      </div>
+      <!-- <div class="feature-card">
+        <h4>🚫 Ad-Free Experience</h4>
+        <p>Watch content without corporate interruptions or manipulative advertising.</p>
+      </div> -->
+    </div>
+
+    <!-- <div class="evil-list">
+      <h4>What Your Viewing Habits Reveal to Big Tech:</h4>
+      <ul>
+        <li>Your political beliefs and voting intentions</li>
+        <li>Your purchasing power and future buying plans</li>
+        <li>Your relationship status and sexual orientation</li>
+        <li>Your mental health state and vulnerabilities</li>
+        <li>Your career aspirations and financial situation</li>
+        <li>Your location patterns and daily routines</li>
+      </ul>
+    </div> -->
+
+
+
+
+      <div class="cta-section mb-6">
+          <h2 class="text-2xl font-bold mb-4 flex items-center justify-center">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+            </svg>
+            You Manage Your Data
+          </h2>
+          <p class="mb-4 opacity-80">
+            Download a backup file containing all your settings, favorites, and preferences. Manage or delete your information too.
+          </p>
+          <a class="btn" style="margin:0 auto" href="/backup" id="backup-btn" class="btn-primary">
+            Manage Your Data Now
+          </a>
+        </div>
+
+        
+  </section>
+
+
+
+
+   <section class="section">
+  <div class="resistance-quote plan-card" style="max-width:80%; margin:0 auto; text-align: center;">
+<h3 class="">Video Privacy is freeware</h3>
+<p>If you enjoy Video Privacy please consider donating a couple of dollars.</p>
+
+<p>A lot of effort has gone into providing this for free and helps an individual developer</p>
+
+
+
+<a class="cta-button" href="https://donate.stripe.com/dRmfZh9c28ZZ5Xy6flaAw01">Donations Welcome!</a>
+
+
+  </div>
+
+</section>
+
+
+
+
+
 
 <script>
 // Multi-platform video detection and handling (same as video.astro)

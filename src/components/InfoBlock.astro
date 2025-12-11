@@ -15,6 +15,7 @@ const { pitch, sectionId, sectionWidth = 'normal' } = Astro.props;
 // Use the slug from either the pitch object or sectionId
 const contentSlug = pitch?.slug || sectionId;
 
+console.log('InfoBlock received:', { pitch, sectionId, contentSlug });
 
 if (!contentSlug) {
   console.error('❌ InfoBlock: No slug provided');

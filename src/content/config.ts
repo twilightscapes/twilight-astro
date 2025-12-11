@@ -1,4 +1,5 @@
 import { defineCollection, z } from "astro:content";
+import { glob } from "astro/loaders";
 
 function removeDupsAndLowerCase(array: string[]) {
   if (!array.length) return array;
@@ -38,10 +39,7 @@ const postSchema = z.object({
   overlaySvgAlt: z.string().optional(),
   tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
   draft: z.boolean().default(false),
-  order: z.object({
-    discriminant: z.boolean(),
-    value: z.number().optional(),
-  }).optional(),
+  sticky: z.boolean().default(false),
   externalUrl: z.string().optional(),
   youtube: z.object({
     discriminant: z.boolean(),
@@ -107,317 +105,150 @@ const postSchema = z.object({
   }).optional(),
 });
 
+const pagesSchema = z.object({
+  title: z.string(),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  useTemplateSystem: z.boolean().optional().default(false),
+  sections: z.array(z.any()).optional().default([]),
+}).passthrough(); // Allow additional fields
+
+const siteSettingsSchema = z.any();
+const formSettingsSchema = z.any();
+const bioSchema = z.any();
+const socialLinksSchema = z.any();
+const resumeSchema = z.any();
+const testimonialsSchema = z.any();
+const faqsSchema = z.any();
+const contentBlocksSchema = z.any();
+const ctasSchema = z.any();
+const menuItemsSchema = z.any();
+
 export const collections = {
-  // Post collection
+  // Posts - loaded from content/post/
   post: defineCollection({
-    type: 'content',
+    loader: glob({ pattern: '**/[^_]*.mdoc', base: './content/post' }),
     schema: postSchema,
   }),
 
-  // StyleApps collection
-  styleapps: defineCollection({
-    type: 'data',
-    schema: z.object({
-      backgroundImage: z.string().optional(),
-      backgroundVideo: z.string().optional(),
-      siteFont: z.string().optional(),
-      borderRadius: z.string().optional(),
-      lightBg: z.string().optional(),
-      lightAccent2: z.string().optional(),
-      darkBg: z.string().optional(),
-      darkAccent2: z.string().optional(),
-      lightHeader: z.string().optional(),
-      darkHeader: z.string().optional(),
-      lightCardBg: z.string().optional(),
-      darkCardBg: z.string().optional(),
-      lightText: z.string().optional(),
-      darkText: z.string().optional(),
-      customCSS: z.string().optional()
-    })
-  }),
-
+  // Pages - loaded from content/pages/
   pages: defineCollection({
-    type: 'content',
-    schema: z.object({
-      title: z.string(),
-      slug: z.string().optional(),
-      description: z.string().optional(),
-      layout: z.string().optional(),
-      draft: z.boolean().optional(),
-      // New template system - allows pages to use homepage components
-      useTemplateSystem: z.boolean().optional(),
-      sections: z.array(z.object({
-        type: z.enum([
-          'contentblock', 'pitch', 'testimonials', 'faqs', 
-          'resume', 'ctas', 'youtubefeeds', 'youform', 'posts', 'magicsearch', 'photos', 'app', 'form'
-        ]),
-        customTitle: z.string().optional(),
-        customDescription: z.string().optional(),
-        showTitle: z.boolean().optional(),
-        sectionWidth: z.enum(['narrow', 'normal', 'wide', 'full']).optional(),
-        // Content block specific
-        contentBlockSlug: z.string().optional(), // Reference to pitch slug
-        // YouTube feed specific
-        feedConfig: z.string().optional(), // Reference to YouTube feed slug
-        // CTA specific
-        cta: z.string().optional(), // Reference to CTA slug
-        showSearch: z.boolean().optional(),
-        searchMethod: z.enum(['client', 'pagefind', 'hybrid']).optional(),
-        hideCollapseButton: z.boolean().optional(),
-      })).optional().default([]),
-    }),
+    loader: glob({ pattern: '**/*.mdoc', base: './content/pages' }),
+    schema: pagesSchema,
   }),
 
-  pitches: defineCollection({
-    type: 'content',
-    schema: z.any(), // Flexible schema to match Keystatic
-  }),
-
-  faqs: defineCollection({
-    type: 'content',
-    schema: z.object({
-      question: z.string().optional(),
-      answer: z.string().optional(),
-      order: z.number().optional(),
-    }),
-  }),
-
-  resume: defineCollection({
-    type: 'content',
-    schema: z.object({
-      section: z.string().optional(),
-      showTitle: z.boolean().optional(),
-      content: z.string().optional(),
-    }),
-  }),
-
-  testimonials: defineCollection({
-    type: 'data',
-    schema: z.object({
-      name: z.string().optional(),
-      location: z.string().optional(),
-      quote: z.string().optional(),
-      image: z.string().optional(),
-      order: z.number().optional(),
-    }),
-  }),
-
-
-
-  // Optional menuItems collection - can be empty if not needed
-  menuItems: defineCollection({
-    type: 'data',
-    schema: z.object({
-      name: z.string().optional(),
-      title: z.string().optional(),
-      path: z.string().optional(),
-      order: z.number().optional(),
-    }),
-  }),
-
-  footerMenuItems: defineCollection({
-    type: 'data',
-    schema: z.object({
-      name: z.string().optional(),
-      title: z.string().optional(),
-      path: z.string().optional(),
-      order: z.number().optional(),
-    }),
-  }),
-
-  socialLinks: defineCollection({
-    type: 'data',
-    schema: z.object({
-      friendlyName: z.string().optional(),
-      link: z.string().optional(),
-      icon: z.string().optional(),
-      isActive: z.boolean().optional(),
-      order: z.any().transform(val => 
-        (val === '.nan' || val === 'nan' || Number.isNaN(val)) ? undefined : Number(val)
-      ).optional()
-    }),
-  }),
-
+  // Site Settings singleton - loaded from content/siteSettings/
   siteSettings: defineCollection({
-    type: 'data',
-    schema: z.object({
-      logoImage: z.string().optional(),
-      showHeader: z.boolean().optional(),
-      showLogo: z.boolean().optional(),
-      showHome: z.boolean().optional(),
-      showTheme: z.boolean().optional(),
-      showSwitch: z.boolean().optional(),
-      // showSearch: z.boolean().optional(),
-      showFooter: z.boolean().optional(),
-      defaultView: z.enum(['grid', 'swipe']).optional(),
-      themeMode: z.enum(['light', 'dark', 'user']).optional(),
-      showTitles: z.boolean().optional(),
-      showDates: z.boolean().optional(),
-      enableImageBlur: z.boolean().optional(),
-      showTags: z.boolean().optional(),
-      showTagFilters: z.boolean().optional(),
-      showSocial: z.boolean().optional(),
-      MAX_POSTS: z.number().optional(),
-      MAX_POSTS_PER_PAGE: z.number().optional(),
-      showShare: z.boolean().optional(),
-      showSearch: z.boolean().optional(),
-      searchMethod: z.enum(['client', 'pagefind', 'hybrid']).optional(),
-      videoTimeLimitMinutes: z.number().min(-1).max(30).optional(),
-    }),
+    loader: glob({ pattern: '**/*.yaml', base: './content/siteSettings' }),
+    schema: siteSettingsSchema,
   }),
 
-  pwaSettings: defineCollection({
-    type: 'data',
-    schema: z.object({
-      showRobots: z.boolean().optional(),
-      siteUrl: z.string().optional(),
-      name: z.string().optional(),
-      shortName: z.string().optional(),
-      screenshot: z.string().optional(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      themeColor: z.string().optional(),
-      backgroundColor: z.string().optional(),
-      startUrl: z.string().optional(),
-      display: z.enum(['standalone', 'fullscreen', 'minimal-ui', 'browser']).optional(),
-      icon192: z.string().optional(),
-      icon512: z.string().optional(),
-    }),
-  }),
-
+  // Form Settings singleton - loaded from content/formSettings/
   formSettings: defineCollection({
-    type: 'data',
-    schema: z.object({
-      location: z.string().optional(),
-      showMap: z.boolean().optional(),
-      // Contact form configuration
-      showName: z.boolean().optional(),
-      showPhone: z.boolean().optional(),
-      showMessage: z.boolean().optional(),
-      showUpload: z.boolean().optional(),
-      showExtraField: z.boolean().optional(),
-      extraFieldLabel: z.string().optional(),
-      showExtraField2: z.boolean().optional(),
-      extraFieldLabel2: z.string().optional(),
-      formContent: z.string().optional(),
-      // Map contact information
-      mapTitle: z.string().optional(),
-      mapDescription: z.string().optional(),
-      businessName: z.string().optional(),
-      addressLine1: z.string().optional(),
-      addressLine2: z.string().optional(),
-      mapPhone: z.string().optional(),
-      mapFax: z.string().optional(),
-      mapAdditionalText: z.string().optional(),
-    }),
+    loader: glob({ pattern: '**/*.yaml', base: './content/formSettings' }),
+    schema: formSettingsSchema,
   }),
 
-  photoSettings: defineCollection({
-    type: 'data',
-    schema: z.object({
-      galleryMode: z.enum(['directory', 'keystatic']).optional(),
-      showCaptions: z.boolean().optional(),
-      autoOpenLightbox: z.boolean().optional(),
-      // showFaqsOnPhotos: z.boolean().optional(),
-      // showTestimonialsOnPhotos: z.boolean().optional(),
-      // pitch: z.string().optional(),
-      defaultDirectory: z.string().optional(),
-      showGallerySelector: z.boolean().optional(),
-      galleryImages: z.array(z.object({
-        image: z.string().optional(),
-        caption: z.string().optional(),
-      })).optional(),
-    }),
+  // Bio collection - loaded from content/bio/
+  bio: defineCollection({
+    loader: glob({ pattern: '**/*.yaml', base: './content/bio' }),
+    schema: bioSchema,
   }),
 
-  language: defineCollection({
-    type: 'data',
-    schema: z.object({
-      homelink: z.string().optional(),
-      copyright: z.string().optional(),
-      goback: z.string().optional(),
-      top: z.string().optional(),
-      viewmore: z.string().optional(),
-      allimages: z.string().optional(),
-      close: z.string().optional(),
-      // search: z.string().optional(),
-      mute: z.string().optional(),
-      volume: z.string().optional(),
-      progress: z.string().optional(),
-      tags: z.string().optional(),
-      viewall: z.string().optional(),
-      shareText: z.string().optional(),
-      copyButton: z.string().optional(),
-      siteDisclaimer: z.string().optional(),
-      socialMessage: z.string().optional(),
-
-    }),
+  // Social Links - loaded from content/socialLinks/
+  socialLinks: defineCollection({
+    loader: glob({ pattern: '**/*.{json,yaml}', base: './content/socialLinks' }),
+    schema: socialLinksSchema,
   }),
 
-
-
-
-
-  resumeSettings: defineCollection({
-    type: 'data',
-    schema: z.object({
-      title: z.string().optional(),
-      showTitle: z.boolean().optional(),
-      name: z.string().optional(),
-      contact: z.string().optional(),
-      leftColumnItems: z.array(z.string()).optional(),
-      rightColumnItems: z.array(z.string()).optional(),
-    }),
+  // Resume - loaded from content/resume/
+  resume: defineCollection({
+    loader: glob({ pattern: '**/*.mdoc', base: './content/resume' }),
+    schema: resumeSchema,
   }),
 
+  // Testimonials - loaded from content/testimonials/
+  testimonials: defineCollection({
+    loader: glob({ pattern: '**/*.yaml', base: './content/testimonials' }),
+    schema: testimonialsSchema,
+  }),
+
+  // FAQs - loaded from content/faqs/
+  faqs: defineCollection({
+    loader: glob({ pattern: '**/*.mdoc', base: './content/faqs' }),
+    schema: faqsSchema,
+  }),
+
+  // Content Blocks - loaded from content/contentBlocks/
+  // Uses Keystatic format with markdoc content in separate files
+  contentBlocks: defineCollection({
+    loader: glob({ pattern: '**/*.{yaml,mdoc}', base: './content/contentBlocks' }),
+    schema: contentBlocksSchema,
+  }),
+
+  // CTAs - loaded from content/CTAs/
   CTAs: defineCollection({
-    type: 'data',
-    schema: z.object({
-      title: z.string().optional(),
-      ctaUrl: z.string().optional(),
-      description: z.string().optional(),
-      showFancy: z.boolean().optional(),
-      showTransition: z.boolean().optional()
-    })
+    loader: glob({ pattern: '**/*.yaml', base: './content/CTAs' }),
+    schema: ctasSchema,
   }),
 
-  // youtubeFeedCollections: defineCollection({
-  //   type: 'data',
-  //   schema: z.object({
-  //     name: z.string(),
-  //     description: z.string().optional(),
-  //     channels: z.array(z.object({
-  //       channelId: z.string(),
-  //       channelName: z.string().optional()
-  //     })).default([]),
-  //     category: z.enum(['tech', 'education', 'science', 'entertainment', 'news', 'politics', 'podcasts', 'gaming', 'lifestyle']).default('tech')
-  //   })
-  // }),
+  // Menu Items - loaded from content/menuItems/
+  menuItems: defineCollection({
+    loader: glob({ pattern: '**/*.{json,yaml}', base: './content/menuItems' }),
+    schema: menuItemsSchema,
+  }),
 
+  // Footer Menu Items - loaded from content/footerMenuItems/
+  footerMenuItems: defineCollection({
+    loader: glob({ pattern: '**/*.{json,yaml}', base: './content/footerMenuItems' }),
+    schema: menuItemsSchema,
+  }),
+
+  // Home page settings - loaded from content/home/
+  home: defineCollection({
+    loader: glob({ pattern: '**/*.yaml', base: './content/home' }),
+    schema: z.any(),
+  }),
+
+  // Contact page settings - loaded from content/contactPage/
+  contactPage: defineCollection({
+    loader: glob({ pattern: '**/*.yaml', base: './content/contactPage' }),
+    schema: z.any(),
+  }),
+
+  // Photo settings - loaded from content/photoSettings/
+  photoSettings: defineCollection({
+    loader: glob({ pattern: '**/*.{json,yaml}', base: './content/photoSettings' }),
+    schema: z.any(),
+  }),
+
+  // PWA settings - loaded from content/pwaSettings/
+  pwaSettings: defineCollection({
+    loader: glob({ pattern: '**/*.{json,yaml}', base: './content/pwaSettings' }),
+    schema: z.any(),
+  }),
+
+  // Resume settings - loaded from content/resumeSettings/
+  resumeSettings: defineCollection({
+    loader: glob({ pattern: '**/*.yaml', base: './content/resumeSettings' }),
+    schema: z.any(),
+  }),
+
+  // Language settings - loaded from content/language/
+  language: defineCollection({
+    loader: glob({ pattern: '**/*.yaml', base: './content/language' }),
+    schema: z.any(),
+  }),
+
+  // Style apps - loaded from content/styleapps/
+  styleapps: defineCollection({
+    loader: glob({ pattern: '**/*.yaml', base: './content/styleapps' }),
+    schema: z.any(),
+  }),
+
+  // YouTube Feeds - loaded from content/youtubeFeeds/
   youtubeFeeds: defineCollection({
-    type: 'data',
-    schema: z.object({
-      title: z.string().optional(),
-      description: z.string().optional(),
-      feedType: z.enum(['channels', 'collections', 'mixed']).default('channels'),
-      channelIds: z.array(z.string()).default([]),
-      selectedCollections: z.array(z.string()).default([]),
-      maxVideos: z.number().min(1).max(250).default(6),
-      initialLoad: z.number().min(1).max(100).default(21),
-      showTitles: z.boolean().default(true),
-      showSectionTitle: z.boolean().default(true),
-      useCustomPlayer: z.boolean().default(false),
-      defaultView: z.enum(['grid', 'swipe']).default('grid'),
-      includeSitePosts: z.boolean().default(false),
-      maxSitePosts: z.number().min(0).max(20).default(3)
-    })
-  }),
-
-  // Social Card collection for default site image (from photoUpload directory)
-  photoUpload: defineCollection({
-    type: 'data',
-    schema: z.object({
-      socialCard: z.string().optional(), // Image path from Keystatic upload
-    })
+    loader: glob({ pattern: '**/*.yaml', base: './content/youtubeFeeds' }),
+    schema: z.any(),
   }),
 };

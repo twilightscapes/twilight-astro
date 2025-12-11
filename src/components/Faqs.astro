@@ -1,10 +1,10 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
 const faqs = await getCollection('faqs');
 const sortedFaqs = await Promise.all(faqs.map(async (faq) => {
-  const { Content } = await faq.render();
+  const { Content } = await render(faq);
   return { ...faq, Content };
 }));
 sortedFaqs.sort((a, b) => (((a.data.order as number) ?? 0) - ((b.data.order as number) ?? 0)));

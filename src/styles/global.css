@@ -550,7 +550,8 @@ body:has(.videopage) .youtube-video-actions{position: relative; left: 90% !impor
 
 	  body:has(#homemap) {overflow-y:auto !important;}
 
-	  body:has(.blogpost) .legalese{display:grid !important;  border:0px solid red !important;}
+	  /* body:has(.legalese) .legalese {display:none;}
+	  body:has(.blogpost) .legalese{display:grid !important;} */
 
 /* body:has(.video) #missioncontrol{display: none !important;} */
 
@@ -1036,4 +1037,3 @@ body:has(.video) #footer{display: none !important;}
     }
 
 .pwa-button{display:flex; justify-content: center;}
-

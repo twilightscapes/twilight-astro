@@ -1,5 +1,5 @@
 ---
-import { getEntry, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 import YouTubeEmbed from './YouTubeEmbed.astro';
 import { renderMarkdown } from '../utils/utils.ts';
 
@@ -10,41 +10,34 @@ interface Props {
 
 const { slug, sectionWidth = 'normal' } = Astro.props;
 
-
-
-// Load the content block
+// Load the content block using Astro's content collections
 let contentBlock;
+let contentEntry;
+let secondaryContentEntry;
+
 try {
-  contentBlock = await getEntry('pitches', slug);
+  const allContentBlocks = await getCollection('contentBlocks');
+  
+  // Find the main entry (metadata)
+  contentBlock = allContentBlocks.find(block => block.id === slug || block.id === `${slug}.yaml`);
+  
+  // Find the content entry
+  contentEntry = allContentBlocks.find(block => block.id === `${slug}/content`);
+  
+  // Find the secondary content entry
+  secondaryContentEntry = allContentBlocks.find(block => block.id === `${slug}/secondarycontent` || block.id === `${slug}/secondaryContent`);
+  
   if (!contentBlock) {
+    console.error('❌ ContentBlock not found:', slug);
     return null;
   }
 } catch (error) {
+  console.error('❌ Error loading ContentBlock:', slug, error);
   return null;
 }
 
-// Try to load secondary content from separate file if it exists
-let secondaryContentText = '';
-try {
-  // Only run filesystem operations in Node.js environment (server-side)
-  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-    const fs = await import('fs');
-    const path = await import('path');
-    
-    const secondaryContentPath = path.join(process.cwd(), 'src/content/pitches', slug, 'secondaryContent.mdoc');
-    if (fs.existsSync(secondaryContentPath)) {
-      secondaryContentText = fs.readFileSync(secondaryContentPath, 'utf-8');
-    } else {
-      // No secondary content file found
-    }
-  }
-} catch (error) {
-  console.error('Error loading secondary content:', error);
-}
-
 const { 
-  title,
-  content,
+  title: titleFromData,
   layout = 'single',
   contentAlignment = 'left',
   spacing = 'normal',
@@ -62,10 +55,15 @@ const {
   ctaAlignment = 'left',
   showTitle = true,
   youtube,
-  videoPosition = 'top',
-  tagline,
-  subheading1
+  videoPosition = 'top'
 } = contentBlock.data;
+
+// Get content from the separate content entries
+const content = contentEntry?.body;
+const secondaryContent = secondaryContentEntry?.body;
+
+// Use title from data, or fall back to slug as title
+const title = titleFromData || slug;
 
 const hasOverlay = overlayImage || overlaySvg;
 
@@ -78,64 +76,23 @@ function processMarkdown(text: string): string {
   // Use the enhanced markdown renderer from utils which includes proper line break handling
   return renderMarkdown(text);
 }
-
-// Content rendering - handle both markdoc and fallback content
+// Content rendering - handle both markdoc and markdown content
 let actualContent = '';
 let actualSecondaryContent = '';
-let renderedContent: any = null;
-
-if (slug === 'video-header') {
-  actualContent = ``;
-} else {
-  if (content && typeof content === 'string') {
-
-  } else {
-
-  }
-}
 
 // Handle main content rendering
-let renderedMainContent: any = null;
-
-// Check if content is a markdoc object that needs rendering
-if (content && typeof content === 'object' && content !== null) {
-  try {
-    const renderedMain = await render(content);
-    if (renderedMain && renderedMain.Content) {
-      renderedMainContent = renderedMain.Content;
-
-    }
-  } catch (renderError) {
-
-  }
+if (content && typeof content === 'string') {
+  // Content is markdown/markdoc as a string, process it
+  actualContent = processMarkdown(content);
 }
 
 // Handle secondary content for two-column layouts
-let renderedSecondaryContent: any = null;
-
 if (layout === 'two-column' || layout === 'two-column-equal') {
-  // Use the secondary content from file if available
-  if (secondaryContentText && secondaryContentText.trim()) {
-    actualSecondaryContent = processMarkdown(secondaryContentText);
-    // console.log('Secondary content loaded and processed for:', slug);
-  } else {
-    // console.log('No secondary content found for:', slug);
+  if (secondaryContent && typeof secondaryContent === 'string') {
+    // Secondary content is markdown/markdoc as a string, process it
+    actualSecondaryContent = processMarkdown(secondaryContent);
   }
 }
-
-
-
-// Load CTA if specified
-let ctaData;
-if (cta) {
-  try {
-    ctaData = await getEntry('CTAs', cta);
-
-  } catch (error) {
-
-  }
-}
-
 // Generate CSS classes
 const widthClasses = {
   narrow: 'max-w-2xl mx-auto',
@@ -273,78 +230,33 @@ function getCTAButtonClasses(style = 'primary') {
           alt={imageAlt || title || 'Content block image'} 
           class="w-full h-auto rounded-lg"
         />
-          {ctaPosition === 'after-title' && ctaData?.data && (
-        <div class={`cta-container cta-after-title mt-6 ${ctaAlignmentClasses[ctaAlignment] || ctaAlignmentClasses.left}`} style="position:absolute">
-          <a 
-            href={ctaData.data.ctaUrl && ctaData.data.ctaUrl.trim() ? ctaData.data.ctaUrl : '#'}
-            class={`inline-block px-6 py-3 rounded-lg font-semibold transition-colors duration-200 ${getCTAButtonClasses(ctaData.data.style)}`}
-          >
-            {ctaData.data.title}
-          </a>
-        </div>
-      )}
       </div>
-
     )}
 
     {/* Main Content Area */}
     <div class={`main-content ${layout === 'two-column' ? 'lg:col-span-3' : layout === 'two-column-equal' ? 'lg:col-span-1' : 'col-span-full'}`}>
-      {tagline && (
-        <div class="tagline mb-4">
-          <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">{tagline}</p>
-        </div>
+      {/* Render content - handle rendered markdoc, markdown string, or YAML content field */}
+      {actualContent && (
+        <div class="prose prose-lg max-w-none dark:prose-invert" set:html={actualContent} />
       )}
-      
-      {subheading1 && (
-        <div class="subheading mb-4">
-          <h3 class="text-xl font-medium text-gray-800 dark:text-gray-200">{subheading1}</h3>
-        </div>
+      {!actualContent && typeof content === 'string' && (
+        <div class="prose prose-lg max-w-none dark:prose-invert" set:html={processMarkdown(content)} />
       )}
-      
-      {/* Render content - handle both body (for .mdoc files), markdoc content field, and YAML content field */}
-      {(contentBlock.body || content || renderedMainContent) && (
+      {!actualContent && typeof content !== 'string' && content && (
         <div class="prose prose-lg max-w-none dark:prose-invert">
-          {contentBlock.body ? (
-            <div set:html={processMarkdown(contentBlock.body)} />
-          ) : renderedMainContent ? (
-            <renderedMainContent />
-          ) : typeof content === 'string' ? (
-            <div set:html={processMarkdown(content)} />
-          ) : (
-            <div>Content type not supported: {typeof content}</div>
-          )}
+          <div>Content type not supported: {typeof content}</div>
         </div>
       )}
       
       {!contentBlock.body && !content && (
-        // <div class="prose prose-lg max-w-none dark:prose-invert">
-        //   <p><em>No content available for this content block.</em></p>
-        // </div>
         ''
       )}
-      
-      <!-- {ctaPosition === 'after-content' && ctaData?.data && (
-        <div class={`cta-container cta-after-content mt-6 ${ctaAlignmentClasses[ctaAlignment] || ctaAlignmentClasses.left}`}>
-          <a 
-            href={ctaData.data.ctaUrl && ctaData.data.ctaUrl.trim() ? ctaData.data.ctaUrl : '#'}
-            class={`inline-block px-6 py-3 rounded-lg font-semibold transition-colors duration-200 ${getCTAButtonClasses(ctaData.data.style)}`}
-          >
-            {ctaData.data.title}
-          </a>
-        </div>
-      )} -->
     </div>
 
     {/* Secondary Content (for two-column layouts) */}
-    {(layout === 'two-column' || layout === 'two-column-equal') && (actualSecondaryContent || renderedSecondaryContent) && (
+    {(layout === 'two-column' || layout === 'two-column-equal') && actualSecondaryContent && (
       <div class={`secondary-content ${layout === 'two-column' ? 'lg:col-span-2' : 'lg:col-span-1'}`}>
-        {renderedSecondaryContent ? (
-          <div class="prose prose-lg max-w-none dark:prose-invert">
-            <renderedSecondaryContent />
-          </div>
-        ) : (
-          <div class="prose prose-lg max-w-none dark:prose-invert" set:html={actualSecondaryContent} />
-        )}
+        <div class="prose prose-lg max-w-none dark:prose-invert" set:html={actualSecondaryContent} />
       </div>
     )}
 
@@ -397,7 +309,7 @@ function getCTAButtonClasses(style = 'primary') {
   </div>
 
   {/* Bottom CTA */}
-  {ctaPosition === 'bottom' && ctaData?.data && ctaData.data.ctaUrl && (
+  {/* {ctaPosition === 'bottom' && ctaData?.data && ctaData.data.ctaUrl && (
     <div class={`cta-container cta-bottom mt-6 ${ctaAlignmentClasses[ctaAlignment] || ctaAlignmentClasses.left}`}>
       <a 
         href={ctaData.data.ctaUrl}
@@ -406,7 +318,7 @@ function getCTAButtonClasses(style = 'primary') {
         {ctaData.data.title}
       </a>
     </div>
-  )}
+  )} */}
 </section>
 
 <style>

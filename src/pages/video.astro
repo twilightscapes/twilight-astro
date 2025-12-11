@@ -130,7 +130,8 @@ if (videoParam || videoIdParam) {
     // For YouTube videos, fetch real metadata from API during SSR
     if (detected.platform === 'youtube') {
       try {
-        const metadataUrl = new URL('/api/video-metadata', Astro.url.origin);
+        // Try both metadata endpoints for compatibility with Bluesky bot
+        const metadataUrl = new URL('/api/metadata', Astro.url.origin);
         metadataUrl.searchParams.set('videoId', detected.id);
         
         const response = await fetch(metadataUrl.toString());
@@ -139,14 +140,16 @@ if (videoParam || videoIdParam) {
           videoTitle = metadata.title || videoTitle;
           videoDescription = metadata.description || videoDescription;
           videoThumbnail = metadata.thumbnail || videoThumbnail;
+          console.log('✅ Fetched metadata:', { videoTitle, videoDescription, videoThumbnail });
         } else {
+          console.warn('⚠️ Metadata API returned status:', response.status);
           // Fallback to default thumbnail if API fails
-          videoThumbnail = `https://img.youtube.com/vi/${detected.id}/maxresdefault.jpg`;
+          videoThumbnail = `https://img.youtube.com/vi/${detected.id}/hqdefault.jpg`;
         }
       } catch (error) {
         console.error('Failed to fetch video metadata:', error);
         // Fallback to default thumbnail
-        videoThumbnail = `https://img.youtube.com/vi/${detected.id}/maxresdefault.jpg`;
+        videoThumbnail = `https://img.youtube.com/vi/${detected.id}/hqdefault.jpg`;
       }
     } else {
       // For non-YouTube platforms, use generic metadata
@@ -168,7 +171,7 @@ if (videoParam || videoIdParam) {
     if (videoId) {
       // Try to fetch metadata for YouTube
       try {
-        const metadataUrl = new URL('/api/video-metadata', Astro.url.origin);
+        const metadataUrl = new URL('/api/metadata', Astro.url.origin);
         metadataUrl.searchParams.set('videoId', videoId);
         
         const response = await fetch(metadataUrl.toString());
@@ -176,13 +179,13 @@ if (videoParam || videoIdParam) {
           const metadata = await response.json();
           videoTitle = metadata.title || videoTitle;
           videoDescription = metadata.description || videoDescription;
-          videoThumbnail = metadata.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+          videoThumbnail = metadata.thumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
         } else {
-          videoThumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+          videoThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
         }
       } catch (error) {
         console.error('Failed to fetch video metadata:', error);
-        videoThumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        videoThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
       }
     }
   }
@@ -252,12 +255,34 @@ width: 60px;
     z-index: 1;
     display: none; 
   }
+
 @media (max-width: 58rem) {
   #bigbox{display:flex; flex-direction: column !important; padding:10px 0 0 0; gap:2vh;}
   .menu-label { font-size: 1.8em; justify-content: center; align-items: center; align-content: center; }
   #video-frame {height: 66vh;}
 /* #checkboxes .menu-label {width: 18vw;} */
   
+}
+
+/* Landscape orientation on mobile devices */
+@media (max-width: 58rem) and (orientation: landscape) {
+  #video-frame {
+    height: 85vh !important;
+    width: 100vw !important;
+  }
+  
+  #menu-bar {
+    display: none !important;
+  }
+}
+
+/* Portrait orientation on mobile - adjust for aspect ratio */
+@media (max-width: 58rem) and (orientation: portrait) {
+  #video-frame {
+    height: auto !important;
+    aspect-ratio: 16/9;
+    width: 100vw !important;
+  }
 }
 
   #start-input, #stop-input {max-width:30px; border:0px solid red;}
@@ -384,6 +409,8 @@ width: 60px;
     #membership-status {
       display: none !important;
     }
+    .backimage{display:none !important;}
+    body {background-color:#000 !important;}
   </style>
 )}
 
@@ -3046,8 +3073,13 @@ console.info('🛡️ Privacy-focused YouTube embed: API disabled, tracking mini
     showTitles={true}
     sectionTitle="Your Favorites"
   />
-</div>
-<a name="member" id="member" ></a>
-<br /><br /><br />
+  
 
+</div>
+
+<a name="member" id="member" ></a>
+<br />
+<br />
+<br />
+<br />
 </PageLayout>

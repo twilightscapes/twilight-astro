@@ -1,0 +1,12 @@
+title: About the photographer
+layout: two-column
+contentAlignment: left
+spacing: none
+bottomSpacing: medium
+imagePosition: top
+ctaPosition: after-content
+ctaAlignment: left
+showTitle: false
+youtube:
+  discriminant: false
+videoPosition: top

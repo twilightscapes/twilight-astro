@@ -1,0 +1,20 @@
+location: >-
+  https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d154546.6032849972!2d-88.94227414957832!3d30.442437545968502!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1762658647112!5m2!1sen!2sus
+showMap: true
+showName: true
+showPhone: true
+showMessage: true
+showUpload: true
+showExtraField: true
+extraFieldLabel: Extra Field
+showExtraField2: true
+extraFieldLabel2: Extra Field 2
+formContent: 'For all inquiries, please complete the form below:'
+mapTitle: Section Title Here
+mapDescription: A section description goes here.
+businessName: Business Name
+addressLine1: 12345 Street Name
+addressLine2: City, State and Zip
+mapPhone: 555 123 4567
+mapFax: (555) 123-4568
+mapAdditionalText: Some additional text can go here.
